@@ -19,7 +19,7 @@ Create [conda](https://www.anaconda.com/products/individual) environment:
 
 ```sh
 conda create -n textgrid python=3.7 -y
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 Then you need to install [flite](https://github.com/festvox/flite) for G2P conversion of English text with Epitran:
