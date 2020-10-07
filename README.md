@@ -37,6 +37,12 @@ sudo cp lex_lookup /usr/local/bin
 
 ## Usage
 
+See help:
+
+```sh
+~/anaconda3/envs/textgrid/bin/python -m runner --help
+```
+
 Example:
 
 ```sh
@@ -44,8 +50,8 @@ Example:
   -f="/datasets/phil_home/downloads/test.TextGrid" \
   -o="output.TextGrid" \
   -w="words" \
-  -sipa="IPA-standard" \
-  -aipa="IPA-actual"
+  -a="IPA-actual" \
+  -s="IPA-standard"
 ```
 
 ## Development

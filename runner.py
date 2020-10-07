@@ -15,6 +15,7 @@ def check_paths_ok(in_path: str, out_path: str):
 
   return True
 
+
 if __name__ == "__main__":
   main_parser = ArgumentParser()
   main_parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
@@ -22,10 +23,10 @@ if __name__ == "__main__":
                            help="TextGrid output filepath.")
   main_parser.add_argument("-w", "--word-tier-name", type=str, required=True,
                            help="The name of the tier with the English words annotated.")
-  main_parser.add_argument("-aipa", "--actual-ipa-tier-name", type=str, required=True,
-                           help="The name of the tier which should contain the IPA transcriptions (if the tier exists, it will be overwritten).")
-  main_parser.add_argument("-sipa", "--standard-ipa-tier-name", type=str,
-                           help="The optional name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
+  main_parser.add_argument("-a", "--actual-ipa-tier-name", type=str, required=True,
+                           help="The name of the tier which should contain the IPA transcriptions. If the tier exists, it will be overwritten.")
+  main_parser.add_argument("-s", "--standard-ipa-tier-name", type=str, required=False,
+                           help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
   args = main_parser.parse_args()
 
   if check_paths_ok(args.file, args.output):
