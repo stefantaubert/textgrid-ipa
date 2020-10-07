@@ -1,5 +1,7 @@
 # textgrid-ipa
 
+A tool which converts an English tier to a new "actual-IPA" tier. Optionally a copy of the "actual-IPA" tier can be added as "standard-IPA" tier which can be used as reference to compare future changes on the actual-IPA tier with it.
+
 ## Setup
 
 Checkout repository:
