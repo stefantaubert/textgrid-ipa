@@ -1,8 +1,12 @@
 # textgrid-ipa
+![Python](https://img.shields.io/github/license/stefantaubert/textgrid-ipa)
+![Python](https://img.shields.io/badge/python-3.7.9-green.svg)
 
-A tool which converts an English tier to a new "actual-IPA" tier. Optionally a copy of the "actual-IPA" tier can be added as "standard-IPA" tier which can be used as reference to compare future changes on the actual-IPA tier with it.
+A python tool which converts an English tier to a new "actual-IPA" tier. Optionally a copy of the "actual-IPA" tier can be added as "standard-IPA" tier which can be used as reference to compare future changes on the actual-IPA tier with it.
 
 ## Setup
+
+Currently there is only linux supported.
 
 Checkout repository:
 
@@ -11,7 +15,7 @@ git clone https://github.com/stefantaubert/textgrid-ipa
 cd textgrid-ipa
 ```
 
-Create conda environment:
+Create [conda](https://www.anaconda.com/products/individual) environment:
 
 ```sh
 conda create -n textgrid python=3.7 -y
@@ -30,6 +34,21 @@ cd testsuite
 make lex_lookup
 sudo cp lex_lookup /usr/local/bin
 ```
+
+## Usage
+
+Example:
+
+```sh
+~/anaconda3/envs/textgrid/bin/python -m runner \
+  -f="/datasets/phil_home/downloads/test.TextGrid" \
+  -o="output.TextGrid" \
+  -w="words" \
+  -sipa="IPA-standard" \
+  -aipa="IPA-actual"
+```
+
+## Development
 
 Recommended Addons for VSCode:
 
@@ -67,17 +86,4 @@ My VSCode settings:
     "source.organizeImports": true
   }
 }
-```
-
-## Usage
-
-Example:
-
-```sh
-~/anaconda3/envs/textgrid/bin/python -m runner \
-  -f="/datasets/phil_home/downloads/test.TextGrid" \
-  -o="output.TextGrid" \
-  -w="words" \
-  -sipa="IPA-standard" \
-  -aipa="IPA-actual"
 ```
