@@ -1,4 +1,5 @@
 # textgrid-ipa
+
 ![Python](https://img.shields.io/github/license/stefantaubert/textgrid-ipa)
 ![Python](https://img.shields.io/badge/python-3.7.9-green.svg)
 

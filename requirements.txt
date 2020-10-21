@@ -1,4 +1,7 @@
+scipy==1.5.3
+numpy==1.19.2
 epitran==1.8
+tqdm==4.50.2
 textgrid==1.5
 autopep8==1.5.4
 isort==4.3.21

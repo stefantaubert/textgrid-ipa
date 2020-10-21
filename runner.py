@@ -1,7 +1,8 @@
 import os
 from argparse import ArgumentParser
 
-from convert import main
+from convert import add_ipa_tier
+from textgrid.textgrid import TextGrid
 
 
 def check_paths_ok(in_path: str, out_path: str):
@@ -30,11 +31,15 @@ if __name__ == "__main__":
   args = main_parser.parse_args()
 
   if check_paths_ok(args.file, args.output):
-    main(
-      filepath=args.file,
-      outpath=args.output,
-      word_tier_name=args.word_tier_name,
-      actual_name=args.actual_ipa_tier_name,
-      standard_name=args.standard_ipa_tier_name,
+
+    grid = TextGrid()
+    grid.read(args.file)
+
+    add_ipa_tier(
+      grid=grid,
+      in_tier_name=args.word_tier_name,
+      out_tier_name=args.standard_ipa_tier_name,
     )
+
+    grid.write(args.output)
     print("Success!")

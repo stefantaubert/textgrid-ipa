@@ -113,3 +113,4 @@ logs-*/
 LJSpeech-1.1
 tacotron_output
 .vscode
+playground.py
