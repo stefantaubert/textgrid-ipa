@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser
 
-from convert import add_ipa_tier
+from textgrid_tools.convert import add_ipa_tier
 from textgrid.textgrid import TextGrid
 
 
@@ -16,8 +16,7 @@ def check_paths_ok(in_path: str, out_path: str):
 
   return True
 
-
-if __name__ == "__main__":
+def init_parser():
   main_parser = ArgumentParser()
   main_parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
   main_parser.add_argument("-o", "--output", type=str, required=True,
@@ -28,7 +27,12 @@ if __name__ == "__main__":
                            help="The name of the tier which should contain the IPA transcriptions. If the tier exists, it will be overwritten.")
   main_parser.add_argument("-s", "--standard-ipa-tier-name", type=str, required=False,
                            help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
-  args = main_parser.parse_args()
+
+  return main_parser
+
+if __name__ == "__main__":
+  parser = init_parser()
+  args = parser.parse_args()
 
   if check_paths_ok(args.file, args.output):
 

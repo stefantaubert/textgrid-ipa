@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from math import ceil, inf, log10
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
-from scipy.io.wavfile import read, write
 from tqdm import tqdm
 from tqdm.std import trange
 
@@ -26,7 +25,7 @@ def get_duration_s(samples: int, sampling_rate: int) -> float:
   return duration
 
 
-def ms_to_samples(ms, sampling_rate):
+def ms_to_samples(ms, sampling_rate: int):
   res = int(ms * sampling_rate / 1000)
   return res
 
@@ -44,7 +43,6 @@ def mask_silence(wav: np.ndarray, silence_boundary: float, chunk_size: int) -> L
 
   trim = 0
   max_value = -1 * get_min_value(wav.dtype)
-  len_first_channel = wav.shape[0]
   its = len(wav) / chunk_size
   its = ceil(its)
   res: List[Chunk] = list()
@@ -88,11 +86,3 @@ def get_min_value(dtype):
     return FLOAT32_64_MIN_WAV
 
   assert False
-
-
-if __name__ == "__main__":
-  file = "/datasets/test.wav"
-  sampling_rate, wav = read(file)
-
-  res = mask_silence(wav, silence_threshold=-20, chunk_size=int(96000 / 2))
-  print(res)

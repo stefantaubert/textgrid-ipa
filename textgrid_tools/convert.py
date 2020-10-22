@@ -1,13 +1,12 @@
-from math import ceil
+from logging import Logger, getLogger
 from typing import List, Optional, Tuple
 
 import numpy as np
 from epitran import Epitran
-from scipy.io.wavfile import read
 from tqdm import tqdm
-from tqdm.std import trange
 
-from silence_detection import (Chunk, get_duration_s, mask_silence,
+from cmudict_parser import get_dict, CMUDict
+from textgrid_tools.silence_detection import (Chunk, get_duration_s, mask_silence,
                                ms_to_samples)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
@@ -25,6 +24,7 @@ def update_or_add_tier(grid: TextGrid, tier: IntervalTier) -> None:
 
 def add_ipa_tier(grid: TextGrid, in_tier_name: str,
                  out_tier_name: Optional[str]) -> None:
+
   in_tier: IntervalTier = grid.getFirst(in_tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
   ipa_intervals = convert_to_ipa_intervals(in_tier_intervals)
@@ -194,49 +194,27 @@ def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_
 
 def convert_to_ipa_intervals(tiers: List[IntervalTier]) -> List[IntervalTier]:
   epi = Epitran('eng-Latn')
-  ipa_intervals: List[Interval] = [convert_to_ipa_interval(x, epi) for x in tiers]
+  cmu = get_dict()
+  logger = getLogger()
+  ipa_intervals: List[Interval] = [convert_to_ipa_interval(x, epi, cmu, logger) for x in tiers]
   return ipa_intervals
 
 
-def convert_to_ipa_interval(tier: IntervalTier, epitran: Epitran) -> IntervalTier:
+def convert_to_ipa_interval(tier: IntervalTier, epitran: Epitran, cmu: CMUDict, logger: Logger) -> IntervalTier:
+  word = tier.mark
+  is_silence = word == ""
+  if is_silence:
+    ipa = ""
+  else:
+    use_cmu = cmu.contains(word)
+    if use_cmu:
+      ipa = cmu.get_first_ipa(word)
+    else:
+      ipa = epitran.transliterate(word)
+      logger.debug(f"{word} was not in CMUDict therefore used Epitran -> {ipa}")
   ipa_interval = Interval(
     minTime=tier.minTime,
     maxTime=tier.maxTime,
-    mark=epitran.transliterate(tier.mark),
+    mark=ipa,
   )
   return ipa_interval
-
-
-if __name__ == "__main__":
-  grid = TextGrid()
-  grid.read("/datasets/sentences.TextGrid")
-
-  file = "/datasets/test.wav"
-  sampling_rate, wav = read(file)
-
-  grid = add_pause_tier(
-    # grid=None,
-    grid=grid,
-    wav=wav,
-    sr=sampling_rate,
-    out_tier_name="pause:gen",
-    chunk_size_ms=50,
-    silence_boundary=0.25,
-    min_silence_duration_ms=1000,
-  )
-
-  grid.write("/datasets/pauses.TextGrid")
-
-  add_words_tier(
-    grid=grid,
-    in_tier_name="sentences",
-    out_tier_name="words:gen",
-  )
-
-  grid.write("/datasets/out1.TextGrid")
-
-  add_ipa_tier(
-    grid=grid,
-    in_tier_name="words:gen",
-    out_tier_name="IPA-standard",
-  )
