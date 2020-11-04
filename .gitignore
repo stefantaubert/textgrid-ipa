@@ -114,3 +114,5 @@ LJSpeech-1.1
 tacotron_output
 .vscode
 playground.py
+textgrid_tools/wav2pauses.tests.py
+textgrid_tools/words2ipa.tests.py

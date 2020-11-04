@@ -1,1 +1,3 @@
-from textgrid_tools.convert import add_ipa_tier, add_pause_tier, add_words_tier
+from textgrid_tools.sentence2words import add_words_tier
+from textgrid_tools.wav2pauses import add_pause_tier
+from textgrid_tools.words2ipa import add_ipa_tier

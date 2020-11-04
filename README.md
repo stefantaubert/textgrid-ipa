@@ -1,32 +1,31 @@
-# textgrid-ipa
+# textgrid-tools
 
 ![Python](https://img.shields.io/github/license/stefantaubert/textgrid-ipa)
 ![Python](https://img.shields.io/badge/python-3.7.9-green.svg)
 
-A python tool which converts an English tier to a new "actual-IPA" tier. Optionally a copy of the "actual-IPA" tier can be added as "standard-IPA" tier which can be used as reference to compare future changes on the actual-IPA tier with it.
+A python tool which is able:
+
+- to detect pauses in recordings (.wav),
+- to extract words from annotated sentences and
+- to convert English words to IPA transcription based on CMUDict (and Epitran for out-of-vocabulary words).
+
+## Workflow
+
+The workflow is usually first to detect the silence boundaries of a recording with `wav2pauses`. Then you transcribe the contained sentences in praat to English. After that you extract the words from the sentences with `sentences2words` and adjust the word boundaries manually via praat. In the next step you convert the English words to IPA with `words2ipa`. Then you make a copy the tier in praat to have a reference to the standard-IPA transcription and adjust in the copied tier the actual-IPA transcription. As result you have at least the following tiers:
+
+- pauses
+- sentences
+- words
+- standard-IPA
+- actual-IPA
 
 ## Setup
 
 Currently there is only linux supported.
 
-Checkout repository:
+You need to install [flite](https://github.com/festvox/flite) for G2P conversion of English text with Epitran for OOV words:
 
 ```sh
-git clone https://github.com/stefantaubert/textgrid-ipa
-cd textgrid-ipa
-```
-
-Create [conda](https://www.anaconda.com/products/individual) environment:
-
-```sh
-conda create -n textgrid python=3.7 -y
-pip install -r requirements.txt
-```
-
-Then you need to install [flite](https://github.com/festvox/flite) for G2P conversion of English text with Epitran:
-
-```sh
-cd ..
 git clone https://github.com/festvox/flite
 cd flite
 ./configure && make
@@ -34,25 +33,53 @@ sudo make install
 cd testsuite
 make lex_lookup
 sudo cp lex_lookup /usr/local/bin
+cd ..
+```
+
+Then checkout this repository:
+
+```sh
+git clone https://github.com/stefantaubert/textgrid-ipa
+cd textgrid-ipa
+# install pipenv
+pip install --user pipenv --python 3.7
+# install custom env for repository
+## a) for runtime only:
+pipenv install --ignore-pipfile
+## b) for development:
+pipenv install --dev
 ```
 
 ## Usage
 
-See help:
-
-```sh
-~/anaconda3/envs/textgrid/bin/python -m runner --help
-```
-
 Example:
 
 ```sh
-~/anaconda3/envs/textgrid/bin/python -m runner \
-  -f="/datasets/phil_home/downloads/test.TextGrid" \
-  -o="output.TextGrid" \
+# help
+pipenv run python -m cli --help
+
+# wav2pauses
+pipenv run python -m cli wav2pauses \
+  -o="/datasets/pauses.TextGrid" \
+  -w="/datasets/audio.wav" \
+  -p="pauses" \
+  -c=50 \
+  -s=0.25 \
+  -m=1000
+
+# sentences2words
+pipenv run python -m cli sentences2words \
+  -f="/datasets/pauses_sentences.TextGrid" \
+  -o="/datasets/pauses_sentences_words.TextGrid" \
+  -s="sentences" \
+  -w="words"
+
+# words2ipa
+pipenv run python -m cli words2ipa \
+  -f="/datasets/pauses_sentences_words.TextGrid" \
+  -o="/datasets/pauses_sentences_words_ipa.TextGrid" \
   -w="words" \
-  -a="IPA-actual" \
-  -s="IPA-standard"
+  -i="IPA-standard"
 ```
 
 ## Development
@@ -68,7 +95,7 @@ My VSCode settings:
 
 ```json
 {
-  "python.pythonPath": "~/anaconda3/envs/textgrid/bin/python",
+  "python.pythonPath": "/home/user/.local/share/virtualenvs/textgrid-ipa-...",
   "editor.tabSize": 2,
   "editor.fontSize": 15,
   "editor.wordWrap": "on",
@@ -93,4 +120,15 @@ My VSCode settings:
     "source.organizeImports": true
   }
 }
+```
+
+### Add to another project
+
+In the destination project run:
+
+```sh
+# if not already done:
+pip install --user pipenv --python 3.7
+# add reference
+pipenv install -e git+git@github.com:stefantaubert/textgrid-ipa.git@main#egg=textgrid_tools
 ```
