@@ -10,7 +10,7 @@ from textgrid_tools.utils import (check_paths_ok, collapse_whitespace,
 def init_words_parser(parser: ArgumentParser):
   parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
   parser.add_argument("-o", "--output", type=str, required=True,
-                      help="TextGrid output filepath.")
+                       help="TextGrid output filepath.")
   parser.add_argument("-s", "--sentences-tier-name", type=str, default="sentences",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
   parser.add_argument("-w", "--words-tier-name", type=str, default="words",
@@ -42,7 +42,7 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
   in_tier_intervals: List[Interval] = in_tier.intervals
   word_tier = IntervalTier(
     name=out_tier_name,
-    minTime=in_tier.minTime,
+    minTime=in_tier .minTime,
     maxTime=in_tier.maxTime,
   )
 

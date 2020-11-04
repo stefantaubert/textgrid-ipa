@@ -3,7 +3,18 @@ import re
 from logging import Logger
 from typing import Optional
 
-from textgrid.textgrid import IntervalTier, TextGrid
+from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
+
+def ms_to_samples(ms, sampling_rate: int):
+  res = int(ms * sampling_rate / 1000)
+  return res
+
+
+def check_interval_has_content(interval: Interval) -> bool:
+  content = interval.mark.strip()
+  has_content = content != ""
+  return has_content
 
 
 def check_paths_ok(in_path: str, out_path: str, logger: Logger) -> bool:

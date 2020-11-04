@@ -10,7 +10,7 @@ from tqdm import tqdm
 from tqdm.std import trange
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import check_paths_ok, update_or_add_tier
+from textgrid_tools.utils import check_paths_ok, ms_to_samples, update_or_add_tier
 
 FLOAT32_64_MIN_WAV = -1.0
 INT16_MIN = np.iinfo(np.int16).min  # -32768 = -(2**15)
@@ -176,11 +176,6 @@ def get_dBFS(wav: np.ndarray, max_value: float) -> float:
 def get_duration_s(samples: int, sampling_rate: int) -> float:
   duration = samples / sampling_rate
   return duration
-
-
-def ms_to_samples(ms, sampling_rate: int):
-  res = int(ms * sampling_rate / 1000)
-  return res
 
 
 @dataclass
