@@ -2,10 +2,18 @@ import unittest
 
 import numpy as np
 
-from textgrid_tools.remove_silence import remove_from_array
+from textgrid_tools.remove_silence import remove_from_array, remove_silence
 
 
 class UnitTests(unittest.TestCase):
+  def test(self):
+    remove_silence(
+      file="/datasets/40mins.TextGrid",
+      output="/datasets/40mins_nosil.TextGrid",
+      tier_name="sentences",
+      wav_file="/datasets/40mins.wav",
+      wav_output_file="/datasets/40mins_nosil.wav",
+    )
 
   def test_ipa(self):
 
@@ -18,8 +26,7 @@ class UnitTests(unittest.TestCase):
     wav_dummy[501][1] = 0
 
     res = np.delete(wav_dummy, [500, 501, 0], axis=0)
-    #res = remove_from_array(wav_dummy, 500, 2)
-    self.assertEqual((998, 2), res.shape)
+    self.assertEqual((997, 2), res.shape)
     self.assertEqual(1, np.min(res))
 
 

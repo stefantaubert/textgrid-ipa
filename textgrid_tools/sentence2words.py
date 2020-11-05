@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import List, Optional, Tuple
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import (check_paths_ok, collapse_whitespace,
+from textgrid_tools.utils import (check_paths_ok, collapse_whitespace, durations_to_interval_tier,
                                   update_or_add_tier)
 
 
@@ -42,7 +42,7 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
   in_tier_intervals: List[Interval] = in_tier.intervals
   word_tier = IntervalTier(
     name=out_tier_name,
-    minTime=in_tier .minTime,
+    minTime=in_tier.minTime,
     maxTime=in_tier.maxTime,
   )
 
@@ -69,21 +69,10 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
         word_duration = len(word) * avg_char_duration
         word_durations.append((word, word_duration))
 
-  start = word_tier.minTime
-  for i, word_duration in enumerate(word_durations):
-    word, duration = word_duration
-    end = start + duration
-    is_last = i == len(word_durations) - 1
-    if is_last:
-      # to prevent calculation inprecisions due to float, and therefore an invalid tier size.
-      end = in_tier.maxTime
-    word_interval = Interval(
-      minTime=start,
-      maxTime=end,
-      mark=word,
-    )
-    # word_intervals.append(word_interval)
-    word_tier.addInterval(word_interval)
-    start = end
+  word_tier = durations_to_interval_tier(
+    durations=word_durations,
+    maxTime=in_tier.maxTime,
+  )
+  
   # word_tier.maxTime = start
   update_or_add_tier(grid, word_tier)

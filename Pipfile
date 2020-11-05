@@ -18,6 +18,7 @@ tqdm = ">=4.50.2"
 wget = ">=3.2"
 TextGrid = ">=1.5"
 cmudict-parser = {editable = true, git = "git@github.com:stefantaubert/cmudict-parser.git", ref = "master"}
+pandas = "*"
 
 [requires]
 python_version = "3.7"

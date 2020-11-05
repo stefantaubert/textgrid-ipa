@@ -12,12 +12,15 @@ from textgrid_tools.utils import check_interval_has_content, ms_to_samples
 
 def init_remove_silence_parser(parser: ArgumentParser):
   parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("-o", "--output", type=str, required=True, help="TextGrid output filepath.")
   parser.add_argument("-t", "--tier-name", type=str, default="words",
                       help="The name of the tier with the English words annotated.")
+  parser.add_argument("-w", "--wav-file", type=str, required=True, help="")
+  parser.add_argument("-r", "--wav-output-file", type=str, required=True, help="")
   return remove_silence
 
 
-def remove_silence(file: str, output: str, tier_name: str, wav_file: str, out_wav_file: str) -> None:
+def remove_silence(file: str, output: str, tier_name: str, wav_file: str, wav_output_file: str) -> None:
   logger = getLogger()
   grid = TextGrid()
   grid.read(file)
@@ -34,19 +37,20 @@ def remove_silence(file: str, output: str, tier_name: str, wav_file: str, out_wa
     logger=logger,
   )
 
-  write(out_wav_file, sampling_rate, out_wav)
+  write(wav_output_file, sampling_rate, out_wav)
 
   grid.write(output)
   logger.info("Success!")
 
 
-def get_remove_samples(wav: np.ndarray, start_s: float, end_s: float, sr: int) -> List[int]:
+def get_remove_samples(start_s: float, end_s: float, sr: int) -> List[int]:
   start_ms = start_s * 1000
   end_ms = end_s * 1000
   start_samples = ms_to_samples(start_ms, sr)
   sample_count_to_remove = ms_to_samples(end_ms - start_ms, sr)
   result = list(range(start_samples, start_samples + sample_count_to_remove))
   return result
+
 
 def remove_from_wav(wav: np.ndarray, start_s: float, end_s: float, sr: int) -> np.ndarray:
   start_samples = ms_to_samples(start_s, sr)
@@ -72,7 +76,7 @@ def calc_durations(grid: TextGrid, tier_name: str, in_wav, sr: int, logger: Logg
     if has_content:
       new_intervals.append(interval)
     else:
-      remove = get_remove_samples(in_wav, interval.minTime, interval.maxTime, sr)
+      remove = get_remove_samples(interval.minTime, interval.maxTime, sr)
       remove_samples.extend(remove)
       #in_wav = remove_from_wav(in_wav, interval.minTime, interval.maxTime, sr)
 

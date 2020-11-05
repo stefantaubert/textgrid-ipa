@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
-from logging import getLogger
+from logging import Logger, getLogger
 from math import ceil, inf, log10
 from typing import List, Optional, Tuple
 
@@ -10,7 +10,8 @@ from tqdm import tqdm
 from tqdm.std import trange
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import check_paths_ok, ms_to_samples, update_or_add_tier
+from textgrid_tools.utils import (check_paths_ok, durations_to_interval_tier, ms_to_samples,
+                                  update_or_add_tier)
 
 FLOAT32_64_MIN_WAV = -1.0
 INT16_MIN = np.iinfo(np.int16).min  # -32768 = -(2**15)
@@ -19,8 +20,7 @@ INT32_MIN = np.iinfo(np.int32).min  # -2147483648 = -(2**31)
 
 def init_pause_parser(parser: ArgumentParser):
   parser.add_argument("-f", "--file", type=str, required=False, help="TextGrid input filepath.")
-  parser.add_argument("-o", "--output", type=str, required=True,
-                      help="TextGrid output filepath.")
+  parser.add_argument("-o", "--output", type=str, required=True, help="TextGrid output filepath.")
   parser.add_argument("-w", "--wav-file", type=str, required=True,
                       help="")
   parser.add_argument("-p", "--pauses-tier-name", type=str, default="pauses", help="")
@@ -52,20 +52,15 @@ def add_pause(file: Optional[str], output: str, pauses_tier_name: str, wav_file:
       out_tier_name=pauses_tier_name,
       silence_boundary=silence_boundary,
       sr=sampling_rate,
+      logger=logger,
     )
 
     grid.write(output)
     logger.info("Success!")
 
 
-def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_name: Optional[str], silence_boundary: float, chunk_size_ms: int, min_silence_duration_ms: int) -> TextGrid:
+def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_name: Optional[str], silence_boundary: float, chunk_size_ms: int, min_silence_duration_ms: int, logger: Logger) -> TextGrid:
   total_duration = get_duration_s(len(wav), sr)
-
-  pause_layer = IntervalTier(
-    name=out_tier_name,
-    minTime=0,
-    maxTime=total_duration,
-  )
 
   chunk_size = ms_to_samples(chunk_size_ms, sr)
 
@@ -93,6 +88,7 @@ def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_
       current_samples = chunk.size
     last_chunk = chunk
 
+  logger.info(f"Extracted {len(chunks)} segments.")
   if current_samples > 0:
     c = Chunk(
       is_silence=last_chunk.is_silence,
@@ -138,30 +134,30 @@ def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_
       else:
         mark_duration.append(("", duration))
 
-  start = pause_layer.minTime
-  for mark, duration in mark_duration:
-    end = start + duration
-    word_interval = Interval(
-      minTime=start,
-      maxTime=end,
-      mark=mark,
-    )
-    # word_intervals.append(word_interval)
-    pause_layer.addInterval(word_interval)
-    start = end
+  maxTime = total_duration
 
   if grid is not None:
     if len(grid.tiers) > 0:
-      pause_layer.maxTime = grid.tiers[0].maxTime
-  else:
+      maxTime = grid.tiers[0].maxTime
+
+  pause_layer = durations_to_interval_tier(
+    durations=mark_duration,
+    maxTime=maxTime,
+  )
+
+  pause_layer.name = out_tier_name
+
+  if grid is None:
     grid = TextGrid(
       name="Grid",
       minTime=pause_layer.minTime,
       maxTime=pause_layer.maxTime,
       strict=True,
     )
+
   update_or_add_tier(grid, pause_layer)
   return grid
+
 
 
 def get_dBFS(wav: np.ndarray, max_value: float) -> float:
@@ -201,9 +197,9 @@ def mask_silence(wav: np.ndarray, silence_boundary: float, chunk_size: int) -> L
     dBFSs.append(dBFS)
     trim += chunk_size
 
-  #print(dBFSs)
-  #print(min(dBFSs))
-  #print(max(dBFSs))
+  print(dBFSs)
+  print(min(dBFSs))
+  print(max(dBFSs))
   diff = abs(abs(min(dBFSs)) - abs(max(dBFSs)))
   threshold = diff * silence_boundary
   silence_threshold = min(dBFSs) + threshold

@@ -67,9 +67,22 @@ pipenv run python -m cli wav2pauses \
   -s=0.25 \
   -m=1000
 
+# plot_durations
+pipenv run python -m cli plot-durations \
+  -f="/datasets/pauses_sentences.TextGrid" \
+  -t="sentences"
+
+# remove_empty_intervals
+pipenv run python -m cli remove-empty-intervals \
+  -f="/datasets/pauses_sentences.TextGrid" \
+  -o="/datasets/pauses_sentences_clean.TextGrid" \
+  -t="sentences" \
+  -w="/datasets/audio.wav" \
+  -r="/datasets/audio_clean.wav" \
+
 # sentences2words
 pipenv run python -m cli sentences2words \
-  -f="/datasets/pauses_sentences.TextGrid" \
+  -f="/datasets/pauses_sentences_clean.TextGrid" \
   -o="/datasets/pauses_sentences_words.TextGrid" \
   -s="sentences" \
   -w="words"
