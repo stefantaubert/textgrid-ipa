@@ -2,17 +2,17 @@ import unittest
 
 import numpy as np
 
-from textgrid_tools.remove_silence import remove_from_array, remove_silence
+from textgrid_tools.remove_silence import remove_silence
 
 
 class UnitTests(unittest.TestCase):
   def test(self):
     remove_silence(
-      file="/datasets/40mins.TextGrid",
+      file="/datasets/40mins_10s.TextGrid",
       output="/datasets/40mins_nosil.TextGrid",
       tier_name="sentences",
       wav_file="/datasets/40mins.wav",
-      wav_output_file="/datasets/40mins_nosil.wav",
+      wav_output_file="/datasets/40mins_10s_nosil.wav",
     )
 
   def test_ipa(self):

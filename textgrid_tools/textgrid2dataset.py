@@ -6,11 +6,16 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+from numpy.core.fromnumeric import mean
+from numpy.lib.function_base import median
 from scipy.io.wavfile import read, write
 from tqdm import tqdm
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import ms_to_samples
+
+OATA_CSV_NAME = "data.csv"
+AUDIO_FOLDER_NAME = "audio"
 
 
 @dataclass
@@ -20,6 +25,8 @@ class Entry():
   wav: str
   duration: float
   speaker: str
+  gender: str
+  accent: str
 
 
 def save(items: List[Entry], file_path: str):
@@ -36,10 +43,14 @@ def init_textgrid2dataset_parser(parser: ArgumentParser):
   parser.add_argument("-o", "--output-dir", type=str, required=True, help="")
   parser.add_argument("-n", "--output-name", type=str, required=True, help="")
   parser.add_argument("-s", "--speaker-name", type=str, required=True, help="")
+  parser.add_argument("-g", "--speaker-gender", type=str,
+                      choices=["m", "f"], required=True, help="")
+  parser.add_argument("-a", "--speaker-accent", type=str, required=True, help="")
+
   return convert_textgrid2dataset
 
 
-def convert_textgrid2dataset(file: str, tier_name: str, wav_file: str, duration_s_max: float, output_dir: str, output_name: str, speaker_name: str) -> None:
+def convert_textgrid2dataset(file: str, tier_name: str, wav_file: str, duration_s_max: float, output_dir: str, output_name: str, speaker_name: str, speaker_gender: str, speaker_accent: str) -> None:
   logger = getLogger()
   grid = TextGrid()
   grid.read(file)
@@ -82,7 +93,7 @@ def convert_textgrid2dataset(file: str, tier_name: str, wav_file: str, duration_
 
   logger.info("Writing outputs...")
   dest_dirpath = os.path.join(output_dir, output_name)
-  audio_dirpath = os.path.join(dest_dirpath, "audio")
+  audio_dirpath = os.path.join(dest_dirpath, AUDIO_FOLDER_NAME)
   os.makedirs(audio_dirpath, exist_ok=True)
   res: List[Entry] = list()
   for i, part in enumerate(tqdm(final_parts)):
@@ -95,8 +106,19 @@ def convert_textgrid2dataset(file: str, tier_name: str, wav_file: str, duration_
       wav=wav_name,
       duration=current_duration,
       speaker=speaker_name,
+      gender=speaker_gender,
+      accent=speaker_accent,
     ))
     wav_filepath = os.path.join(audio_dirpath, wav_name)
     write(wav_filepath, sampling_rate, wav)
-  data_filepath = os.path.join(dest_dirpath, "data.csv")
+  durations = [x.duration for x in res]
+
+  logger.info(f"Minimal duration of one utterance: {min(durations):.2f}s")
+  logger.info(f"Maximal duration of one utterance: {max(durations):.2f}s")
+  logger.info(f"Mean duration of an utterance: {mean(durations):.2f}s")
+  logger.info(f"Median duration of an utterance: { median(durations):.2f}s")
+  logger.info(f"Total duration of all utterances: {sum(durations):.0f}s ({sum(durations)/60:.2f}h)")
+  logger.info(f"Count of utterances: {len(durations)}")
+
+  data_filepath = os.path.join(dest_dirpath, OATA_CSV_NAME)
   save(res, data_filepath)
