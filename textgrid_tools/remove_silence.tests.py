@@ -8,11 +8,11 @@ from textgrid_tools.remove_silence import remove_silence
 class UnitTests(unittest.TestCase):
   def test(self):
     remove_silence(
-      file="/datasets/40mins_10s.TextGrid",
-      output="/datasets/40mins_nosil.TextGrid",
+      file="/datasets/Recordings/40mins/raw/annotation.TextGrid",
+      output="/datasets/Recordings/40mins/nosil/annotation.TextGrid",
       tier_name="sentences",
-      wav_file="/datasets/40mins.wav",
-      wav_output_file="/datasets/40mins_10s_nosil.wav",
+      wav_file="/datasets/Recordings/40mins/raw/audio.wav",
+      wav_output_file="/datasets/Recordings/40mins/nosil/audio.wav",
     )
 
   def test_ipa(self):

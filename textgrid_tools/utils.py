@@ -1,9 +1,14 @@
 import os
 import re
 from logging import Logger
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
+
+def get_parent_dirname(filepath: str) -> str:
+  return Path(filepath).parent
 
 
 def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: float) -> IntervalTier:
@@ -30,6 +35,7 @@ def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: floa
     start = end
 
   return word_tier
+
 
 def ms_to_samples(ms, sampling_rate: int):
   res = int(ms * sampling_rate / 1000)

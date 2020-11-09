@@ -1,5 +1,7 @@
+import os
 from argparse import ArgumentParser
 from logging import Logger, getLogger
+from os import makedirs
 from typing import List, Tuple
 
 import numpy as np
@@ -7,7 +9,8 @@ from scipy.io.wavfile import read, write
 from tqdm import tqdm
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import check_interval_has_content, ms_to_samples
+from textgrid_tools.utils import (check_interval_has_content,
+                                  get_parent_dirname, ms_to_samples)
 
 
 def init_remove_silence_parser(parser: ArgumentParser):
@@ -37,8 +40,10 @@ def remove_silence(file: str, output: str, tier_name: str, wav_file: str, wav_ou
     logger=logger,
   )
 
+  makedirs(get_parent_dirname(wav_output_file), exist_ok=True)
   write(wav_output_file, sampling_rate, out_wav)
 
+  makedirs(get_parent_dirname(output), exist_ok=True)
   grid.write(output)
   logger.info("Success!")
 
@@ -82,6 +87,7 @@ def calc_durations(grid: TextGrid, tier_name: str, in_wav, sr: int, logger: Logg
 
   logger.info(in_wav.shape)
   logger.info(len(remove_samples))
+  logger.info("Deleting pauses from wav...")
   out_wav = np.delete(in_wav, remove_samples, axis=0)
   logger.info(out_wav.shape)
 
@@ -100,7 +106,7 @@ def calc_durations(grid: TextGrid, tier_name: str, in_wav, sr: int, logger: Logg
     maxTime=0,
   )
 
-  for _, word_duration in enumerate(word_durations):
+  for _, word_duration in enumerate(tqdm(word_durations)):
     word, duration = word_duration
     end = start + duration
     word_interval = Interval(
@@ -118,6 +124,10 @@ def calc_durations(grid: TextGrid, tier_name: str, in_wav, sr: int, logger: Logg
     if t.name == tier_name:
       grid.tiers.pop(i)
       break
+
+  grid.tiers.clear()
+  grid.minTime = word_tier.minTime
+  grid.maxTime = word_tier.maxTime
   grid.append(word_tier)
 
   return out_wav
