@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_interval_has_content,
-                                  get_parent_dirname, ms_to_samples)
+                                  get_parent_dirpath, ms_to_samples)
 
 
 def init_remove_silence_parser(parser: ArgumentParser):
@@ -40,10 +40,10 @@ def remove_silence(file: str, output: str, tier_name: str, wav_file: str, wav_ou
     logger=logger,
   )
 
-  makedirs(get_parent_dirname(wav_output_file), exist_ok=True)
+  makedirs(get_parent_dirpath(wav_output_file), exist_ok=True)
   write(wav_output_file, sampling_rate, out_wav)
 
-  makedirs(get_parent_dirname(output), exist_ok=True)
+  makedirs(get_parent_dirpath(output), exist_ok=True)
   grid.write(output)
   logger.info("Success!")
 

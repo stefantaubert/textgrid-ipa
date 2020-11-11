@@ -2,19 +2,8 @@ import unittest
 
 import numpy as np
 
-from textgrid_tools.remove_silence import remove_silence
-
 
 class UnitTests(unittest.TestCase):
-  def test(self):
-    remove_silence(
-      file="/datasets/Recordings/40mins/raw/annotation.TextGrid",
-      output="/datasets/Recordings/40mins/nosil/annotation.TextGrid",
-      tier_name="sentences",
-      wav_file="/datasets/Recordings/40mins/raw/audio.wav",
-      wav_output_file="/datasets/Recordings/40mins/nosil/audio.wav",
-    )
-
   def test_ipa(self):
 
     wav_dummy = np.ones(shape=(1000, 2), dtype=np.int)

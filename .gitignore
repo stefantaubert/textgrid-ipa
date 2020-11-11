@@ -109,7 +109,7 @@ venv.bak/
 .vscode
 
 # custom
-textgrid_tools/*.tests.py
+# textgrid_tools/*.tests.py
 textgrid_tools/playground.*
 output
 textgrid_tools/*.playground.py

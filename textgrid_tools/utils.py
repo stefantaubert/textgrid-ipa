@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
-def get_parent_dirname(filepath: str) -> str:
+def get_parent_dirpath(filepath: str) -> str:
   return Path(filepath).parent
 
 
