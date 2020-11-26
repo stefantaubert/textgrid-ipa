@@ -1,11 +1,12 @@
 from argparse import ArgumentParser
+from functools import partial
 from logging import Logger, getLogger
 from typing import List, Optional
 
-from epitran import Epitran
-
 from cmudict_parser import CMUDict, get_dict
+from epitran import Epitran
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
 from textgrid_tools.utils import check_paths_ok, update_or_add_tier
 
 
@@ -58,26 +59,28 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
 
 def convert_to_ipa_intervals(tiers: List[IntervalTier], logger: Logger) -> List[IntervalTier]:
   epi = Epitran('eng-Latn')
-  cmu = get_dict()
+  cmu = get_dict(silent=True)
   ipa_intervals: List[Interval] = [convert_to_ipa_interval(x, epi, cmu, logger) for x in tiers]
   return ipa_intervals
 
 
+def epi_transliterate(word: str, epitran: Epitran, logger: Logger) -> str:
+  ipa = epitran.transliterate(word)
+  logger.debug(f"{word} was not in CMUDict therefore used Epitran -> {ipa}")
+  return ipa
+
+
 def convert_to_ipa_interval(tier: IntervalTier, epitran: Epitran, cmu: CMUDict, logger: Logger) -> IntervalTier:
   word = tier.mark
-  is_silence = word == ""
-  if is_silence:
-    ipa = ""
-  else:
-    use_cmu = cmu.contains(word)
-    if use_cmu:
-      ipa = cmu.get_first_ipa(word)
-    else:
-      ipa = epitran.transliterate(word)
-      logger.debug(f"{word} was not in CMUDict therefore used Epitran -> {ipa}")
+  epi = partial(epi_transliterate, epitran=epitran, logger=logger)
+  ipa = cmu.sentence_to_ipa(
+    sentence=word,
+    replace_unknown_with=epi
+  )
   ipa_interval = Interval(
     minTime=tier.minTime,
     maxTime=tier.maxTime,
     mark=ipa,
   )
+  logger.info(ipa)
   return ipa_interval

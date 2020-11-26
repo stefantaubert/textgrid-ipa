@@ -21,4 +21,4 @@ cmudict-parser = {editable = true, git = "git@github.com:stefantaubert/cmudict-p
 pandas = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"

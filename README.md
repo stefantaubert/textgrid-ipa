@@ -145,3 +145,17 @@ pip install --user pipenv --python 3.7
 # add reference
 pipenv install -e git+git@github.com:stefantaubert/textgrid-ipa.git@main#egg=textgrid_tools
 ```
+
+### Notes
+
+Python 3.9 not working because of:
+
+```txt
+[pipenv.exceptions.InstallError]:     In file included from /usr/include/python3.9/unicodeobject.h:1026:0,
+[pipenv.exceptions.InstallError]:                      from /usr/include/python3.9/Python.h:97,
+[pipenv.exceptions.InstallError]:                      from src/marisa_trie.cpp:4:
+[pipenv.exceptions.InstallError]:     /usr/include/python3.9/cpython/unicodeobject.h:551:42: note: declared here
+[pipenv.exceptions.InstallError]:      Py_DEPRECATED(3.3) PyAPI_FUNC(PyObject*) PyUnicode_FromUnicode(
+[pipenv.exceptions.InstallError]:                                               ^~~~~~~~~~~~~~~~~~~~~
+[pipenv.exceptions.InstallError]:     error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
+```

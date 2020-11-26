@@ -24,14 +24,14 @@ INT32_MIN = np.iinfo(np.int32).min  # -2147483648 = -(2**31)
 
 
 def init_pause_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=False, help="TextGrid input filepath.")
-  parser.add_argument("-o", "--output", type=str, required=True, help="TextGrid output filepath.")
-  parser.add_argument("-w", "--wav-file", type=str, required=True,
+  parser.add_argument("--file", type=str, required=False, help="TextGrid input filepath.")
+  parser.add_argument("--output", type=str, required=True, help="TextGrid output filepath.")
+  parser.add_argument("--wav-file", type=str, required=True,
                       help="")
-  parser.add_argument("-p", "--pauses-tier-name", type=str, default="pauses", help="")
-  parser.add_argument("-s", "--silence-boundary", type=float, default=0.25,
+  parser.add_argument("--pauses-tier-name", type=str, default="pauses", help="")
+  parser.add_argument("--silence-boundary", type=float, default=0.25,
                       help="Percent of lower dB recognized as silence.")
-  parser.add_argument("-c", "--chunk-size-ms", type=int, default=50,
+  parser.add_argument("--chunk-size-ms", type=int, default=50,
                       help="")
   parser.add_argument("--min-silence-duration-ms", type=int, default=700,
                       help="")
