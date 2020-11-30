@@ -14,12 +14,12 @@ from textgrid_tools.utils import (check_interval_has_content,
 
 
 def init_remove_silence_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("-o", "--output", type=str, required=True, help="TextGrid output filepath.")
-  parser.add_argument("-t", "--tier-name", type=str, default="words",
+  parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("--output", type=str, required=True, help="TextGrid output filepath.")
+  parser.add_argument("--tier-name", type=str, default="words",
                       help="The name of the tier with the English words annotated.")
-  parser.add_argument("-w", "--wav-file", type=str, required=True, help="")
-  parser.add_argument("-r", "--wav-output-file", type=str, required=True, help="")
+  parser.add_argument("--wav-file", type=str, required=True)
+  parser.add_argument("--wav-output-file", type=str, required=True)
   return remove_silence
 
 

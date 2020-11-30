@@ -9,9 +9,9 @@ import pandas as pd
 from numpy.core.fromnumeric import mean
 from numpy.lib.function_base import median
 from scipy.io.wavfile import read, write
+from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from tqdm import tqdm
 
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import ms_to_samples
 
 OATA_CSV_NAME = "data.csv"
@@ -36,16 +36,16 @@ def save(items: List[Entry], file_path: str):
 
 
 def init_textgrid2dataset_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("-t", "--text-tier-name", type=str, default="sentences", help="")
-  parser.add_argument("-w", "--wav-file", type=str, required=True, help="")
-  parser.add_argument("-d", "--duration-s-max", type=float, required=True, help="")
-  parser.add_argument("-o", "--output-dir", type=str, required=True, help="")
-  parser.add_argument("-n", "--output-name", type=str, required=True, help="")
-  parser.add_argument("-s", "--speaker-name", type=str, required=True, help="")
-  parser.add_argument("-g", "--speaker-gender", type=str,
+  parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("--text-tier-name", type=str, default="sentences", help="")
+  parser.add_argument("--wav-file", type=str, required=True, help="")
+  parser.add_argument("--duration-s-max", type=float, required=True, help="")
+  parser.add_argument("--output-dir", type=str, required=True, help="")
+  parser.add_argument("--output-name", type=str, required=True, help="")
+  parser.add_argument("--speaker-name", type=str, required=True, help="")
+  parser.add_argument("--speaker-gender", type=str,
                       choices=["m", "f"], required=True, help="")
-  parser.add_argument("-a", "--speaker-accent", type=str, required=True, help="")
+  parser.add_argument("--speaker-accent", type=str, required=True, help="")
 
   return convert_textgrid2dataset
 

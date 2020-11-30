@@ -7,8 +7,8 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
 def init_durations_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("-t", "--tier-name", type=str, default="sentences",
+  parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("--tier-name", type=str, default="sentences",
                       help="The name of the tier with the English words annotated.")
   return get_durations
 

@@ -1,22 +1,23 @@
 from argparse import ArgumentParser
 from functools import partial
 from logging import Logger, getLogger
+import os
 from typing import List, Optional
 
 from cmudict_parser import CMUDict, get_dict
 from epitran import Epitran
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
-from textgrid_tools.utils import check_paths_ok, update_or_add_tier
+from textgrid_tools.utils import check_paths_ok, get_parent_dirpath, update_or_add_tier
 
 
 def init_ipa_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("-o", "--output", type=str, required=True,
+  parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("--output", type=str, required=True,
                       help="TextGrid output filepath.")
-  parser.add_argument("-w", "--words-tier-name", type=str, default="words",
+  parser.add_argument("--words-tier-name", type=str, default="words",
                       help="The name of the tier with the English words annotated.")
-  parser.add_argument("-i", "--ipa-tier-name", type=str, default="IPA-standard",
+  parser.add_argument("--ipa-tier-name", type=str, default="IPA-standard",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
   return add_ipa
 
@@ -36,6 +37,7 @@ def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str) ->
       logger=logger,
     )
 
+    os.makedirs(get_parent_dirpath(output), exist_ok=True)
     grid.write(output)
     logger.info("Success!")
 

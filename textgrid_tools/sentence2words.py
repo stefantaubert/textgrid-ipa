@@ -1,19 +1,22 @@
+import os
 from argparse import ArgumentParser
 from logging import getLogger
 from typing import List, Optional, Tuple
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import (check_paths_ok, collapse_whitespace, durations_to_interval_tier,
-                                  update_or_add_tier)
+
+from textgrid_tools.utils import (check_paths_ok, collapse_whitespace,
+                                  durations_to_interval_tier,
+                                  get_parent_dirpath, update_or_add_tier)
 
 
 def init_words_parser(parser: ArgumentParser):
-  parser.add_argument("-f", "--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("-o", "--output", type=str, required=True,
-                       help="TextGrid output filepath.")
-  parser.add_argument("-s", "--sentences-tier-name", type=str, default="sentences",
+  parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
+  parser.add_argument("--output", type=str, required=True,
+                      help="TextGrid output filepath.")
+  parser.add_argument("--sentences-tier-name", type=str, default="sentences",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
-  parser.add_argument("-w", "--words-tier-name", type=str, default="words",
+  parser.add_argument("--words-tier-name", type=str, default="words",
                       help="The name of the tier with the English words annotated.")
   return add_words
 
@@ -32,6 +35,7 @@ def add_words(file: str, output: str, sentences_tier_name: str, words_tier_name:
       out_tier_name=words_tier_name,
     )
 
+    os.makedirs(get_parent_dirpath(output), exist_ok=True)
     grid.write(output)
     logger.info("Success!")
 
@@ -73,6 +77,6 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
     durations=word_durations,
     maxTime=in_tier.maxTime,
   )
-  
+
   # word_tier.maxTime = start
   update_or_add_tier(grid, word_tier)
