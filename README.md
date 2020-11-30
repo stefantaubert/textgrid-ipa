@@ -143,7 +143,7 @@ In the destination project run:
 # if not already done:
 pip install --user pipenv --python 3.7
 # add reference
-pipenv install -e git+git@github.com:stefantaubert/textgrid-ipa.git@main#egg=textgrid_tools
+pipenv install -e git+https://github.com/stefantaubert/cmudict-parser.git@main#egg=textgrid_tools
 ```
 
 ### Notes
