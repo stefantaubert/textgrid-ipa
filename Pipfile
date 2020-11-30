@@ -13,12 +13,11 @@ rope = "*"
 [packages]
 scipy = "*"
 numpy = "*"
-epitran = "*"
 tqdm = "*"
 wget = "*"
 TextGrid = "*"
-cmudict-parser = {editable = true, git = "git@github.com:stefantaubert/cmudict-parser.git", ref = "master"}
 pandas = "*"
+text-utils = {editable = true, ref = "master", git = "https://github.com/stefantaubert/text-utils.git"}
 
 [requires]
 python_version = "3.8"

@@ -1,14 +1,14 @@
-from argparse import ArgumentParser
-from functools import partial
-from logging import Logger, getLogger
 import os
+from argparse import ArgumentParser
+from logging import Logger, getLogger
 from typing import List, Optional
 
-from cmudict_parser import CMUDict, get_dict
-from epitran import Epitran
+from text_utils import EngToIpaMode, Language, text_to_ipa
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from tqdm import tqdm
 
-from textgrid_tools.utils import check_paths_ok, get_parent_dirpath, update_or_add_tier
+from textgrid_tools.utils import (check_paths_ok, get_parent_dirpath,
+                                  update_or_add_tier)
 
 
 def init_ipa_parser(parser: ArgumentParser):
@@ -19,10 +19,11 @@ def init_ipa_parser(parser: ArgumentParser):
                       help="The name of the tier with the English words annotated.")
   parser.add_argument("--ipa-tier-name", type=str, default="IPA-standard",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
+  parser.add_argument('--mode', choices=EngToIpaMode, default=EngToIpaMode.BOTH)
   return add_ipa
 
 
-def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str) -> None:
+def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str, mode: EngToIpaMode) -> None:
   logger = getLogger()
   if check_paths_ok(file, output, logger):
     grid = TextGrid()
@@ -34,6 +35,7 @@ def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str) ->
       grid=grid,
       in_tier_name=words_tier_name,
       out_tier_name=ipa_tier_name,
+      mode=mode,
       logger=logger,
     )
 
@@ -43,11 +45,10 @@ def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str) ->
 
 
 def add_ipa_tier(grid: TextGrid, in_tier_name: str,
-                 out_tier_name: Optional[str], logger: Logger) -> None:
-
+                 out_tier_name: Optional[str], mode: EngToIpaMode, logger: Logger) -> None:
   in_tier: IntervalTier = grid.getFirst(in_tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
-  ipa_intervals = convert_to_ipa_intervals(in_tier_intervals, logger)
+  ipa_intervals = convert_to_ipa_intervals(in_tier_intervals, mode)
 
   out_tier = IntervalTier(
     name=out_tier_name,
@@ -59,30 +60,11 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
   update_or_add_tier(grid, out_tier)
 
 
-def convert_to_ipa_intervals(tiers: List[IntervalTier], logger: Logger) -> List[IntervalTier]:
-  epi = Epitran('eng-Latn')
-  cmu = get_dict(silent=True)
-  ipa_intervals: List[Interval] = [convert_to_ipa_interval(x, epi, cmu, logger) for x in tiers]
+def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode) -> List[IntervalTier]:
+  ipa_intervals: List[Interval] = [text_to_ipa(
+    text=x.mark,
+    lang=Language.ENG,
+    mode=mode,
+    replace_unknown_with="_",
+  ) for x in tqdm(tiers)]
   return ipa_intervals
-
-
-def epi_transliterate(word: str, epitran: Epitran, logger: Logger) -> str:
-  ipa = epitran.transliterate(word)
-  logger.debug(f"{word} was not in CMUDict therefore used Epitran -> {ipa}")
-  return ipa
-
-
-def convert_to_ipa_interval(tier: IntervalTier, epitran: Epitran, cmu: CMUDict, logger: Logger) -> IntervalTier:
-  word = tier.mark
-  epi = partial(epi_transliterate, epitran=epitran, logger=logger)
-  ipa = cmu.sentence_to_ipa(
-    sentence=word,
-    replace_unknown_with=epi
-  )
-  ipa_interval = Interval(
-    minTime=tier.minTime,
-    maxTime=tier.maxTime,
-    mark=ipa,
-  )
-  logger.info(ipa)
-  return ipa_interval

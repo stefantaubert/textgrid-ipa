@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9a95ea079866faa260ee3ad8395e48c695fb27a71f19d3240bfd9a00db9e6e67"
+            "sha256": "a31b3d8be791279ab12d3ef352b8eaea8a4ac09193f93d967bc2afd4c1da3840"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,10 +16,20 @@
         ]
     },
     "default": {
-        "cmudict-parser": {
-            "editable": true,
-            "git": "ssh://git@github.com/stefantaubert/cmudict-parser.git",
-            "ref": "187b033a526fec4916568004a4db919bcd743092"
+        "click": {
+            "hashes": [
+                "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
+                "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
+            ],
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+            "version": "==7.1.2"
+        },
+        "dragonmapper": {
+            "hashes": [
+                "sha256:21e0324ca05d553645887515202349e24427700f4c86d250d85d32b958d4bc31",
+                "sha256:f2584fb3b29df442907cf7422893becbb8c8429d9f6611f0ba111bdfec495ec9"
+            ],
+            "version": "==0.2.6"
         },
         "editdistance": {
             "hashes": [
@@ -61,8 +71,36 @@
                 "sha256:b3957027de7c070e30ddd64465e2e1d03990b80eb86483027f585ceb0b89bc3a",
                 "sha256:ff0648b1a75e5566b651807931a1fb6c8df15338232b8f938e4b43164774e3bd"
             ],
-            "index": "pypi",
             "version": "==1.8"
+        },
+        "hanzidentifier": {
+            "hashes": [
+                "sha256:793a298430aa9a9d6ab344dc0ca0ab4bd1161d88c7da941d6554571093003cba"
+            ],
+            "version": "==1.0.2"
+        },
+        "inflect": {
+            "hashes": [
+                "sha256:d284c905414fe37c050734c8600fe170adfb98ba40f72fc66fed393f5b8d5ea0",
+                "sha256:f125f678288f4830f0ee4a4f51e088ff869ac44451a5717627a4ed38d734144c"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==5.0.2"
+        },
+        "ipapy": {
+            "hashes": [
+                "sha256:b96d0435282103c7d893c8226a458b70a810d130ce65fabe127c8a7490d1f82b",
+                "sha256:e1bc73f6a4861b9a0ff562b70b87dab8acf7a63badd98caabd6e248b3839f1c9"
+            ],
+            "version": "==0.0.9.0"
+        },
+        "joblib": {
+            "hashes": [
+                "sha256:698c311779f347cf6b7e6b8a39bb682277b8ee4aba8cf9507bc0cf4cd4737b72",
+                "sha256:9e284edd6be6b71883a63c9b7f124738a3c16195513ad940eae7e3438de885d5"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==0.17.0"
         },
         "marisa-trie": {
             "hashes": [
@@ -77,6 +115,12 @@
                 "sha256:fc44bf3c3979dada4b6b633ddeeb8ffbe8388ee9409e4d4e8310c2da1792db03"
             ],
             "version": "==1.1.4"
+        },
+        "nltk": {
+            "hashes": [
+                "sha256:845365449cd8c5f9731f7cb9f8bd6fd0767553b9d53af9eb1b3abf7700936b35"
+            ],
+            "version": "==3.5"
         },
         "numpy": {
             "hashes": [
@@ -273,6 +317,11 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.15.0"
         },
+        "text-utils": {
+            "editable": true,
+            "git": "https://github.com/stefantaubert/text-utils.git",
+            "ref": "039ad8d63bda0c908991e7613cf4847b157e5725"
+        },
         "textgrid": {
             "hashes": [
                 "sha256:78c459da90a2d2b8c5b66bcf78160bc5517518df6070712b8d9222bf2af87c9c",
@@ -284,11 +333,11 @@
         },
         "tqdm": {
             "hashes": [
-                "sha256:3d3f1470d26642e88bd3f73353cb6ff4c51ef7d5d7efef763238f4bc1f7e4e81",
-                "sha256:5ff3f5232b19fa4c5531641e480b7fad4598819f708a32eb815e6ea41c5fa313"
+                "sha256:5c0d04e06ccc0da1bd3fa5ae4550effcce42fcad947b4a6cafa77bdc9b09ff22",
+                "sha256:9e7b8ab0ecbdbf0595adadd5f0ebbb9e69010e0bd48bbb0c15e550bf2a5292df"
             ],
             "index": "pypi",
-            "version": "==4.53.0"
+            "version": "==4.54.0"
         },
         "unicodecsv": {
             "hashes": [
@@ -296,12 +345,25 @@
             ],
             "version": "==0.14.1"
         },
+        "unidecode": {
+            "hashes": [
+                "sha256:1d7a042116536098d05d599ef2b8616759f02985c85b4fef50c78a5aaf10822a",
+                "sha256:2b6aab710c2a1647e928e36d69c21e76b453cd455f4e2621000e54b2a9b8cce8"
+            ],
+            "version": "==1.1.1"
+        },
         "wget": {
             "hashes": [
                 "sha256:35e630eca2aa50ce998b9b1a127bb26b30dfee573702782aa982f875e3f16061"
             ],
             "index": "pypi",
             "version": "==3.2"
+        },
+        "zhon": {
+            "hashes": [
+                "sha256:793723575c46f10ace8846c579ce740b04c73e2aa583e04e000aedbd4a47f87f"
+            ],
+            "version": "==1.1.5"
         }
     },
     "develop": {
