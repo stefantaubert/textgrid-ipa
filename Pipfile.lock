@@ -27,7 +27,7 @@
         "cmudict-parser": {
             "editable": true,
             "git": "https://github.com/stefantaubert/cmudict-parser.git",
-            "ref": "e8767cfdd2e1405890afc5a3566f33b4c6e75a2d"
+            "ref": "b2bd08efb7f18bfca393b79c0f3c3899fdcfd6df"
         },
         "dragonmapper": {
             "hashes": [
@@ -325,7 +325,7 @@
         "text-utils": {
             "editable": true,
             "git": "https://github.com/stefantaubert/text-utils.git",
-            "ref": "49c052289a9fee6822a3951ed58a2c32145269d5"
+            "ref": "48a7145c0f66ff3b70437d9c85cf0faa9359d737"
         },
         "textgrid": {
             "hashes": [
