@@ -18,6 +18,7 @@ wget = "*"
 TextGrid = "*"
 pandas = "*"
 text-utils = {editable = true, ref = "master", git = "https://github.com/stefantaubert/text-utils.git"}
+cmudict-parser = {editable = true, ref = "master", git = "https://github.com/stefantaubert/cmudict-parser.git"}
 
 [requires]
 python_version = "3.8"

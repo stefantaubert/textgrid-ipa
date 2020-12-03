@@ -7,10 +7,9 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from scipy.io.wavfile import read
+from textgrid.textgrid import TextGrid
 from tqdm import tqdm
-from tqdm.std import trange
 
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_paths_ok, durations_to_interval_tier,
                                   get_parent_dirpath, ms_to_samples,
                                   update_or_add_tier)
@@ -103,9 +102,8 @@ def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_
 
   max_time = total_duration
 
-  if grid is not None:
-    if len(grid.tiers) > 0:
-      max_time = grid.tiers[0].maxTime
+  if grid is not None and len(grid.tiers) > 0:
+    max_time = grid.tiers[0].maxTime
 
   pause_tier = durations_to_interval_tier(
     durations=mark_duration,
@@ -256,7 +254,7 @@ def merge_marked_chunks(chunks: List[Chunk], merge_mask: List[bool]) -> List[Chu
 
   res: List[Chunk] = []
   merge_size = 0
-  for i in range(len(chunks)):
+  for i, _ in enumerate(chunks):
     current_chunk = chunks[i]
     merge_current_chunk = merge_mask[i]
     is_last_chunk = i == len(chunks) - 1

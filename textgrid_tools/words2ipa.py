@@ -48,7 +48,7 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
                  out_tier_name: Optional[str], mode: EngToIpaMode, logger: Logger) -> None:
   in_tier: IntervalTier = grid.getFirst(in_tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
-  ipa_intervals = convert_to_ipa_intervals(in_tier_intervals, mode)
+  ipa_intervals = convert_to_ipa_intervals(in_tier_intervals, mode, logger)
 
   out_tier = IntervalTier(
     name=out_tier_name,
@@ -60,11 +60,12 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
   update_or_add_tier(grid, out_tier)
 
 
-def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode) -> List[IntervalTier]:
+def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode, logger: Logger) -> List[IntervalTier]:
   ipa_intervals: List[Interval] = [text_to_ipa(
     text=x.mark,
     lang=Language.ENG,
     mode=mode,
     replace_unknown_with="_",
+    logger=logger,
   ) for x in tqdm(tiers)]
   return ipa_intervals

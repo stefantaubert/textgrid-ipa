@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a31b3d8be791279ab12d3ef352b8eaea8a4ac09193f93d967bc2afd4c1da3840"
+            "sha256": "695c76c385fd9dc2c26ebc4bdf8cb32daa96b64d306adc211cd71911fac4449f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,11 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "version": "==7.1.2"
+        },
+        "cmudict-parser": {
+            "editable": true,
+            "git": "https://github.com/stefantaubert/cmudict-parser.git",
+            "ref": "e8767cfdd2e1405890afc5a3566f33b4c6e75a2d"
         },
         "dragonmapper": {
             "hashes": [
@@ -320,7 +325,7 @@
         "text-utils": {
             "editable": true,
             "git": "https://github.com/stefantaubert/text-utils.git",
-            "ref": "039ad8d63bda0c908991e7613cf4847b157e5725"
+            "ref": "49c052289a9fee6822a3951ed58a2c32145269d5"
         },
         "textgrid": {
             "hashes": [
