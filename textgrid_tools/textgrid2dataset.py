@@ -37,7 +37,7 @@ def save(items: List[Entry], file_path: str):
 
 def init_textgrid2dataset_parser(parser: ArgumentParser):
   parser.add_argument("--file", type=str, required=True, help="TextGrid input filepath.")
-  parser.add_argument("--text-tier-name", type=str, default="sentences", help="")
+  parser.add_argument("--tier-name", type=str, default="sentences", help="")
   parser.add_argument("--wav-file", type=str, required=True, help="")
   parser.add_argument("--duration-s-max", type=float, required=True, help="")
   parser.add_argument("--output-dir", type=str, required=True, help="")
@@ -117,7 +117,7 @@ def convert_textgrid2dataset(file: str, tier_name: str, wav_file: str, duration_
   logger.info(f"Maximal duration of one utterance: {max(durations):.2f}s")
   logger.info(f"Mean duration of an utterance: {mean(durations):.2f}s")
   logger.info(f"Median duration of an utterance: { median(durations):.2f}s")
-  logger.info(f"Total duration of all utterances: {sum(durations):.0f}s ({sum(durations)/60:.2f}h)")
+  logger.info(f"Total duration of all utterances: {sum(durations):.0f}s ({sum(durations)/60:.2f}min)")
   logger.info(f"Count of utterances: {len(durations)}")
 
   data_filepath = os.path.join(dest_dirpath, OATA_CSV_NAME)
