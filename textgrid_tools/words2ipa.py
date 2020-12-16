@@ -19,7 +19,7 @@ def init_ipa_parser(parser: ArgumentParser):
                       help="The name of the tier with the English words annotated.")
   parser.add_argument("--ipa-tier-name", type=str, default="IPA-standard",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
-  parser.add_argument('--mode', choices=EngToIpaMode, default=EngToIpaMode.BOTH)
+  parser.add_argument('--mode', choices=EngToIpaMode, type=EngToIpaMode.__getitem__)
   return add_ipa
 
 
@@ -61,11 +61,15 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
 
 
 def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode, logger: Logger) -> List[IntervalTier]:
-  ipa_intervals: List[Interval] = [text_to_ipa(
-    text=x.mark,
-    lang=Language.ENG,
-    mode=mode,
-    replace_unknown_with="_",
-    logger=logger,
+  ipa_intervals: List[Interval] = [Interval(
+    minTime=x.minTime,
+    maxTime=x.maxTime,
+    mark=text_to_ipa(
+      text=x.mark,
+      lang=Language.ENG,
+      mode=mode,
+      replace_unknown_with="_",
+      logger=logger,
+    )
   ) for x in tqdm(tiers)]
   return ipa_intervals
