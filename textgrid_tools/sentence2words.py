@@ -44,11 +44,6 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
                    out_tier_name: Optional[str]) -> None:
   in_tier: IntervalTier = grid.getFirst(in_tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
-  word_tier = IntervalTier(
-    name=out_tier_name,
-    minTime=in_tier.minTime,
-    maxTime=in_tier.maxTime,
-  )
 
   word_durations: List[Tuple[str, float]] = list()
   for tier_interval in in_tier_intervals:
@@ -77,6 +72,8 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
     durations=word_durations,
     maxTime=in_tier.maxTime,
   )
+
+  word_tier.name = out_tier_name
 
   # word_tier.maxTime = start
   update_or_add_tier(grid, word_tier)
