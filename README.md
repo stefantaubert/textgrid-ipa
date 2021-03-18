@@ -1,7 +1,7 @@
 # textgrid-tools
 
 ![Python](https://img.shields.io/github/license/stefantaubert/textgrid-ipa)
-![Python](https://img.shields.io/badge/python-3.7.9-green.svg)
+![Python](https://img.shields.io/badge/python-3.8.6-green.svg)
 
 A python tool which is able:
 
