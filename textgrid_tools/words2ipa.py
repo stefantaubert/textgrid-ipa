@@ -20,10 +20,12 @@ def init_ipa_parser(parser: ArgumentParser):
   parser.add_argument("--ipa-tier-name", type=str, default="IPA-standard",
                       help="The name of the tier which should contain the IPA transcriptions for reference. If the tier exists, it will be overwritten.")
   parser.add_argument('--mode', choices=EngToIpaMode, type=EngToIpaMode.__getitem__)
+  # parser.add_argument('--consider-ipa-annotations', action='store_true')
+  parser.set_defaults(consider_ipa_annotations=True)
   return add_ipa
 
 
-def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str, mode: EngToIpaMode) -> None:
+def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str, mode: EngToIpaMode, consider_ipa_annotations: bool) -> None:
   logger = getLogger()
   if check_paths_ok(file, output, logger):
     grid = TextGrid()
@@ -36,6 +38,7 @@ def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str, mo
       in_tier_name=words_tier_name,
       out_tier_name=ipa_tier_name,
       mode=mode,
+      consider_ipa_annotations=consider_ipa_annotations,
       logger=logger,
     )
 
@@ -45,10 +48,11 @@ def add_ipa(file: str, output: str, words_tier_name: str, ipa_tier_name: str, mo
 
 
 def add_ipa_tier(grid: TextGrid, in_tier_name: str,
-                 out_tier_name: Optional[str], mode: EngToIpaMode, logger: Logger) -> None:
+                 out_tier_name: Optional[str], mode: EngToIpaMode, consider_ipa_annotations: bool, logger: Logger) -> None:
   in_tier: IntervalTier = grid.getFirst(in_tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
-  ipa_intervals = convert_to_ipa_intervals(in_tier_intervals, mode, logger)
+  ipa_intervals = convert_to_ipa_intervals(
+    in_tier_intervals, mode, consider_ipa_annotations, logger)
 
   out_tier = IntervalTier(
     name=out_tier_name,
@@ -60,7 +64,7 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str,
   update_or_add_tier(grid, out_tier)
 
 
-def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode, logger: Logger) -> List[IntervalTier]:
+def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode, consider_ipa_annotations: bool, logger: Logger) -> List[IntervalTier]:
   ipa_intervals: List[Interval] = [Interval(
     minTime=x.minTime,
     maxTime=x.maxTime,
@@ -69,6 +73,8 @@ def convert_to_ipa_intervals(tiers: List[IntervalTier], mode: EngToIpaMode, logg
       lang=Language.ENG,
       mode=mode,
       replace_unknown_with="_",
+      consider_ipa_annotations=consider_ipa_annotations,
+      use_cache=True,
       logger=logger,
     )
   ) for x in tqdm(tiers)]
