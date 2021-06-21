@@ -26,8 +26,7 @@ def intervals_to_tier(intervals: List[Interval], name: str) -> IntervalTier:
     name=name,
   )
 
-  for interval in intervals:
-    word_tier.addInterval(interval)
+  word_tier.intervals.extend(intervals)
 
   return word_tier
 

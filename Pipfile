@@ -13,6 +13,7 @@ rope = "*"
 pytest = "*"
 pytest-xdist = "*"
 textgrid-ipa = {editable = true, path = "."}
+unittest2pytest = "*"
 
 [packages]
 scipy = "*"

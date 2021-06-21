@@ -1,30 +1,107 @@
+import os
 from argparse import ArgumentParser
+from pathlib import Path
 
-from textgrid_tools.durations import init_durations_parser
-from textgrid_tools.remove_silence import init_remove_silence_parser
-from textgrid_tools.sentence2words import init_words_parser
-from textgrid_tools.textgrid2dataset import init_textgrid2dataset_parser
-from textgrid_tools.wav2pauses import init_pause_parser
-from textgrid_tools.words2ipa import init_ipa_parser
+from text_utils.text import EngToIpaMode
+
+from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
+                                     detect_silence, extract_words, log_stats)
+
+BASE_DIR_VAR = "base_dir"
+
+
+def add_base_dir(parser: ArgumentParser):
+  assert BASE_DIR_VAR in os.environ.keys()
+  base_dir = os.environ[BASE_DIR_VAR]
+  parser.set_defaults(base_dir=Path(base_dir))
 
 
 def _add_parser_to(subparsers, name: str, init_method):
   parser = subparsers.add_parser(name, help=f"{name} help")
   invoke_method = init_method(parser)
   parser.set_defaults(invoke_handler=invoke_method)
+  add_base_dir(parser)
   return parser
+
+
+def init_log_stats_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--step_name", type=str, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  return log_stats
+
+
+def init_add_recording_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--audio_path", type=Path, required=True)
+  parser.add_argument("--out_step_name", type=str, required=True)
+  parser.add_argument('--overwrite_recording', action='store_true')
+  return add_recording
+
+
+def init_clone_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--in_step_name", type=str, required=True)
+  parser.add_argument("--out_step_name", type=str, required=True)
+  parser.add_argument('--overwrite_step', action='store_true')
+  return clone
+
+
+def init_detect_silence_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--in_step_name", type=str, required=True)
+  parser.add_argument("--out_step_name", type=str, required=True)
+  parser.add_argument("--out_tier_name", type=str, required=True)
+  parser.add_argument("--silence_boundary", type=float, default=0.25,
+                      help="Percent of lower dB recognized as silence.")
+  parser.add_argument("--chunk_size_ms", type=int, default=50)
+  parser.add_argument("--min_silence_duration_ms", type=int, default=700)
+  parser.add_argument("--min_content_duration_ms", type=int, default=200)
+  parser.add_argument("--content_buffer_start_ms", type=int, default=50)
+  parser.add_argument("--content_buffer_end_ms", type=int, default=100)
+  parser.add_argument("--silence_mark", type=str, default="silence")
+  parser.add_argument("--content_mark", type=str, default="")
+  parser.add_argument('--overwrite_step', action='store_true')
+  parser.add_argument('--overwrite_tier', action='store_true')
+  return detect_silence
+
+
+def init_extract_words_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--in_step_name", type=str, required=True)
+  parser.add_argument("--out_step_name", type=str, required=True)
+  parser.add_argument("--in_tier_name", type=str, required=True)
+  parser.add_argument("--out_tier_name", type=str, required=True)
+  parser.add_argument('--overwrite_step', action='store_true')
+  parser.add_argument('--overwrite_tier', action='store_true')
+  return extract_words
+
+
+def init_convert_to_ipa_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--in_step_name", type=str, required=True)
+  parser.add_argument("--out_step_name", type=str, required=True)
+  parser.add_argument("--in_tier_name", type=str, required=True)
+  parser.add_argument("--out_tier_name", type=str, required=True)
+  parser.add_argument('--mode', choices=EngToIpaMode, type=EngToIpaMode.__getitem__, required=True)
+  parser.add_argument('--replace_unknown_with', type=str, default="_")
+  parser.add_argument('--overwrite_step', action='store_true')
+  parser.add_argument('--overwrite_tier', action='store_true')
+  parser.set_defaults(consider_ipa_annotations=True)
+  return convert_to_ipa
 
 
 def _init_parser():
   result = ArgumentParser()
   subparsers = result.add_subparsers(help='sub-command help')
 
-  _add_parser_to(subparsers, "wav2pauses", init_pause_parser)
-  _add_parser_to(subparsers, "plot-durations", init_durations_parser)
-  _add_parser_to(subparsers, "remove-empty-intervals", init_remove_silence_parser)
-  _add_parser_to(subparsers, "sentences2words", init_words_parser)
-  _add_parser_to(subparsers, "words2ipa", init_ipa_parser)
-  _add_parser_to(subparsers, "textgrid2dataset", init_textgrid2dataset_parser)
+  _add_parser_to(subparsers, "add-rec", init_add_recording_parser)
+  _add_parser_to(subparsers, "rec-clone", init_clone_parser)
+  _add_parser_to(subparsers, "rec-add-silence", init_detect_silence_parser)
+  _add_parser_to(subparsers, "rec-add-words", init_extract_words_parser)
+  _add_parser_to(subparsers, "rec-add-ipa", init_convert_to_ipa_parser)
+  _add_parser_to(subparsers, "rec-print-stats", init_log_stats_parser)
+
   return result
 
 

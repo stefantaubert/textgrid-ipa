@@ -110,7 +110,6 @@ venv.bak/
 
 # custom
 # textgrid_tools/*.tests.py
-textgrid_tools/playground.*
 output
-textgrid_tools/*.playground.py
 scripts
+*playground.py

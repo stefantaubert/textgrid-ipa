@@ -26,7 +26,6 @@ def get_durations(file: str, tier_name: str) -> None:
   )
 
 def calc_durations(grid: TextGrid, tier_name: str, logger: Logger) -> None:
-
   in_tier: IntervalTier = grid.getFirst(tier_name)
   in_tier_intervals: List[Interval] = in_tier.intervals
 
