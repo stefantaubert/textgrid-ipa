@@ -71,9 +71,8 @@ def add_words_tier(grid: TextGrid, in_tier_name: str,
   word_tier = durations_to_interval_tier(
     durations=word_durations,
     maxTime=in_tier.maxTime,
+    name=out_tier_name,
   )
-
-  word_tier.name = out_tier_name
 
   # word_tier.maxTime = start
   update_or_add_tier(grid, word_tier)

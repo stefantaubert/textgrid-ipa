@@ -102,9 +102,8 @@ def add_pause_tier(grid: Optional[TextGrid], wav: np.ndarray, sr: int, out_tier_
   pause_tier = durations_to_interval_tier(
     durations=mark_duration,
     maxTime=max_time,
+    name=out_tier_name,
   )
-
-  pause_tier.name = out_tier_name
 
   if grid is None:
     grid = TextGrid(

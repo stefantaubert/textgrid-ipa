@@ -11,12 +11,29 @@ def get_parent_dirpath(filepath: str) -> str:
   return Path(filepath).parent
 
 
-def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: float) -> IntervalTier:
+def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: float, name: str) -> IntervalTier:
+  intervals = durations_to_intervals(durations, maxTime)
+  res = intervals_to_tier(intervals, name)
+  return res
+
+
+def intervals_to_tier(intervals: List[Interval], name: str) -> IntervalTier:
+  min_time = intervals[0].minTime if len(intervals) > 0 else 0
+  max_time = intervals[-1].maxTime if len(intervals) > 0 else 0
   word_tier = IntervalTier(
-    minTime=0,
-    maxTime=maxTime,
+    minTime=min_time,
+    maxTime=max_time,
+    name=name,
   )
 
+  for interval in intervals:
+    word_tier.addInterval(interval)
+
+  return word_tier
+
+
+def durations_to_intervals(durations: List[Tuple[str, float]], maxTime: float) -> List[Interval]:
+  res = []
   start = 0
   for i, word_duration in enumerate(durations):
     word, duration = word_duration
@@ -31,10 +48,10 @@ def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: floa
       mark=word,
     )
     # word_intervals.append(word_interval)
-    word_tier.addInterval(word_interval)
+    res.append(word_interval)
     start = end
 
-  return word_tier
+  return res
 
 
 def ms_to_samples(ms, sampling_rate: int):
@@ -69,11 +86,23 @@ def collapse_whitespace(text: str) -> str:
 
 
 def update_or_add_tier(grid: TextGrid, tier: IntervalTier) -> None:
-  existing_tier: Optional[IntervalTier] = grid.getFirst(tier.name)
-  if existing_tier is not None:
-    existing_tier.intervals.clear()
-    existing_tier.intervals.extend(tier.intervals)
-    existing_tier.maxTime = tier.maxTime
-    existing_tier.minTime = tier.minTime
+  if grid_contains_tier(grid, tier.name):
+    update_tier(grid, tier)
   else:
     grid.append(tier)
+
+
+def update_tier(grid: TextGrid, tier: IntervalTier) -> None:
+  assert grid_contains_tier(grid, tier.name)
+  existing_tier = grid.getFirst(tier.name)
+  assert tier.name == existing_tier.name
+  existing_tier.intervals.clear()
+  existing_tier.intervals.extend(tier.intervals)
+  existing_tier.maxTime = tier.maxTime
+  existing_tier.minTime = tier.minTime
+
+
+def grid_contains_tier(grid: TextGrid, tier_name: str) -> bool:
+  existing_tier: Optional[IntervalTier] = grid.getFirst(tier_name)
+  res = existing_tier is not None
+  return res
