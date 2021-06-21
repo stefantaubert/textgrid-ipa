@@ -5,11 +5,14 @@ verify_ssl = true
 
 [dev-packages]
 autopep8 = "*"
-isort = "*"
-pycodestyle = "*"
 pylint = "*"
-rope = "*"
+pycodestyle = "*"
+isort = "*"
 pipenv-setup = "*"
+rope = "*"
+pytest = "*"
+pytest-xdist = "*"
+textgrid-ipa = {editable = true, path = "."}
 
 [packages]
 scipy = "*"
