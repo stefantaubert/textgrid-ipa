@@ -40,18 +40,15 @@ Possible recommended steps:
 
 ```txt
 Input: raw (audio)
-1. pauses (annotation) (auto): detecting pauses
-2. sentences (annotation) (manual): annotating each sentence
-  2.1. sentences_nosil (annotation + audio) (auto)
-  2.2. create dataset (auto)
-3. words (annotation) (auto): extracting all words from the sentences
-4. words_aligned (annotation) (manual): aligning the word boundaries
-5. words_ipa_phonemes (annotation) (auto): converting the words to IPA
-  5.1. words_ipa_phonemes_nosil (annotation + audio) (auto)
-  5.2. create dataset (auto)
-6. words_ipa_phones (annotation) (manual): annotating actual spoken IPA
-  6.1. words_ipa_phones_nosil (annotation + audio) (auto)
-  6.2. create dataset (auto)
+1. pauses (auto): detecting pauses
+2. sentences (manual): annotating each sentence
+  2.1. create dataset (auto)
+3. words (auto): extracting all words from the sentences
+4. words_aligned (manual): aligning the word boundaries
+5. words_ipa_phonemes (auto): converting the words to IPA
+  5.1. create dataset (auto)
+6. words_ipa_phones (manual): annotating actual spoken IPA
+  6.1. create dataset (auto)
 ```
 
 Methods:

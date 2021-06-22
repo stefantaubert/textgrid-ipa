@@ -228,17 +228,17 @@ def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: st
   log_tier_stats(grid, tier_name)
 
 
-def to_dataset(base_dir: Path, recording_name: str, step: str, tier_name: str, duration_s_max: float, remove_silence_tier: Optional[str], output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):
+def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: str, duration_s_max: float, ignore_empty_marks: bool, output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):
   logger = getLogger(__name__)
   logger.info("Converting to dataset...")
   recording_dir = get_recording_dir(base_dir, recording_name)
 
-  step_path = get_step_path(recording_dir, step)
+  step_path = get_step_path(recording_dir, step_name)
   audio_path = get_audio_path(recording_dir)
   assert audio_path.exists()
 
   if not step_path.exists():
-    logger.error(f"Step {step} does not exist.")
+    logger.error(f"Step {step_name} does not exist.")
     return
   if output_dir.exists():
     if overwrite_output:
@@ -263,6 +263,7 @@ def to_dataset(base_dir: Path, recording_name: str, step: str, tier_name: str, d
     speaker_accent=speaker_accent,
     speaker_gender=speaker_gender,
     speaker_name=speaker_name,
+    ignore_empty_marks=ignore_empty_marks,
   )
 
   logger.info("Writing output files...")
