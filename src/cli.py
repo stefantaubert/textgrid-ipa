@@ -2,6 +2,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 
+from text_utils.language import Language
 from text_utils.text import EngToIpaMode
 
 from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
@@ -29,6 +30,10 @@ def init_log_stats_parser(parser: ArgumentParser):
   parser.add_argument("--recording_name", type=str, required=True)
   parser.add_argument("--step_name", type=str, required=True)
   parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--tier_lang", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--ignore_tones", action="store_true")
+  parser.add_argument("--ignore_arcs", action="store_true")
+  parser.add_argument("--replace_unknown_ipa_by", type=str, default="_")
   return log_stats
 
 
@@ -52,7 +57,7 @@ def init_detect_silence_parser(parser: ArgumentParser):
   parser.add_argument("--recording_name", type=str, required=True)
   parser.add_argument("--in_step_name", type=str, required=True)
   parser.add_argument("--out_step_name", type=str, required=True)
-  parser.add_argument("--out_tier_name", type=str, required=True)
+  parser.add_argument("--out_tier_name", type=str, default="silence")
   parser.add_argument("--silence_boundary", type=float, default=0.25,
                       help="Percent of lower dB recognized as silence.")
   parser.add_argument("--chunk_size_ms", type=int, default=50)
@@ -83,8 +88,9 @@ def init_convert_to_ipa_parser(parser: ArgumentParser):
   parser.add_argument("--in_step_name", type=str, required=True)
   parser.add_argument("--out_step_name", type=str, required=True)
   parser.add_argument("--in_tier_name", type=str, required=True)
+  parser.add_argument("--in_tier_lang", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--out_tier_name", type=str, required=True)
-  parser.add_argument("--mode", choices=EngToIpaMode, type=EngToIpaMode.__getitem__, required=True)
+  parser.add_argument("--mode", choices=EngToIpaMode, type=EngToIpaMode.__getitem__, required=False)
   parser.add_argument("--replace_unknown_with", type=str, default="_")
   parser.add_argument("--overwrite_step", action="store_true")
   parser.add_argument("--overwrite_tier", action="store_true")

@@ -5,6 +5,8 @@ from typing import Optional
 
 from scipy.io.wavfile import read, write
 from text_utils import EngToIpaMode
+from text_utils.ipa2symb import IPAExtractionSettings
+from text_utils.language import Language
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.main import (add_ipa_tier, add_pause_tier,
                                       add_words_tier, get_template_textgrid,
@@ -170,7 +172,7 @@ def extract_words(base_dir: Path, recording_name: str, in_step_name: str, out_st
   logger.info("Done.")
 
 
-def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_step_name: str, in_tier_name: str, out_tier_name: str, mode: EngToIpaMode, replace_unknown_with: str, consider_ipa_annotations: bool, overwrite_step: bool, overwrite_tier: bool):
+def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_step_name: str, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIpaMode], replace_unknown_with: str, consider_ipa_annotations: bool, in_tier_lang: Language, overwrite_step: bool, overwrite_tier: bool):
   logger = getLogger(__name__)
   logger.info("Converting to IPA...")
   recording_dir = get_recording_dir(base_dir, recording_name)
@@ -204,6 +206,7 @@ def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_s
     overwrite_tier=overwrite_tier,
     consider_ipa_annotations=consider_ipa_annotations,
     mode=mode,
+    in_tier_lang=in_tier_lang,
     replace_unknown_with=replace_unknown_with,
   )
 
@@ -211,7 +214,7 @@ def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_s
   logger.info("Done.")
 
 
-def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: str):
+def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: str, tier_lang: Language, ignore_arcs: Optional[bool], ignore_tones: Optional[bool], replace_unknown_ipa_by: Optional[str]):
   logger = getLogger(__name__)
   logger.info("Stats")
   recording_dir = get_recording_dir(base_dir, recording_name)
@@ -225,7 +228,13 @@ def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: st
   grid = TextGrid()
   grid.read(step_path)
 
-  log_tier_stats(grid, tier_name)
+  ipa_settings = IPAExtractionSettings(
+    ignore_arcs=ignore_arcs,
+    ignore_tones=ignore_tones,
+    replace_unknown_ipa_by=replace_unknown_ipa_by,
+  )
+
+  log_tier_stats(grid, tier_name, tier_lang, ipa_settings)
 
 
 def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: str, duration_s_max: float, ignore_empty_marks: bool, output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):

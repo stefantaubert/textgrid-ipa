@@ -97,7 +97,7 @@ def convert_textgrid2dataset(grid: TextGrid, tier_name: str, wav: np.ndarray, sr
       accent=speaker_accent,
     ), out_wav))
 
-  durations = [x.duration for x in res]
+  durations = [x.duration for x, _ in res]
 
   logger.info(f"Minimal duration of one utterance: {min(durations):.2f}s")
   logger.info(f"Maximal duration of one utterance: {max(durations):.2f}s")

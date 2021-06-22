@@ -1,16 +1,18 @@
+from collections import Counter
 from logging import getLogger
 from typing import List, Optional, Tuple
 
 import numpy as np
 from audio_utils import (get_chunks, get_duration_s, get_duration_s_samples,
                          ms_to_samples)
+from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
-from text_utils.text import EngToIpaMode, text_to_ipa
+from text_utils.text import EngToIpaMode, text_to_ipa, text_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_interval_has_content,
                                   collapse_whitespace, durations_to_intervals,
                                   grid_contains_tier, intervals_to_tier,
-                                  update_tier)
+                                  log_counter, update_tier)
 from tqdm import tqdm
 
 
@@ -119,7 +121,7 @@ def add_words_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, overwr
     grid.append(pause_tier)
 
 
-def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: EngToIpaMode, replace_unknown_with: str, consider_ipa_annotations: bool, overwrite_tier: bool) -> None:
+def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIpaMode], replace_unknown_with: str, consider_ipa_annotations: bool, overwrite_tier: bool, in_tier_lang: Language) -> None:
   assert grid_contains_tier(grid, in_tier_name)
   logger = getLogger(__name__)
 
@@ -136,7 +138,7 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: En
       maxTime=interval.maxTime,
       mark=text_to_ipa(
         text=interval.mark,
-        lang=Language.ENG,
+        lang=in_tier_lang,
         mode=mode,
         replace_unknown_with=replace_unknown_with,
         consider_ipa_annotations=consider_ipa_annotations,
@@ -159,19 +161,32 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: En
     grid.append(tier)
 
 
-def log_tier_stats(grid: TextGrid, tier_name: str) -> None:
+def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings: Optional[IPAExtractionSettings]) -> None:
   assert grid_contains_tier(grid, tier_name)
   logger = getLogger(__name__)
-
+  tier_names = [x.name for x in grid.tiers]
+  logger.info(f"Tiers: {', '.join(tier_names)}")
   tier: IntervalTier = grid.getFirst(tier_name)
   tier_intervals: List[Interval] = tier.intervals
 
   total_content_duration = 0.0
+  all_symbols = []
+  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|"]
+  warn_symbols_str = " ".join([f"{x!r}"[1:-1] for x in warn_symbols])
   for interval in tier_intervals:
     has_content = check_interval_has_content(interval)
     if has_content:
       content_duration = interval.maxTime - interval.minTime
       total_content_duration += content_duration
+      symbols = text_to_symbols(interval.mark, lang=lang, ipa_settings=ipa_settings, logger=logger)
+      if any(x in interval.mark for x in warn_symbols):
+        logger.warning(
+          f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r}) contains any of these undesired symbols: {warn_symbols_str}")
+      all_symbols.extend(symbols)
+
+  symbol_counter = Counter(all_symbols)
+  logger.info("Symbols:")
+  log_counter(symbol_counter)
 
   total_duration = tier.maxTime - tier.minTime
   content_percent = total_content_duration / total_duration * 100

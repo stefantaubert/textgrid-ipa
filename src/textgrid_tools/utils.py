@@ -1,11 +1,12 @@
-from dataclasses import astuple
-import pandas as pd
 import os
 import re
-from logging import Logger
+from collections import Counter
+from dataclasses import astuple
+from logging import Logger, getLogger
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
+import pandas as pd
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
@@ -37,6 +38,12 @@ def intervals_to_tier(intervals: List[Interval], name: str) -> IntervalTier:
   word_tier.intervals.extend(intervals)
 
   return word_tier
+
+
+def log_counter(c: Counter):
+  logger = getLogger(__name__)
+  for char, occ in c.most_common():
+    logger.info(f"{char!r} ({occ}x)")
 
 
 def durations_to_intervals(durations: List[Tuple[str, float]], maxTime: float) -> List[Interval]:

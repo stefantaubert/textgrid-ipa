@@ -15,6 +15,7 @@ File structure:
 $base_dir
 ├── 200928-001
 │  ├── audio.wav
+|  ├── 0_initial.TextGrid
 |  ├── 1_pauses.TextGrid
 |  ├── 2_sentences.TextGrid
 |  ├── 3_words.TextGrid
