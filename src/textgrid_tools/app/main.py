@@ -1,6 +1,7 @@
 from logging import getLogger
 from pathlib import Path
 from shutil import copy, rmtree
+from typing import Optional
 
 from scipy.io.wavfile import read, write
 from text_utils import EngToIpaMode
@@ -8,8 +9,14 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.core.main import (add_ipa_tier, add_pause_tier,
                                       add_words_tier, get_template_textgrid,
                                       log_tier_stats)
+from textgrid_tools.core.to_dataset import Entry, convert_textgrid2dataset
+from textgrid_tools.utils import save_dataclasses
+from tqdm import tqdm
 
 AUDIO_FILE = "audio.wav"
+
+DATA_CSV_NAME = "data.csv"
+AUDIO_FOLDER_NAME = "audio"
 
 
 def get_recording_dir(base_dir: Path, recording_name: str) -> Path:
@@ -219,3 +226,56 @@ def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: st
   grid.read(step_path)
 
   log_tier_stats(grid, tier_name)
+
+
+def to_dataset(base_dir: Path, recording_name: str, step: str, tier_name: str, duration_s_max: float, remove_silence_tier: Optional[str], output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):
+  logger = getLogger(__name__)
+  logger.info("Converting to dataset...")
+  recording_dir = get_recording_dir(base_dir, recording_name)
+
+  step_path = get_step_path(recording_dir, step)
+  audio_path = get_audio_path(recording_dir)
+  assert audio_path.exists()
+
+  if not step_path.exists():
+    logger.error(f"Step {step} does not exist.")
+    return
+  if output_dir.exists():
+    if overwrite_output:
+      rmtree(output_dir)
+      logger.info(f"Removed: {output_dir}.")
+    else:
+      logger.error(f"Folder {output_dir} already exists.")
+      return
+
+  logger.info("Reading data...")
+  sr, wav = read(audio_path)
+  grid = TextGrid()
+  grid.read(step_path)
+
+  logger.info("Converting to dataset...")
+  res = convert_textgrid2dataset(
+    grid=grid,
+    tier_name=tier_name,
+    wav=wav,
+    sr=sr,
+    duration_s_max=duration_s_max,
+    speaker_accent=speaker_accent,
+    speaker_gender=speaker_gender,
+    speaker_name=speaker_name,
+  )
+
+  logger.info("Writing output files...")
+  entry: Entry
+  output_dir.mkdir(parents=True, exist_ok=False)
+  audio_dir = output_dir / AUDIO_FOLDER_NAME
+  audio_dir.mkdir(parents=False, exist_ok=False)
+
+  for entry, out_wav in tqdm(res):
+    wav_path = audio_dir / entry.wav
+    write(wav_path, sr, out_wav)
+
+  data_path = output_dir / DATA_CSV_NAME
+  save_dataclasses([x for x, _ in res], data_path)
+
+  logger.info("Done.")

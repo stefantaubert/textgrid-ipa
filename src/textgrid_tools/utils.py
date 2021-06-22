@@ -1,8 +1,10 @@
+from dataclasses import astuple
+import pandas as pd
 import os
 import re
 from logging import Logger
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
@@ -15,6 +17,12 @@ def durations_to_interval_tier(durations: List[Tuple[str, float]], maxTime: floa
   intervals = durations_to_intervals(durations, maxTime)
   res = intervals_to_tier(intervals, name)
   return res
+
+
+def save_dataclasses(items: List[Any], file_path: str):
+  data = [astuple(xi) for xi in items]
+  dataframe = pd.DataFrame(data)
+  dataframe.to_csv(file_path, header=None, index=None, sep="\t")
 
 
 def intervals_to_tier(intervals: List[Interval], name: str) -> IntervalTier:
