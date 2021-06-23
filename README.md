@@ -86,7 +86,7 @@ Then checkout this repository:
 git clone https://github.com/stefantaubert/textgrid-ipa
 cd textgrid-ipa
 # install pipenv
-pip install --user pipenv --python 3.7
+pip install --user pipenv --python 3.8
 # install custom env for repository
 ## a) for runtime only:
 pipenv install --ignore-pipfile
@@ -101,45 +101,101 @@ Example:
 ```sh
 # help
 pipenv run python -m cli --help
+export recording_name="200928-001"
+export recording_name="200928-002"
+export recording_name="200928-003"
+export recording_name="200928-004"
 
-# wav2pauses
-pipenv run python -m cli wav2pauses \
-  -o="/datasets/pauses.TextGrid" \
-  -w="/datasets/audio.wav" \
-  -p="pauses" \
-  -c=50 \
-  -s=0.25 \
-  -m=1000
+export base_dir=$tipa_base_dir
+export PYTHONPATH=$tipa_code_dir
+cd $PYTHONPATH
+pipenv run python -m cli add-rec \
+  --recording_name="$recording_name" \
+  --audio_path="$recordings_dir/$recording_name.wav" \
+  --out_step_name="0_initial"
 
-# plot_durations
-pipenv run python -m cli plot-durations \
-  -f="/datasets/pauses_sentences.TextGrid" \
-  -t="sentences"
+pipenv run python -m cli rec-add-silence \
+  --recording_name="$recording_name" \
+  --in_step_name="0_initial" \
+  --out_step_name="1_pauses" \
+  --out_tier_name="silence" \
+  --chunk_size_ms=50 \
+  --silence_boundary=0.40 \
+  --min_silence_duration_ms=700 \
+  --min_content_duration_ms=200 \
+  --content_buffer_start_ms=50 \
+  --content_buffer_end_ms=100 \
+  --silence_mark="silence" \
+  --content_mark=""
 
-# remove_empty_intervals
-pipenv run python -m cli remove-empty-intervals \
-  -f="/datasets/pauses_sentences.TextGrid" \
-  -o="/datasets/pauses_sentences_clean.TextGrid" \
-  -t="sentences" \
-  -w="/datasets/audio.wav" \
-  -r="/datasets/audio_clean.wav" \
+pipenv run python -m cli rec-clone \
+  --recording_name="$recording_name" \
+  --in_step_name="1_pauses" \
+  --out_step_name="2_sentences" \
 
-# sentences2words
-pipenv run python -m cli sentences2words \
-  -f="/datasets/pauses_sentences_clean.TextGrid" \
-  -o="/datasets/pauses_sentences_words.TextGrid" \
-  -s="sentences" \
-  -w="words"
+pipenv run python -m cli rec-add-words \
+  --recording_name="$recording_name" \
+  --in_step_name="2_sentences" \
+  --out_step_name="3_words" \
+  --in_tier_name="sentences" \
+  --out_tier_name="words"
 
-# words2ipa
-pipenv run python -m cli words2ipa \
-  -f="/datasets/pauses_sentences_words.TextGrid" \
-  -o="/datasets/pauses_sentences_words_ipa.TextGrid" \
-  -w="words" \
-  -i="IPA-standard"
+pipenv run python -m cli rec-clone \
+  --recording_name="$recording_name" \
+  --in_step_name="3_words" \
+  --out_step_name="4_words_aligned" \
 
-# textgrid2dataset
-pipenv run python -m cli textgrid2dataset \
+pipenv run python -m cli rec-print-stats \
+  --recording_name="$recording_name" \
+  --step_name="4_words_aligned" \
+  --tier_name="IPA-standard" \
+  --tier_lang=IPA \
+  --ignore_arcs \
+  --replace_unknown_ipa_by="_"
+
+pipenv run python -m cli rec-add-ipa \
+  --recording_name="$recording_name" \
+  --in_step_name="4_words_aligned" \
+  --out_step_name="5_words_ipa_phonemes" \
+  --in_tier_name="words" \
+  --in_tier_lang=ENG \
+  --out_tier_name="IPA-standard" \
+  --mode=BOTH \
+  --replace_unknown_with="_"
+
+pipenv run python -m cli rec-print-stats \
+  --recording_name="$recording_name" \
+  --step_name="5_words_ipa_phonemes" \
+  --tier_name="IPA-standard" \
+  --tier_lang=IPA \
+  --ignore_arcs \
+  --replace_unknown_ipa_by="_"
+
+pipenv run python -m cli rec-clone \
+  --recording_name="$recording_name" \
+  --in_step_name="5_words_ipa_phonemes" \
+  --out_step_name="6_words_ipa_phones" \
+
+pipenv run python -m cli rec-print-stats \
+  --recording_name="$recording_name" \
+  --step_name="6_words_ipa_phones" \
+  --tier_name="IPA-actual" \
+  --tier_lang=IPA \
+  --ignore_arcs \
+  --replace_unknown_ipa_by="_"
+
+pipenv run python -m cli rec-to-dataset \
+  --recording_name="$recording_name" \
+  --step_name="6_words_ipa_phones" \
+  --tier_name="IPA-actual" \
+  --tier_lang=IPA \
+  --duration_s_max=10 \
+  --output_dir="$datasets_dir/NNLV_pilot/phone-based/$recording_name" \
+  --speaker_name="phd1" \
+  --speaker_accent="mandarin" \
+  --speaker_gender="f" \
+  --ignore_empty_marks \
+  --overwrite_output
 ```
 
 ## Development
@@ -206,8 +262,6 @@ Python 3.9 not working because of:
 [pipenv.exceptions.InstallError]:                                               ^~~~~~~~~~~~~~~~~~~~~
 [pipenv.exceptions.InstallError]:     error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
 ```
-
-
 
 Don't use ' instead of ˈ for primary stress.
 Don't use / in IPA transcriptions
