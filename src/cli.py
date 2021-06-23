@@ -102,13 +102,14 @@ def init_to_dataset_parser(parser: ArgumentParser):
   parser.add_argument("--recording_name", type=str, required=True)
   parser.add_argument("--step_name", type=str, required=True)
   parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--tier_lang", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--duration_s_max", type=float, required=True)
   parser.add_argument("--output_dir", type=Path, required=True)
   parser.add_argument("--speaker_name", type=str, required=True)
   parser.add_argument("--speaker_gender", type=str, required=True, choices=["m", "f"])
   parser.add_argument("--speaker_accent", type=str, required=True)
-  parser.add_argument("--overwrite_output", action="store_true")
   parser.add_argument("--ignore_empty_marks", action="store_true")
+  parser.add_argument("--overwrite_output", action="store_true")
   return to_dataset
 
 

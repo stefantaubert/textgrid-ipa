@@ -9,13 +9,11 @@ import pandas as pd
 from numpy.core.fromnumeric import mean
 from numpy.lib.function_base import median
 from scipy.io.wavfile import read, write
+from text_utils.language import Language
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_interval_has_content,
                                   grid_contains_tier, ms_to_samples)
 from tqdm import tqdm
-
-OATA_CSV_NAME = "data.csv"
-AUDIO_FOLDER_NAME = "audio"
 
 
 @dataclass
@@ -27,6 +25,7 @@ class Entry():
   speaker: str
   gender: str
   accent: str
+  lang: str
 
 
 def save(items: List[Entry], file_path: str):
@@ -35,7 +34,7 @@ def save(items: List[Entry], file_path: str):
   dataframe.to_csv(file_path, header=None, index=None, sep="\t")
 
 
-def convert_textgrid2dataset(grid: TextGrid, tier_name: str, wav: np.ndarray, sr: int, duration_s_max: float, speaker_name: str, speaker_gender: str, speaker_accent: str, ignore_empty_marks: bool) -> List[Tuple[Entry, np.ndarray]]:
+def convert_textgrid2dataset(grid: TextGrid, tier_name: str, tier_lang: Language, wav: np.ndarray, sr: int, duration_s_max: float, speaker_name: str, speaker_gender: str, speaker_accent: str, ignore_empty_marks: bool) -> List[Tuple[Entry, np.ndarray]]:
   logger = getLogger()
   logger.info(f"Calculating durations of tier {tier_name}...")
 
@@ -95,6 +94,7 @@ def convert_textgrid2dataset(grid: TextGrid, tier_name: str, wav: np.ndarray, sr
       speaker=speaker_name,
       gender=speaker_gender,
       accent=speaker_accent,
+      lang=repr(tier_lang),
     ), out_wav))
 
   durations = [x.duration for x, _ in res]

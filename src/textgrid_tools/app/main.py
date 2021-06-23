@@ -237,9 +237,9 @@ def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: st
   log_tier_stats(grid, tier_name, tier_lang, ipa_settings)
 
 
-def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: str, duration_s_max: float, ignore_empty_marks: bool, output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):
+def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: str, tier_lang: Language, duration_s_max: float, ignore_empty_marks: bool, output_dir: Path, speaker_name: str, speaker_gender: str, speaker_accent: str, overwrite_output: bool):
   logger = getLogger(__name__)
-  logger.info("Converting to dataset...")
+  logger.info(f"Converting recording {recording_name} on tier {tier_name} to dataset...")
   recording_dir = get_recording_dir(base_dir, recording_name)
 
   step_path = get_step_path(recording_dir, step_name)
@@ -266,6 +266,7 @@ def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: s
   res = convert_textgrid2dataset(
     grid=grid,
     tier_name=tier_name,
+    tier_lang=tier_lang,
     wav=wav,
     sr=sr,
     duration_s_max=duration_s_max,
