@@ -113,3 +113,4 @@ venv.bak/
 output
 scripts
 *playground.py
+*debug.py

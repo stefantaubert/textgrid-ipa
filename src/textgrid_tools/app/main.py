@@ -216,7 +216,7 @@ def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_s
 
 def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: str, tier_lang: Language, ignore_arcs: Optional[bool], ignore_tones: Optional[bool], replace_unknown_ipa_by: Optional[str]):
   logger = getLogger(__name__)
-  logger.info("Stats")
+  logger.info(f"Stats for recording: {recording_name}")
   recording_dir = get_recording_dir(base_dir, recording_name)
 
   step_path = get_step_path(recording_dir, step_name)

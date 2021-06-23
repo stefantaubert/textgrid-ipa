@@ -43,7 +43,7 @@ def intervals_to_tier(intervals: List[Interval], name: str) -> IntervalTier:
 def log_counter(c: Counter):
   logger = getLogger(__name__)
   for char, occ in c.most_common():
-    logger.info(f"{char!r} ({occ}x)")
+    logger.info("==> " + f"{char!r}"[1:-1] + f" ({occ}x)")
 
 
 def durations_to_intervals(durations: List[Tuple[str, float]], maxTime: float) -> List[Interval]:

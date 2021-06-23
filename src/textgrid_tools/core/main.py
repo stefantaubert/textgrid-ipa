@@ -171,7 +171,7 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
 
   total_content_duration = 0.0
   all_symbols = []
-  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|"]
+  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|", "_"]
   warn_symbols_str = " ".join([f"{x!r}"[1:-1] for x in warn_symbols])
   for interval in tier_intervals:
     has_content = check_interval_has_content(interval)
@@ -179,9 +179,9 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
       content_duration = interval.maxTime - interval.minTime
       total_content_duration += content_duration
       symbols = text_to_symbols(interval.mark, lang=lang, ipa_settings=ipa_settings, logger=logger)
-      if any(x in interval.mark for x in warn_symbols):
+      if any(warn_symbol in symbols for warn_symbol in warn_symbols):
         logger.warning(
-          f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r}) contains any of these undesired symbols: {warn_symbols_str}")
+          f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r} -> {''.join(symbols)!r}) contains at least one of these undesired symbols: {warn_symbols_str}")
       all_symbols.extend(symbols)
 
   symbol_counter = Counter(all_symbols)
@@ -191,10 +191,8 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
   total_duration = tier.maxTime - tier.minTime
   content_percent = total_content_duration / total_duration * 100
   silence_percent = (total_duration - total_content_duration) / total_duration * 100
+  logger.info(f"Total duration: {total_duration:.0f}s / {total_duration/60:.2f}min")
   logger.info(
-    f"Duration content: {total_content_duration:.0f}s of {total_duration:.0f}s ({content_percent:.2f}%)")
-  logger.info(f"Duration content: {total_content_duration/60:.0f}min of {total_duration/60:.0f}min")
+    f"Content duration: {total_content_duration:.0f}s / {total_content_duration/60:.2f}min ({content_percent:.2f}% of total)")
   logger.info(
-    f"Duration of silence: {total_duration - total_content_duration:.0f}s of {total_duration:.0f}s ({silence_percent:.2f}%)")
-  logger.info(
-    f"Duration of silence: {(total_duration - total_content_duration)/60:.0f}min of {total_duration/60:.0f}min")
+    f"Silence duration: {total_duration - total_content_duration:.0f}s / {(total_duration - total_content_duration)/60:.2f}min ({silence_percent:.2f}% of total)")

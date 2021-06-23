@@ -206,3 +206,9 @@ Python 3.9 not working because of:
 [pipenv.exceptions.InstallError]:                                               ^~~~~~~~~~~~~~~~~~~~~
 [pipenv.exceptions.InstallError]:     error: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
 ```
+
+
+
+Don't use ' instead of ˈ for primary stress.
+Don't use / in IPA transcriptions
+Don't insert line breaks in any transcription
