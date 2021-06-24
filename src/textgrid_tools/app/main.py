@@ -9,8 +9,8 @@ from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.main import (add_ipa_tier, add_pause_tier,
-                                      add_words_tier, get_template_textgrid,
-                                      log_tier_stats)
+                                      add_words_tier, export_csv,
+                                      get_template_textgrid, log_tier_stats)
 from textgrid_tools.core.to_dataset import Entry, convert_textgrid2dataset
 from textgrid_tools.utils import save_dataclasses
 from tqdm import tqdm
@@ -289,4 +289,36 @@ def to_dataset(base_dir: Path, recording_name: str, step_name: str, tier_name: s
   data_path = output_dir / DATA_CSV_NAME
   save_dataclasses([x for x, _ in res], data_path)
 
+  logger.info("Done.")
+
+
+def export_to_csv(base_dir: Path, recording_name: str, step_name: str, graphemes_tier_name: str, graphemes_tier_lang: Language, phonemes_tier_name: str, phones_tier_name: str, overwrite: bool):
+  logger = getLogger(__name__)
+  logger.info(f"Stats for recording: {recording_name}")
+  recording_dir = get_recording_dir(base_dir, recording_name)
+
+  step_path = get_step_path(recording_dir, step_name)
+  output_path = recording_dir / f"{step_name}.csv"
+
+  if not step_path.exists():
+    logger.error(f"Step {step_path} does not exist.")
+    return
+
+  if output_path.exists() and not overwrite:
+    logger.error("Already exported!")
+    return
+
+  grid = TextGrid()
+  grid.read(step_path)
+
+  df = export_csv(
+    grid=grid,
+    graphemes_tier_name=graphemes_tier_name,
+    graphemes_tier_lang=graphemes_tier_lang,
+    phonemes_tier_name=phonemes_tier_name,
+    phones_tier_name=phones_tier_name,
+  )
+
+  df.to_csv(output_path, header=True, sep="\t")
+  logger.info(f"Written output to: {output_path}")
   logger.info("Done.")

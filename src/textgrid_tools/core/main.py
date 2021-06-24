@@ -1,3 +1,7 @@
+from textgrid_tools.utils import grid_contains_tier
+from text_utils import text_to_symbols
+from pandas import DataFrame
+from typing import List, Optional
 from collections import Counter
 from logging import getLogger
 from typing import List, Optional, Tuple
@@ -196,3 +200,45 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
     f"Content duration: {total_content_duration:.0f}s / {total_content_duration/60:.2f}min ({content_percent:.2f}% of total)")
   logger.info(
     f"Silence duration: {total_duration - total_content_duration:.0f}s / {(total_duration - total_content_duration)/60:.2f}min ({silence_percent:.2f}% of total)")
+
+
+def export_csv(grid: TextGrid, graphemes_tier_name: str, graphemes_tier_lang: Language, phonemes_tier_name: str, phones_tier_name: str) -> DataFrame:
+  logger = getLogger(__name__)
+
+  if not grid_contains_tier(grid, graphemes_tier_name):
+    logger.error(f"Tier {graphemes_tier_name} does not exist!")
+    return
+
+  if not grid_contains_tier(grid, phonemes_tier_name):
+    logger.error(f"Tier {phonemes_tier_name} does not exist!")
+    return
+
+  if not grid_contains_tier(grid, phones_tier_name):
+    logger.error(f"Tier {phones_tier_name} does not exist!")
+    return
+
+  tier_graphemes: IntervalTier = grid.getFirst(graphemes_tier_name)
+  tier_phonemes: IntervalTier = grid.getFirst(phonemes_tier_name)
+  tier_phones: IntervalTier = grid.getFirst(phones_tier_name)
+
+  if len(tier_graphemes) != len(tier_phonemes) != len(tier_phones):
+    logger.error(
+      f"The tiers do not have the same amount of intervals {len(tier_graphemes)} ({tier_graphemes}) vs. {len(tier_phonemes)} ({tier_phonemes}) vs. {len(tier_phones)} ({tier_phones})!")
+    return
+
+  interval_graphemes: Interval
+  interval_phonemes: Interval
+  interval_phones: Interval
+  tmp = []
+  for interval_graphemes, interval_phonemes, interval_phones in zip(tier_graphemes, tier_phonemes, tier_phones):
+    tmp.append((
+      interval_graphemes.mark,
+      interval_phonemes.mark,
+      interval_phones.mark,
+      repr(graphemes_tier_lang),
+    ))
+  res = DataFrame(
+    data=tmp,
+    columns=["graphemes", "phonemes", "phones", "lang"],
+  )
+  return res

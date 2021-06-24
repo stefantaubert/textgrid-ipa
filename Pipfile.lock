@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "83e8b22e1e6fbe818be7442d62dbe28f4b58e8cc5088697c8df1cacf14d4f271"
+            "sha256": "28a6ec817e362b0da78dea41070744cd89161eb59445c7089e02a407ebd1123d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -449,6 +449,13 @@
             "index": "pypi",
             "version": "==1.21.0"
         },
+        "ordered-set": {
+            "hashes": [
+                "sha256:ba93b2df055bca202116ec44b9bead3df33ea63a7d5827ff8e16738b97f33a95"
+            ],
+            "index": "pypi",
+            "version": "==4.0.2"
+        },
         "packaging": {
             "hashes": [
                 "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5",
@@ -747,7 +754,7 @@
         "text-utils": {
             "editable": true,
             "git": "https://github.com/stefantaubert/text-utils.git",
-            "ref": "5cffe967e9feb6ce5d55aa957bcbb4c7f53ba007"
+            "ref": "f7d244de13cf49fe76e3a3dea9299c75edbf8949"
         },
         "textgrid": {
             "hashes": [
@@ -1810,7 +1817,7 @@
         "text-utils": {
             "editable": true,
             "git": "https://github.com/stefantaubert/text-utils.git",
-            "ref": "5cffe967e9feb6ce5d55aa957bcbb4c7f53ba007"
+            "ref": "f7d244de13cf49fe76e3a3dea9299c75edbf8949"
         },
         "textgrid": {
             "hashes": [

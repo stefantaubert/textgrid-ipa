@@ -22,6 +22,7 @@ tqdm = "*"
 wget = "*"
 TextGrid = "*"
 pandas = "*"
+ordered-set = "*"
 text-utils = {editable = true, ref = "master", git = "https://github.com/stefantaubert/text-utils.git"}
 cmudict-parser = {editable = true, ref = "master", git = "https://github.com/stefantaubert/cmudict-parser.git"}
 audio-utils = {editable = true, ref = "master", git = "https://github.com/stefantaubert/audio-utils.git"}
