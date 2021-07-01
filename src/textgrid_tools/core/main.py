@@ -175,7 +175,7 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
 
   total_content_duration = 0.0
   all_symbols = []
-  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|", "_"]
+  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|", "_", " "]
   warn_symbols_str = " ".join([f"{x!r}"[1:-1] for x in warn_symbols])
   for interval in tier_intervals:
     has_content = check_interval_has_content(interval)
@@ -185,7 +185,7 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
       symbols = text_to_symbols(interval.mark, lang=lang, ipa_settings=ipa_settings, logger=logger)
       if any(warn_symbol in symbols for warn_symbol in warn_symbols):
         logger.warning(
-          f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r} -> {''.join(symbols)!r}) contains at least one of these undesired symbols: {warn_symbols_str}")
+          f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r} -> {''.join(symbols)!r}) contains at least one of these undesired symbols (incl. space): {warn_symbols_str}")
       all_symbols.extend(symbols)
 
   symbol_counter = Counter(all_symbols)
