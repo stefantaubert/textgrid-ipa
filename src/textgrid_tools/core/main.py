@@ -174,7 +174,7 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
   total_content_duration = 0.0
   all_symbols = []
 
-  warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", " "]
+  warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
   warn_symbols_ipa = warn_symbols_general + ["/", "'"]
 
   if lang == Language.IPA:
