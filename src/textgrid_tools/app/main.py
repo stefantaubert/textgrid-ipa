@@ -370,6 +370,7 @@ def extract_audios(base_dir: Path, recording_name: str, step_name: str, grapheme
   )
 
   audio_extraction_dir.mkdir(parents=False, exist_ok=False)
+  logger.info("Saving audios...")
   for i, ((graphemes, phonemes), extracts) in enumerate(tqdm(result.items())):
     dir_name = f"{i+1}_{graphemes.replace('/', '_')}_{phonemes}_({len(extracts)})"
     current_folder = audio_extraction_dir / dir_name
