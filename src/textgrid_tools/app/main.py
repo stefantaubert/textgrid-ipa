@@ -1,3 +1,4 @@
+import re
 from logging import getLogger
 from pathlib import Path
 from shutil import copy, rmtree
@@ -8,6 +9,8 @@ from text_utils import EngToIpaMode
 from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
 from textgrid.textgrid import TextGrid
+from textgrid_tools.core.extract_audio import (extract_words_to_audio,
+                                               get_extracts_df)
 from textgrid_tools.core.main import (add_ipa_tier, add_pause_tier,
                                       add_words_tier, export_csv,
                                       get_template_textgrid, log_tier_stats)
@@ -23,6 +26,10 @@ AUDIO_FOLDER_NAME = "audio"
 
 def get_recording_dir(base_dir: Path, recording_name: str) -> Path:
   return base_dir / recording_name
+
+
+def get_audio_extraction_dir(recording_dir: Path, step_name: str) -> Path:
+  return recording_dir / step_name
 
 
 def get_step_path(recording_dir: Path, step_name: str) -> Path:
@@ -321,4 +328,60 @@ def export_to_csv(base_dir: Path, recording_name: str, step_name: str, graphemes
 
   df.to_csv(output_path, header=True, sep="\t")
   logger.info(f"Written output to: {output_path}")
+  logger.info("Done.")
+
+
+def extract_audios(base_dir: Path, recording_name: str, step_name: str, graphemes_tier_name: str, phonemes_tier_name: str, phones_tier_name: str, overwrite: bool):
+  logger = getLogger(__name__)
+  logger.info(f"Stats for recording: {recording_name}")
+  recording_dir = get_recording_dir(base_dir, recording_name)
+
+  step_path = get_step_path(recording_dir, step_name)
+
+  if not step_path.exists():
+    logger.error(f"Step {step_path} does not exist.")
+    return
+
+  audio_extraction_dir = get_audio_extraction_dir(recording_dir, step_name)
+
+  if audio_extraction_dir.exists():
+    if overwrite:
+      rmtree(audio_extraction_dir)
+      logger.info("Removed existing export.")
+    else:
+      logger.error("Already exported!")
+      return
+
+  audio_path = get_audio_path(recording_dir)
+  assert audio_path.exists()
+
+  logger.info("Reading data...")
+  sr, wav = read(audio_path)
+  grid = TextGrid()
+  grid.read(step_path)
+
+  result = extract_words_to_audio(
+    grid=grid,
+    graphemes_tier_name=graphemes_tier_name,
+    phonemes_tier_name=phonemes_tier_name,
+    phones_tier_name=phones_tier_name,
+    wav=wav,
+    sr=sr,
+  )
+
+  audio_extraction_dir.mkdir(parents=False, exist_ok=False)
+  for i, ((graphemes, phonemes), extracts) in enumerate(tqdm(result.items())):
+    dir_name = f"{i+1}_{graphemes.replace('/', '_')}_{phonemes}_({len(extracts)})"
+    current_folder = audio_extraction_dir / dir_name
+    assert not current_folder.exists()
+    current_folder.mkdir(parents=False, exist_ok=False)
+    df = get_extracts_df(extracts)
+    df_path = current_folder / "details.csv"
+    df.to_csv(df_path, sep="\t", header=True, index=False)
+
+    for j, extract in enumerate(extracts):
+      wav_file_path = current_folder / f"{j+1}_{extract.phones}.wav"
+      write(wav_file_path, sr, extract.audio)
+
+  logger.info(f"Written output to: {audio_extraction_dir}")
   logger.info("Done.")

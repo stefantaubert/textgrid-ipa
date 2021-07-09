@@ -1,7 +1,3 @@
-from textgrid_tools.utils import grid_contains_tier
-from text_utils import text_to_symbols
-from pandas import DataFrame
-from typing import List, Optional
 from collections import Counter
 from logging import getLogger
 from typing import List, Optional, Tuple
@@ -9,6 +5,8 @@ from typing import List, Optional, Tuple
 import numpy as np
 from audio_utils import (get_chunks, get_duration_s, get_duration_s_samples,
                          ms_to_samples)
+from pandas import DataFrame
+from text_utils import text_to_symbols
 from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
 from text_utils.text import EngToIpaMode, text_to_ipa, text_to_symbols
@@ -175,7 +173,15 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
 
   total_content_duration = 0.0
   all_symbols = []
-  warn_symbols = ["\n", "\r", "\t", "\\", "/", "'", "\"", "[", "]", "(", ")", "|", "_", " "]
+
+  warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", " "]
+  warn_symbols_ipa = warn_symbols_general + ["/", "'"]
+
+  if lang == Language.IPA:
+    warn_symbols = warn_symbols_ipa
+  else:
+    warn_symbols = warn_symbols_general
+
   warn_symbols_str = " ".join([f"{x!r}"[1:-1] for x in warn_symbols])
   for interval in tier_intervals:
     has_content = check_interval_has_content(interval)
