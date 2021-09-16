@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+textgrid-ipa = {editable = true, path = "."}
 autopep8 = "*"
 pylint = "*"
 pycodestyle = "*"
@@ -12,7 +13,6 @@ pipenv-setup = "*"
 rope = "*"
 pytest = "*"
 pytest-xdist = "*"
-textgrid-ipa = {editable = true, path = "."}
 unittest2pytest = "*"
 
 [packages]

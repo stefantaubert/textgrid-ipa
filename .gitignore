@@ -112,5 +112,4 @@ venv.bak/
 # textgrid_tools/*.tests.py
 output
 scripts
-*playground.py
-*debug.py
+*_debug/
