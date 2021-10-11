@@ -8,6 +8,7 @@ from text_utils.text import EngToIpaMode
 from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
                                      detect_silence, extract_words, log_stats,
                                      to_dataset)
+from textgrid_tools.app.mfa_utils import convert_text_to_dict
 
 BASE_DIR_VAR = "base_dir"
 
@@ -24,6 +25,17 @@ def _add_parser_to(subparsers, name: str, init_method):
   parser.set_defaults(invoke_handler=invoke_method)
   add_base_dir(parser)
   return parser
+
+
+def init_convert_to_dict_parser(parser: ArgumentParser):
+  parser.add_argument("--recording_name", type=str, required=True)
+  parser.add_argument("--step_name", type=str, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--tier_lang", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--ignore_tones", action="store_true")
+  parser.add_argument("--ignore_arcs", action="store_true")
+  parser.add_argument("--replace_unknown_ipa_by", type=str, default="_")
+  return convert_text_to_dict
 
 
 def init_log_stats_parser(parser: ArgumentParser):
@@ -124,6 +136,7 @@ def _init_parser():
   _add_parser_to(subparsers, "rec-add-ipa", init_convert_to_ipa_parser)
   _add_parser_to(subparsers, "rec-print-stats", init_log_stats_parser)
   _add_parser_to(subparsers, "rec-to-dataset", init_to_dataset_parser)
+  _add_parser_to(subparsers, "mfa-create-dict", init_convert_to_dict_parser)
 
   return result
 
