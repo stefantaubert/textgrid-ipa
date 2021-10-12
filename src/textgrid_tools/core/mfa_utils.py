@@ -1,18 +1,68 @@
+import string
+from functools import partial
 from logging import getLogger
-from typing import List
+from typing import Dict, List
 
-from pronunciation_dict_parser import PronunciationDict, export
-from text_utils import (symbols_to_arpa_pronunciation_dict, symbols_to_ipa,
-                        text_to_symbols)
+from ordered_set import OrderedSet
+from pronunciation_dict_parser import PronunciationDict
+from pronunciation_dict_parser.default_parser import (PublicDictType,
+                                                      parse_public_dict)
+from sentence2pronunciation.core import (get_non_annotated_words,
+                                         sentence2pronunciation_cached)
+from sentence2pronunciation.lookup_cache import clear_cache
+from text_utils import symbols_map_arpa_to_ipa, text_to_symbols
 from text_utils.language import Language
-from text_utils.pronunciation.ipa2symb import (DONT_CHANGE, merge_left,
-                                               merge_right)
+from text_utils.pronunciation.ipa2symb import merge_left, merge_right
 from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
-                                           EngToIPAMode, symbols_to_arpa)
+                                           lookup_dict)
 from text_utils.symbol_format import SymbolFormat
 from text_utils.text import symbols_to_words
-from text_utils.utils import symbols_split
+from text_utils.types import Symbols
+from text_utils.utils import pronunciation_dict_to_tuple_dict, symbols_to_upper
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
+DEFAULT_MFA_IGNORE_PUNCTUATION = set("、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+=")
+USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
+DEFAULT_IGNORE_CASE = True
+
+
+def __lookup_dict_no_oov(word: Symbols, dictionary: Dict[Symbols, Symbols]) -> Symbols:
+  word_upper = symbols_to_upper(word)
+  if word_upper not in dictionary:
+    raise Exception(f"Word {word} pronunciation not found!")
+
+  return dictionary[word_upper][0]
+
+
+def __eng_to_arpa_no_oov(eng_sentence: Symbols, pronunciations: Dict[Symbols, Symbols]) -> Symbols:
+  method = partial(__lookup_dict_no_oov, dictionary=pronunciations)
+
+  result = sentence2pronunciation_cached(
+    sentence=eng_sentence,
+    annotation_split_symbol=None,
+    consider_annotation=False,
+    get_pronunciation=method,
+    split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+    trim_symbols=DEFAULT_MFA_IGNORE_PUNCTUATION,
+    ignore_case_in_cache=DEFAULT_IGNORE_CASE,
+  )
+
+  return result
+
+
+def interval_is_empty(interval: Interval) -> bool:
+  return interval.mark is None or len(interval.mark.strip()) == 0
+
+
+def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
+  words = []
+  for interval in tier.intervals:
+    if not interval_is_empty(interval):
+      interval_text: str = interval.mark
+      interval_text = interval_text.strip()
+      words.append(interval_text)
+  text = join_with.join(words)
+  return text
 
 
 def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Language) -> PronunciationDict:
@@ -21,14 +71,36 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
     text=text,
     text_format=text_format,
   )
-  pronunciation_dict = symbols_to_arpa_pronunciation_dict(
-    symbols=symbols,
-    consider_annotations=False,
-    ignore_case=True,
-    language=language,
-    split_on_hyphen=True,
-    symbols_format=text_format,
+
+  words = get_non_annotated_words(
+    sentence=symbols,
+    trim_symbols=DEFAULT_MFA_IGNORE_PUNCTUATION,
+    consider_annotation=False,
+    annotation_split_symbol=None,
+    ignore_case=DEFAULT_IGNORE_CASE,
+    split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
   )
+
+  arpa_dict = parse_public_dict(PublicDictType.LIBRISPEECH_ARPA)
+  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
+  pronunciation_dict = {}
+  method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
+  for word in words:
+    arpa_symbols = sentence2pronunciation_cached(
+      sentence=word,
+      annotation_split_symbol=None,
+      consider_annotation=False,
+      get_pronunciation=method,
+      split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+      trim_symbols=DEFAULT_MFA_IGNORE_PUNCTUATION,
+      ignore_case_in_cache=DEFAULT_IGNORE_CASE,
+    )
+
+    word_str = "".join(word)
+    assert word_str not in pronunciation_dict
+    pronunciation_dict[word_str] = OrderedSet([arpa_symbols])
+
+  clear_cache()
 
   return pronunciation_dict
 
@@ -73,26 +145,9 @@ def add_layer_containing_original_text(original_text: str, text_format: SymbolFo
   grid.append(new_tier)
 
 
-def interval_is_empty(interval: Interval) -> bool:
-  return interval.mark is None or len(interval.mark.strip()) == 0
-
-
-def tier_to_text(tier: IntervalTier, join_with: str=" ") -> str:
-  words = []
-  for interval in tier.intervals:
-    if not interval_is_empty(interval):
-      interval_text: str = interval.mark
-      interval_text = interval_text.strip()
-      words.append(interval_text)
-  text = join_with.join(words)
-  return text
-
-
-def add_layer_containing_punctuation(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool):
+def convert_original_text_to_arpa(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool):
   logger = getLogger(__name__)
-  reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
-  if reference_tier is None:
-    raise Exception("Reference-tier not found!")
+
   new_tier = grid.getFirst(new_tier_name)
   if new_tier is not None and not overwrite_existing_tier:
     raise Exception("Tier already exists!")
@@ -109,25 +164,156 @@ def add_layer_containing_punctuation(text_format: SymbolFormat, language: Langua
     text_format=text_format,
   )
 
-  symbols_arpa, _ = symbols_to_arpa(
-    symbols=symbols,
-    consider_annotations=False,
-    lang=language,
-    symbols_format=text_format,
+  clear_cache()
+
+  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
+
+  symbols_arpa = __eng_to_arpa_no_oov(
+    eng_sentence=symbols,
+    pronunciations=arpa_dict_tuple_based,
   )
 
-  final_symbols = symbols_arpa
+  words = symbols_to_words(symbols_arpa)
+
+  original_text_tier_intervals: List[Interval] = original_text_tier.intervals
+  new_tier = IntervalTier(
+    minTime=original_text_tier.minTime,
+    maxTime=original_text_tier.maxTime,
+    name=new_tier_name,
+  )
+
+  for interval in original_text_tier_intervals:
+    new_arpa = ""
+    if not interval_is_empty(interval):
+      new_arpa_tuple = words.pop(0)
+      new_arpa = ' '.join(new_arpa_tuple)
+    logger.info(f"Assigned {new_arpa} to {interval.mark}")
+
+    new_interval = Interval(
+      minTime=interval.minTime,
+      maxTime=interval.maxTime,
+      mark=new_arpa,
+    )
+
+    new_tier.addInterval(new_interval)
+
+  grid.append(new_tier)
+
+
+def convert_original_text_to_ipa(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool):
+  logger = getLogger(__name__)
+
+  new_tier = grid.getFirst(new_tier_name)
+  if new_tier is not None and not overwrite_existing_tier:
+    raise Exception("Tier already exists!")
+
+  original_text_tier = grid.getFirst(original_text_tier_name)
+  if original_text_tier is None:
+    raise Exception("Original text-tier not found!")
+
+  original_text = tier_to_text(original_text_tier)
+
+  symbols = text_to_symbols(
+    lang=language,
+    text=original_text,
+    text_format=text_format,
+  )
+
+  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
+
+  symbols_arpa = __eng_to_arpa_no_oov(
+    eng_sentence=symbols,
+    pronunciations=arpa_dict_tuple_based,
+  )
+
+  clear_cache()
+
+  result_ipa = symbols_map_arpa_to_ipa(
+    arpa_symbols=symbols_arpa,
+    ignore={},
+    replace_unknown=False,
+    replace_unknown_with=None,
+  )
+
+  words = symbols_to_words(result_ipa)
+
+  original_text_tier_intervals: List[Interval] = original_text_tier.intervals
+  new_tier = IntervalTier(
+    minTime=original_text_tier.minTime,
+    maxTime=original_text_tier.maxTime,
+    name=new_tier_name,
+  )
+
+  for interval in original_text_tier_intervals:
+    new_ipa = ""
+    if not interval_is_empty(interval):
+      new_ipa_tuple = words.pop(0)
+      new_ipa = ''.join(new_ipa_tuple)
+    logger.info(f"Assigned {new_ipa} to {interval.mark}")
+
+    new_interval = Interval(
+      minTime=interval.minTime,
+      maxTime=interval.maxTime,
+      mark=new_ipa,
+    )
+
+    new_tier.addInterval(new_interval)
+
+  grid.append(new_tier)
+
+
+def add_ipa_layer_containing_punctuation(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool):
+  logger = getLogger(__name__)
+  reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
+  if reference_tier is None:
+    raise Exception("Reference-tier not found!")
+
+  new_tier = grid.getFirst(new_tier_name)
+  if new_tier is not None and not overwrite_existing_tier:
+    raise Exception("Tier already exists!")
+
+  original_text_tier = grid.getFirst(original_text_tier_name)
+  if original_text_tier is None:
+    raise Exception("Original text-tier not found!")
+
+  original_text = tier_to_text(original_text_tier)
+
+  symbols = text_to_symbols(
+    lang=language,
+    text=original_text,
+    text_format=text_format,
+  )
+
+  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
+
+  symbols_arpa = __eng_to_arpa_no_oov(
+    eng_sentence=symbols,
+    pronunciations=arpa_dict_tuple_based,
+  )
+
+  clear_cache()
+
+  symbols_ipa = symbols_map_arpa_to_ipa(
+    arpa_symbols=symbols_arpa,
+    ignore=set(),
+    replace_unknown=False,
+    replace_unknown_with=None,
+  )
+
+  final_symbols = symbols_ipa
+
+  dont_merge = DEFAULT_MFA_IGNORE_PUNCTUATION | set(string.whitespace)
 
   final_symbols = merge_right(
     symbols=final_symbols,
-    ignore_merge_symbols=DONT_CHANGE,
-    merge_symbols=DEFAULT_IGNORE_PUNCTUATION,
+    ignore_merge_symbols=dont_merge,
+    merge_symbols=DEFAULT_MFA_IGNORE_PUNCTUATION | set("-"),
   )
 
   final_symbols = merge_left(
     symbols=final_symbols,
-    ignore_merge_symbols=DONT_CHANGE,
-    merge_symbols=DEFAULT_IGNORE_PUNCTUATION,
+    ignore_merge_symbols=dont_merge,
+    merge_symbols=DEFAULT_IGNORE_PUNCTUATION | set("-"),
   )
 
   final_symbols = [symbol for symbol in final_symbols if symbol != " "]
