@@ -1,15 +1,15 @@
 from collections import Counter
 from logging import getLogger
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 from audio_utils import (get_chunks, get_duration_s, get_duration_s_samples,
                          ms_to_samples)
 from pandas import DataFrame
 from text_utils import text_to_symbols
-from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
-from text_utils.text import EngToIpaMode, text_to_ipa, text_to_symbols
+from text_utils.pronunciation.main import symbols_to_ipa
+from text_utils.text import EngToIPAMode, text_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_interval_has_content,
                                   collapse_whitespace, durations_to_intervals,
@@ -123,7 +123,7 @@ def add_words_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, overwr
     grid.append(pause_tier)
 
 
-def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIpaMode], replace_unknown_with: str, consider_ipa_annotations: bool, overwrite_tier: bool, in_tier_lang: Language) -> None:
+def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIPAMode], replace_unknown_with: str, consider_ipa_annotations: bool, overwrite_tier: bool, in_tier_lang: Language) -> None:
   assert grid_contains_tier(grid, in_tier_name)
   logger = getLogger(__name__)
 
@@ -138,15 +138,16 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: Op
     Interval(
       minTime=interval.minTime,
       maxTime=interval.maxTime,
-      mark=text_to_ipa(
-        text=interval.mark,
-        lang=in_tier_lang,
-        mode=mode,
-        replace_unknown_with=replace_unknown_with,
-        consider_ipa_annotations=consider_ipa_annotations,
-        use_cache=True,
-        logger=logger,
-      )
+      mark=None,  # TODO
+      # mark=symbols_to_ipa(
+      #   text=interval.mark,
+      #   lang=in_tier_lang,
+      #   mode=mode,
+      #   replace_unknown_with=replace_unknown_with,
+      #   consider_ipa_annotations=consider_ipa_annotations,
+      #   use_cache=True,
+      #   logger=logger,
+      # )
     ) for interval in tqdm(in_tier_intervals)
   ]
 
@@ -163,7 +164,7 @@ def add_ipa_tier(grid: TextGrid, in_tier_name: str, out_tier_name: str, mode: Op
     grid.append(tier)
 
 
-def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings: Optional[IPAExtractionSettings]) -> None:
+def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings: Optional[Any]) -> None:
   assert grid_contains_tier(grid, tier_name)
   logger = getLogger(__name__)
   tier_names = [x.name for x in grid.tiers]
@@ -177,10 +178,12 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
   warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
   warn_symbols_ipa = warn_symbols_general + ["/", "'"]
 
-  if lang == Language.IPA:
-    warn_symbols = warn_symbols_ipa
-  else:
-    warn_symbols = warn_symbols_general
+  # TODO
+  warn_symbols = warn_symbols_general
+  # if lang == Language.IPA:
+  #   warn_symbols = warn_symbols_ipa
+  # else:
+  #   warn_symbols = warn_symbols_general
 
   warn_symbols_str = " ".join([f"{x!r}"[1:-1] for x in warn_symbols])
   for interval in tier_intervals:
@@ -188,7 +191,8 @@ def log_tier_stats(grid: TextGrid, tier_name: str, lang: Language, ipa_settings:
     if has_content:
       content_duration = interval.maxTime - interval.minTime
       total_content_duration += content_duration
-      symbols = text_to_symbols(interval.mark, lang=lang, ipa_settings=ipa_settings, logger=logger)
+      symbols = None  # TODO
+      #symbols = text_to_symbols(interval.mark, lang=lang, ipa_settings=ipa_settings, logger=logger)
       if any(warn_symbol in symbols for warn_symbol in warn_symbols):
         logger.warning(
           f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r} -> {''.join(symbols)!r}) contains at least one of these undesired symbols (incl. space): {warn_symbols_str}")

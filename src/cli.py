@@ -3,12 +3,14 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from text_utils.language import Language
-from text_utils.text import EngToIpaMode
+from text_utils.pronunciation.main import EngToIPAMode
+from text_utils.symbol_format import SymbolFormat
 
 from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
                                      detect_silence, extract_words, log_stats,
                                      to_dataset)
-from textgrid_tools.app.mfa_utils import convert_text_to_dict
+from textgrid_tools.app.mfa_utils import (add_original_text_layer,
+                                          convert_text_to_dict)
 
 BASE_DIR_VAR = "base_dir"
 
@@ -36,6 +38,19 @@ def init_convert_to_dict_parser(parser: ArgumentParser):
   parser.add_argument("--ignore_arcs", action="store_true")
   parser.add_argument("--replace_unknown_ipa_by", type=str, default="_")
   return convert_text_to_dict
+
+
+def init_add_original_text_layer_parser(parser: ArgumentParser):
+  parser.add_argument("--grid_path", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--new_tier_name", type=str, required=True)
+  parser.add_argument("--overwrite_existing_tier", action="store_true")
+  parser.add_argument("--text_path", type=Path, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--out_path", type=Path, required=True)
+  return add_original_text_layer
 
 
 def init_log_stats_parser(parser: ArgumentParser):
@@ -102,7 +117,7 @@ def init_convert_to_ipa_parser(parser: ArgumentParser):
   parser.add_argument("--in_tier_name", type=str, required=True)
   parser.add_argument("--in_tier_lang", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--out_tier_name", type=str, required=True)
-  parser.add_argument("--mode", choices=EngToIpaMode, type=EngToIpaMode.__getitem__, required=False)
+  parser.add_argument("--mode", choices=EngToIPAMode, type=EngToIPAMode.__getitem__, required=False)
   parser.add_argument("--replace_unknown_with", type=str, default="_")
   parser.add_argument("--overwrite_step", action="store_true")
   parser.add_argument("--overwrite_tier", action="store_true")
@@ -137,6 +152,7 @@ def _init_parser():
   _add_parser_to(subparsers, "rec-print-stats", init_log_stats_parser)
   _add_parser_to(subparsers, "rec-to-dataset", init_to_dataset_parser)
   _add_parser_to(subparsers, "mfa-create-dict", init_convert_to_dict_parser)
+  _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
 
   return result
 

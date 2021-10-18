@@ -5,9 +5,8 @@ from shutil import copy, rmtree
 from typing import Optional
 
 from scipy.io.wavfile import read, write
-from text_utils import EngToIpaMode
-from text_utils.ipa2symb import IPAExtractionSettings
 from text_utils.language import Language
+from text_utils.pronunciation.main import EngToIPAMode
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.extract_audio import (extract_words_to_audio,
                                                get_extracts_df)
@@ -179,7 +178,7 @@ def extract_words(base_dir: Path, recording_name: str, in_step_name: str, out_st
   logger.info("Done.")
 
 
-def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_step_name: str, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIpaMode], replace_unknown_with: str, consider_ipa_annotations: bool, in_tier_lang: Language, overwrite_step: bool, overwrite_tier: bool):
+def convert_to_ipa(base_dir: Path, recording_name: str, in_step_name: str, out_step_name: str, in_tier_name: str, out_tier_name: str, mode: Optional[EngToIPAMode], replace_unknown_with: str, consider_ipa_annotations: bool, in_tier_lang: Language, overwrite_step: bool, overwrite_tier: bool):
   logger = getLogger(__name__)
   logger.info("Converting to IPA...")
   recording_dir = get_recording_dir(base_dir, recording_name)
@@ -235,11 +234,12 @@ def log_stats(base_dir: Path, recording_name: str, step_name: str, tier_name: st
   grid = TextGrid()
   grid.read(step_path)
 
-  ipa_settings = IPAExtractionSettings(
-    ignore_arcs=ignore_arcs,
-    ignore_tones=ignore_tones,
-    replace_unknown_ipa_by=replace_unknown_ipa_by,
-  )
+  ipa_settings = None
+  # ipa_settings = IPAExtractionSettings(
+  #   ignore_arcs=ignore_arcs,
+  #   ignore_tones=ignore_tones,
+  #   replace_unknown_ipa_by=replace_unknown_ipa_by,
+  # )
 
   log_tier_stats(grid, tier_name, tier_lang, ipa_settings)
 
