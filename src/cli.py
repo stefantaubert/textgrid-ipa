@@ -12,6 +12,8 @@ from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
 from textgrid_tools.app.mfa_utils import (add_ipa_from_words,
                                           add_original_text_layer,
                                           add_original_texts_layer,
+                                          add_phonemes_from_phonemes,
+                                          add_phonemes_from_words,
                                           convert_text_to_dict,
                                           normalize_text_file,
                                           normalize_text_files_in_folder)
@@ -104,6 +106,39 @@ def init_add_ipa_from_words_parser(parser: ArgumentParser):
   parser.add_argument("--out_path", type=Path, required=True)
   parser.add_argument("--trim_symbols", type=str, required=True)
   return add_ipa_from_words
+
+
+def init_add_phonemes_from_words_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--original_text_tier_name", type=str, required=True)
+  parser.add_argument("--new_ipa_tier_name", type=str, required=True)
+  parser.add_argument("--new_arpa_tier_name", type=str, required=True)
+  parser.add_argument("--overwrite_existing_tiers", action="store_true")
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--pronunciation_dict_file", type=Path, required=True)
+  parser.add_argument("--trim_symbols", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return add_phonemes_from_words
+
+
+def init_add_phonemes_from_phonemes_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--original_text_tier_name", type=str, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--new_ipa_tier_name", type=str, required=True)
+  parser.add_argument("--new_arpa_tier_name", type=str, required=True)
+  parser.add_argument("--overwrite_existing_tiers", action="store_true")
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--pronunciation_dict_file", type=Path, required=True)
+  parser.add_argument("--trim_symbols", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return add_phonemes_from_phonemes
 
 
 def init_log_stats_parser(parser: ArgumentParser):
@@ -210,6 +245,9 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)
+  _add_parser_to(subparsers, "mfa-add-phonemes-from-words", init_add_phonemes_from_words_parser)
+  _add_parser_to(subparsers, "mfa-add-phonemes-from-phonemes",
+                 init_add_phonemes_from_phonemes_parser)
 
   return result
 

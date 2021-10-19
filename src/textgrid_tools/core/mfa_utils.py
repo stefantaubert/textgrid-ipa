@@ -179,16 +179,20 @@ def add_layer_containing_original_text(original_text: str, text_format: SymbolFo
   return
 
 
-def convert_original_text_to_arpa(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]):
+def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: str, new_ipa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
 
-  new_tier = grid.getFirst(new_tier_name)
-  if new_tier is not None and not overwrite_existing_tier:
-    raise Exception("Tier already exists!")
-
-  original_text_tier = grid.getFirst(original_text_tier_name)
+  original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
   if original_text_tier is None:
     raise Exception("Original text-tier not found!")
+
+  new_ipa_tier: IntervalTier = grid.getFirst(new_ipa_tier_name)
+  if new_ipa_tier is not None and not overwrite_existing_tiers:
+    raise Exception("IPA tier already exists!")
+
+  new_arpa_tier = grid.getFirst(new_arpa_tier_name)
+  if new_arpa_tier is not None and not overwrite_existing_tiers:
+    raise Exception("ARPA tier already exists!")
 
   original_text = tier_to_text(original_text_tier)
 
@@ -198,8 +202,6 @@ def convert_original_text_to_arpa(text_format: SymbolFormat, language: Language,
     text_format=text_format,
   )
 
-  clear_cache()
-
   arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
 
   symbols_arpa = __eng_to_arpa_no_oov(
@@ -208,109 +210,80 @@ def convert_original_text_to_arpa(text_format: SymbolFormat, language: Language,
     trim_symbols=trim_symbols,
   )
 
-  words = symbols_to_words(symbols_arpa)
+  clear_cache()
+
+  words_arpa = symbols_to_words(symbols_arpa)
 
   original_text_tier_intervals: List[Interval] = original_text_tier.intervals
-  new_tier = IntervalTier(
+
+  new_arpa_tier = IntervalTier(
     minTime=original_text_tier.minTime,
     maxTime=original_text_tier.maxTime,
-    name=new_tier_name,
+    name=new_arpa_tier_name,
+  )
+
+  new_ipa_tier = IntervalTier(
+    minTime=original_text_tier.minTime,
+    maxTime=original_text_tier.maxTime,
+    name=new_ipa_tier_name,
   )
 
   for interval in original_text_tier_intervals:
+    new_ipa = ""
     new_arpa = ""
-    if not interval_is_empty(interval):
-      new_arpa_tuple = words.pop(0)
-      new_arpa = ' '.join(new_arpa_tuple)
-    logger.info(f"Assigned {new_arpa} to {interval.mark}")
 
-    new_interval = Interval(
+    if not interval_is_empty(interval):
+      new_arpa_tuple = words_arpa.pop(0)
+      new_arpa = " ".join(new_arpa_tuple)
+
+      new_ipa_tuple = symbols_map_arpa_to_ipa(
+        arpa_symbols=new_arpa_tuple,
+        ignore={},
+        replace_unknown=False,
+        replace_unknown_with=None,
+      )
+
+      new_ipa = "".join(new_ipa_tuple)
+      logger.debug(f"Assigned \"{new_arpa}\" & \"{new_ipa}\" to \"{interval.mark}\".")
+
+    new_arpa_interval = Interval(
       minTime=interval.minTime,
       maxTime=interval.maxTime,
       mark=new_arpa,
     )
 
-    new_tier.addInterval(new_interval)
+    new_arpa_tier.addInterval(new_arpa_interval)
 
-  grid.append(new_tier)
-
-
-def convert_original_text_to_ipa(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]):
-  logger = getLogger(__name__)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols))} (#{len(trim_symbols)})")
-  new_tier = grid.getFirst(new_tier_name)
-  if new_tier is not None and not overwrite_existing_tier:
-    raise Exception("Tier already exists!")
-
-  original_text_tier = grid.getFirst(original_text_tier_name)
-  if original_text_tier is None:
-    raise Exception("Original text-tier not found!")
-
-  original_text = tier_to_text(original_text_tier)
-
-  symbols = text_to_symbols(
-    lang=language,
-    text=original_text,
-    text_format=text_format,
-  )
-
-  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
-
-  symbols_arpa = __eng_to_arpa_no_oov(
-    eng_sentence=symbols,
-    pronunciations=arpa_dict_tuple_based,
-    trim_symbols=trim_symbols,
-  )
-
-  clear_cache()
-
-  result_ipa = symbols_map_arpa_to_ipa(
-    arpa_symbols=symbols_arpa,
-    ignore={},
-    replace_unknown=False,
-    replace_unknown_with=None,
-  )
-
-  words = symbols_to_words(result_ipa)
-
-  original_text_tier_intervals: List[Interval] = original_text_tier.intervals
-  new_tier = IntervalTier(
-    minTime=original_text_tier.minTime,
-    maxTime=original_text_tier.maxTime,
-    name=new_tier_name,
-  )
-
-  for interval in original_text_tier_intervals:
-    new_ipa = ""
-    if not interval_is_empty(interval):
-      new_ipa_tuple = words.pop(0)
-      new_ipa = ''.join(new_ipa_tuple)
-    logger.info(f"Assigned {new_ipa} to {interval.mark}")
-
-    new_interval = Interval(
+    new_ipa_interval = Interval(
       minTime=interval.minTime,
       maxTime=interval.maxTime,
       mark=new_ipa,
     )
 
-    new_tier.addInterval(new_interval)
+    new_ipa_tier.addInterval(new_ipa_interval)
 
-  grid.append(new_tier)
+  grid.append(new_arpa_tier)
+  grid.append(new_ipa_tier)
 
 
-def add_ipa_layer_containing_punctuation(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]):
+def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
+
+  original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
+  if original_text_tier is None:
+    raise Exception("Original text-tier not found!")
+
   reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if reference_tier is None:
     raise Exception("Reference-tier not found!")
 
-  new_tier = grid.getFirst(new_tier_name)
-  if new_tier is not None and not overwrite_existing_tier:
-    raise Exception("Tier already exists!")
+  new_ipa_tier: IntervalTier = grid.getFirst(new_ipa_tier_name)
+  if new_ipa_tier is not None and not overwrite_existing_tiers:
+    raise Exception("IPA tier already exists!")
 
-  original_text_tier = grid.getFirst(original_text_tier_name)
-  if original_text_tier is None:
-    raise Exception("Original text-tier not found!")
+  new_arpa_tier = grid.getFirst(new_arpa_tier_name)
+  if new_arpa_tier is not None and not overwrite_existing_tiers:
+    raise Exception("ARPA tier already exists!")
 
   original_text = tier_to_text(original_text_tier)
 
@@ -337,46 +310,82 @@ def add_ipa_layer_containing_punctuation(text_format: SymbolFormat, language: La
     replace_unknown_with=None,
   )
 
-  final_symbols = symbols_ipa
-
   dont_merge = trim_symbols | set(string.whitespace)
+  merge_symbols = trim_symbols | {"-"}  # DEFAULT_IGNORE_PUNCTUATION | set("-"),
 
-  final_symbols = merge_right(
-    symbols=final_symbols,
+  final_arpa_symbols = symbols_arpa
+
+  final_arpa_symbols = merge_right(
+    symbols=final_arpa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=trim_symbols | set("-"),
+    merge_symbols=merge_symbols,
   )
 
-  final_symbols = merge_left(
-    symbols=final_symbols,
+  final_arpa_symbols = merge_left(
+    symbols=final_arpa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=DEFAULT_IGNORE_PUNCTUATION | set("-"),
+    merge_symbols=merge_symbols,
   )
 
-  final_symbols = [symbol for symbol in final_symbols if symbol != " "]
+  final_arpa_symbols = [symbol for symbol in final_arpa_symbols if symbol != " "]
 
-  logger.info(f"Old symbols: {tier_to_text(reference_tier, join_with='')}")
-  logger.info(f"New symbols: {''.join(final_symbols)}")
+  final_ipa_symbols = symbols_ipa
+
+  final_ipa_symbols = merge_right(
+    symbols=final_ipa_symbols,
+    ignore_merge_symbols=dont_merge,
+    merge_symbols=merge_symbols,
+  )
+
+  final_ipa_symbols = merge_left(
+    symbols=final_ipa_symbols,
+    ignore_merge_symbols=dont_merge,
+    merge_symbols=merge_symbols,
+  )
+
+  final_ipa_symbols = [symbol for symbol in final_ipa_symbols if symbol != " "]
+
+  #logger.debug(f"Old symbols: {tier_to_text(reference_tier, join_with='')}")
+  #logger.debug(f"New symbols: \"{''.join(final_ipa_symbols)}\" // \"{' '.join(final_arpa_symbols)}\"")
 
   intervals: List[Interval] = reference_tier.intervals
-  new_tier = IntervalTier(
+  new_arpa_tier = IntervalTier(
     minTime=reference_tier.minTime,
     maxTime=reference_tier.maxTime,
-    name=new_tier_name,
+    name=new_arpa_tier_name,
   )
-  for interval in intervals:
-    new_arpa = ""
-    if not interval_is_empty(interval):
-      new_arpa_tuple = final_symbols.pop(0)
-      new_arpa = ''.join(new_arpa_tuple)
-    logger.info(f"Assigned {new_arpa} to {interval.mark}")
 
-    new_interval = Interval(
+  new_ipa_tier = IntervalTier(
+    minTime=reference_tier.minTime,
+    maxTime=reference_tier.maxTime,
+    name=new_ipa_tier_name,
+  )
+
+  for interval in intervals:
+    new_ipa_symbol = ""
+    new_arpa_symbol = ""
+
+    if not interval_is_empty(interval):
+      new_ipa_symbol = final_ipa_symbols.pop(0)
+      new_arpa_symbol = final_arpa_symbols.pop(0)
+
+      logger.debug(f"Assigned \"{new_arpa_symbol}\" & \"{new_ipa_symbol}\" to \"{interval.mark}\".")
+
+    new_arpa_interval = Interval(
       minTime=interval.minTime,
       maxTime=interval.maxTime,
-      mark=new_arpa,
+      mark=new_arpa_symbol,
     )
 
-    new_tier.addInterval(new_interval)
+    new_arpa_tier.addInterval(new_arpa_interval)
 
-  grid.append(new_tier)
+    new_ipa_interval = Interval(
+      minTime=interval.minTime,
+      maxTime=interval.maxTime,
+      mark=new_ipa_symbol,
+    )
+
+    new_ipa_tier.addInterval(new_ipa_interval)
+
+  grid.append(new_arpa_tier)
+  grid.append(new_ipa_tier)
