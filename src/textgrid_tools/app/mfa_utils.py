@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from pronunciation_dict_parser import export
 from pronunciation_dict_parser.parser import parse_file
@@ -55,7 +55,7 @@ def normalize_text_file(base_dir: Path, text_path: Path, text_format: SymbolForm
   # backup_path.write_text(text, encoding="UTF-8")
   out_path.write_text(new_text, encoding="UTF-8")
   logger = getLogger(__name__)
-  #logger.info(f"Created backup: {backup_path}")
+  # logger.info(f"Created backup: {backup_path}")
   logger.info(f"Written normalized output to: {out_path}")
 
 
@@ -81,7 +81,7 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, text_format:
 
   all_files = get_filepaths(folder_in)
   text_files = [file for file in all_files if str(file).endswith(".txt")]
-  logger.info(f"Found {len(text_files)} text files.")
+  logger.info(f"Found {len(text_files)} .txt files.")
 
   text_file_in: Path
   for text_file_in in tqdm(text_files):
@@ -135,17 +135,85 @@ def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name
   grid.write(out_path)
 
 
+def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, text_format: SymbolFormat, language: Language, trim_symbols: str, textgrid_folder_out: Path, overwrite: bool):
+  logger = getLogger(__name__)
+
+  if not text_folder.exists():
+    raise Exception("Text folder does not exist!")
+
+  if not textgrid_folder_in.exists():
+    raise Exception("TextGrid folder does not exist!")
+
+  all_files_text_folder = get_filepaths(text_folder)
+  text_files_text_folder = [file for file in all_files_text_folder if str(file).endswith(".txt")]
+
+  logger.info(f"Found {len(text_files_text_folder)} .txt files.")
+
+  all_files_textgrid_folder = get_filepaths(textgrid_folder_in)
+  textgrid_files_textgrid_folder = [
+    file for file in all_files_textgrid_folder if str(file).endswith(".TextGrid")]
+
+  logger.info(f"Found {len(textgrid_files_textgrid_folder)} .TextGrid files.")
+
+  txt_files: Dict[str, Path] = {file.stem: file for file in text_files_text_folder}
+  textgrid_files: Dict[str, Path] = {file.stem: file for file in textgrid_files_textgrid_folder}
+
+  all_filenames = txt_files.keys() | textgrid_files.keys()
+
+  logger.info(f"Found {len(all_filenames)} file names.")
+  trim_symbols_set = set(trim_symbols)
+  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
+
+  filename: str
+  for filename in tqdm(sorted(all_filenames)):
+    textgrid_file_out=textgrid_folder_out / f"{filename}.TextGrid"
+    if textgrid_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_out.name}")
+      continue
+    if filename not in txt_files:
+      logger.warning(f"The .txt file for {filename} was not found!")
+      continue
+    if filename not in textgrid_files:
+      logger.warning(f"The .TextGrid file for {filename} was not found!")
+      continue
+
+    logger.info(f"Processing {filename}...")
+
+    txt_path=txt_files[filename]
+    textgrid_path=textgrid_files[filename]
+
+    grid=TextGrid()
+    grid.read(textgrid_path)
+    text=txt_path.read_text()
+
+    add_layer_containing_original_text(
+      grid=grid,
+      language=language,
+      new_tier_name=new_tier_name,
+      original_text=text,
+      overwrite_existing_tier=True,
+      reference_tier_name=reference_tier_name,
+      text_format=text_format,
+      trim_symbols=trim_symbols_set,
+    )
+
+    textgrid_folder_out.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out)
+
+  logger.info(f"Written output .TextGrid files to: {textgrid_folder_out}")
+
+
 def add_arpa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, text_format: SymbolFormat, language: Language, pronunciation_dict_file: Path, out_path: Path, trim_symbols: str):
   if not grid_path.exists():
     raise Exception("Grid not found!")
 
-  grid = TextGrid()
+  grid=TextGrid()
   grid.read(grid_path)
 
   if not pronunciation_dict_file.exists():
     raise Exception("Pronunciation dictionary not found!")
 
-  pronunciation_dict = parse_file(pronunciation_dict_file)
+  pronunciation_dict=parse_file(pronunciation_dict_file)
 
   convert_original_text_to_arpa(
     grid=grid,
@@ -166,13 +234,13 @@ def add_ipa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name:
   if not grid_path.exists():
     raise Exception("Grid not found!")
 
-  grid = TextGrid()
+  grid=TextGrid()
   grid.read(grid_path)
 
   if not pronunciation_dict_file.exists():
     raise Exception("Pronunciation dictionary not found!")
 
-  pronunciation_dict = parse_file(pronunciation_dict_file)
+  pronunciation_dict=parse_file(pronunciation_dict_file)
 
   convert_original_text_to_ipa(
     grid=grid,
@@ -193,13 +261,13 @@ def add_ipa_punctuation_layer(base_dir: Path, grid_path: Path, reference_tier_na
   if not grid_path.exists():
     raise Exception("Grid not found!")
 
-  grid = TextGrid()
+  grid=TextGrid()
   grid.read(grid_path)
 
   if not pronunciation_dict_file.exists():
     raise Exception("Pronunciation dictionary not found!")
 
-  pronunciation_dict = parse_file(pronunciation_dict_file)
+  pronunciation_dict=parse_file(pronunciation_dict_file)
 
   add_ipa_layer_containing_punctuation(
     grid=grid,

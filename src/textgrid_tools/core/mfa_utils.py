@@ -122,7 +122,6 @@ def normalize_text(original_text: str, text_format: SymbolFormat, language: Lang
 
 def add_layer_containing_original_text(original_text: str, text_format: SymbolFormat, language: Language, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]) -> None:
   logger = getLogger(__name__)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols))} (#{len(trim_symbols)})")
   reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if reference_tier is None:
     raise Exception("Reference-tier not found!")

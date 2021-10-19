@@ -11,6 +11,7 @@ from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
                                      to_dataset)
 from textgrid_tools.app.mfa_utils import (add_ipa_from_words,
                                           add_original_text_layer,
+                                          add_original_texts_layer,
                                           convert_text_to_dict,
                                           normalize_text_file,
                                           normalize_text_files_in_folder)
@@ -75,6 +76,20 @@ def init_add_original_text_layer_parser(parser: ArgumentParser):
   parser.add_argument("--out_path", type=Path, required=True)
   parser.add_argument("--trim_symbols", type=str, required=True)
   return add_original_text_layer
+
+
+def init_add_original_texts_layer_parser(parser: ArgumentParser):
+  parser.add_argument("--text_folder", type=Path, required=True)
+  parser.add_argument("--textgrid_folder_in", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--new_tier_name", type=str, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--trim_symbols", type=str, required=True)
+  parser.add_argument("--textgrid_folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return add_original_texts_layer
 
 
 def init_add_ipa_from_words_parser(parser: ArgumentParser):
@@ -193,6 +208,7 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-normalize-text", init_normalize_text_file_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
+  _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)
 
   return result
