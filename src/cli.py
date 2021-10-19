@@ -11,7 +11,9 @@ from textgrid_tools.app.main import (add_recording, clone, convert_to_ipa,
                                      to_dataset)
 from textgrid_tools.app.mfa_utils import (add_ipa_from_words,
                                           add_original_text_layer,
-                                          convert_text_to_dict, normalize_text_file)
+                                          convert_text_to_dict,
+                                          normalize_text_file,
+                                          normalize_text_files_in_folder)
 
 BASE_DIR_VAR = "base_dir"
 DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -31,7 +33,6 @@ def _add_parser_to(subparsers, name: str, init_method):
   return parser
 
 
-
 def init_normalize_text_file_parser(parser: ArgumentParser):
   parser.add_argument("--text_path", type=Path, required=True)
   parser.add_argument("--text_format", choices=SymbolFormat,
@@ -39,6 +40,16 @@ def init_normalize_text_file_parser(parser: ArgumentParser):
   parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--out_path", type=Path, required=True)
   return normalize_text_file
+
+
+def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return normalize_text_files_in_folder
 
 
 def init_convert_to_dict_parser(parser: ArgumentParser):
@@ -180,6 +191,7 @@ def _init_parser():
   _add_parser_to(subparsers, "rec-to-dataset", init_to_dataset_parser)
   _add_parser_to(subparsers, "mfa-create-dict", init_convert_to_dict_parser)
   _add_parser_to(subparsers, "mfa-normalize-text", init_normalize_text_file_parser)
+  _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)
 
