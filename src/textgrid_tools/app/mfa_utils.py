@@ -5,13 +5,15 @@ from typing import Dict, List
 
 from pronunciation_dict_parser import export
 from pronunciation_dict_parser.parser import parse_file
+from scipy.io.wavfile import read, write
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
     add_layer_containing_original_text,
     add_phoneme_layer_containing_punctuation,
-    convert_original_text_to_phonemes, get_pronunciation_dict, normalize_text)
+    convert_original_text_to_phonemes, extract_sentences_to_textgrid,
+    get_pronunciation_dict, merge_words_together, normalize_text)
 from tqdm import tqdm
 
 
@@ -104,6 +106,93 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, text_format:
     text_file_out.write_text(new_text, encoding="UTF-8")
 
   logger.info(f"Written normalized output to: {folder_out}")
+
+
+def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_folder: Path, text_format: SymbolFormat, language: Language, time_factor: float, tier_name: str, folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not text_folder_in.exists():
+    raise Exception("Text folder does not exist!")
+
+  if not audio_folder.exists():
+    raise Exception("Audio folder does not exist!")
+
+  all_text_files = get_filepaths(text_folder_in)
+  txt_files = [file for file in all_text_files if file.suffix.lower() == ".txt"]
+  logger.info(f"Found {len(txt_files)} .txt files.")
+
+  all_audio_files = get_filepaths(audio_folder)
+  wav_files = {file.stem: file for file in all_audio_files if file.suffix.lower() == ".wav"}
+  logger.info(f"Found {len(txt_files)} .wav files.")
+
+  txt_file_in: Path
+  for txt_file_in in tqdm(txt_files):
+    text_file_out = folder_out / txt_file_in.name
+    if text_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {txt_file_in.name}")
+      continue
+
+    if txt_file_in.stem not in wav_files:
+      logger.error(f"For the .txt file {txt_file_in} no .wav file was found.")
+      raise Exception()
+
+    logger.info(f"Processing {txt_file_in}...")
+
+    text = txt_file_in.read_text()
+
+    audio_path = wav_files[txt_file_in.stem]
+    sr, wav = read(audio_path)
+
+    grid = extract_sentences_to_textgrid(
+      original_text=text,
+      text_format=text_format,
+      language=language,
+      audio=wav,
+      sr=sr,
+      tier_name=tier_name,
+      time_factor=time_factor,
+    )
+
+    folder_out.mkdir(parents=True, exist_ok=True)
+    grid_file_out = folder_out / f"{txt_file_in.stem}.TextGrid"
+    grid.write(grid_file_out)
+
+  logger.info(f"Written .TextGrid files to: {folder_out}")
+
+
+def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_name: str, min_pause_s: float, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("TextGrid folder does not exist!")
+
+  all_text_files = get_filepaths(folder_in)
+  textgrid_files = [file for file in all_text_files if file.suffix.lower() == ".textgrid"]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  grid_file_in: Path
+  for grid_file_in in tqdm(textgrid_files):
+    grid_file_out = folder_out / grid_file_in.name
+    if grid_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {grid_file_in.name}")
+      continue
+
+    logger.info(f"Processing {grid_file_in}...")
+
+    grid = TextGrid()
+    grid.read(grid_file_in)
+
+    new_grid = merge_words_together(
+      grid=grid,
+      new_tier_name=new_tier_name,
+      reference_tier_name=reference_tier_name,
+      min_pause_s=min_pause_s,
+    )
+
+    folder_out.mkdir(parents=True, exist_ok=True)
+    new_grid.write(grid_file_out)
+
+  logger.info(f"Written .TextGrid files to: {folder_out}")
 
 
 def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, text_path: Path, text_format: SymbolFormat, language: Language, out_path: Path, trim_symbols: str):

@@ -15,6 +15,8 @@ from textgrid_tools.app.mfa_utils import (add_ipa_from_words,
                                           add_phonemes_from_phonemes,
                                           add_phonemes_from_words,
                                           convert_text_to_dict,
+                                          extract_sentences_text_files,
+                                          merge_words_to_new_textgrid,
                                           normalize_text_file,
                                           normalize_text_files_in_folder)
 
@@ -55,6 +57,18 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   return normalize_text_files_in_folder
 
 
+def init_extract_sentences_text_files_parser(parser: ArgumentParser):
+  parser.add_argument("--text_folder_in", type=Path, required=True)
+  parser.add_argument("--audio_folder", type=Path, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return extract_sentences_text_files
+
+
 def init_convert_to_dict_parser(parser: ArgumentParser):
   parser.add_argument("--recording_name", type=str, required=True)
   parser.add_argument("--step_name", type=str, required=True)
@@ -92,6 +106,16 @@ def init_add_original_texts_layer_parser(parser: ArgumentParser):
   parser.add_argument("--textgrid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return add_original_texts_layer
+
+
+def init_merge_words_to_new_textgrid_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--new_tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--min_pause_s", type=float, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return merge_words_to_new_textgrid
 
 
 def init_add_ipa_from_words_parser(parser: ArgumentParser):
@@ -242,6 +266,9 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-create-dict", init_convert_to_dict_parser)
   _add_parser_to(subparsers, "mfa-normalize-text", init_normalize_text_file_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
+  _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
+  _add_parser_to(subparsers, "mfa-merge-words",
+                 init_merge_words_to_new_textgrid_parser)
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)

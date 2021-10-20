@@ -1,8 +1,10 @@
 import string
 from functools import partial
 from logging import getLogger
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple, cast
 
+import numpy as np
+from audio_utils.audio import get_duration_s_samples
 from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import (PublicDictType,
@@ -16,11 +18,12 @@ from text_utils.pronunciation.ipa2symb import merge_left, merge_right
 from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
                                            lookup_dict)
 from text_utils.symbol_format import SymbolFormat
-from text_utils.text import symbols_to_words, text_normalize
+from text_utils.text import symbols_to_words, text_normalize, text_to_sentences
 from text_utils.types import Symbol, Symbols
 from text_utils.utils import (pronunciation_dict_to_tuple_dict, symbols_strip,
                               symbols_to_upper)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.utils import durations_to_intervals
 
 USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
 DEFAULT_IGNORE_CASE = True
@@ -105,6 +108,47 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
   return pronunciation_dict
 
 
+def get_pronunciation_dict_from_texts(texts: List[str], text_format: SymbolFormat, language: Language, trim_symbols: Set[Symbol]) -> PronunciationDict:
+  merged_text = " ".join(texts)
+  symbols = text_to_symbols(
+    lang=language,
+    text=merged_text,
+    text_format=text_format,
+  )
+
+  words = get_non_annotated_words(
+    sentence=symbols,
+    trim_symbols=trim_symbols,
+    consider_annotation=False,
+    annotation_split_symbol=None,
+    ignore_case=DEFAULT_IGNORE_CASE,
+    split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+  )
+
+  arpa_dict = parse_public_dict(PublicDictType.LIBRISPEECH_ARPA)
+  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
+  pronunciation_dict = {}
+  method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
+  for word in words:
+    arpa_symbols = sentence2pronunciation_cached(
+      sentence=word,
+      annotation_split_symbol=None,
+      consider_annotation=False,
+      get_pronunciation=method,
+      split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+      trim_symbols=trim_symbols,
+      ignore_case_in_cache=DEFAULT_IGNORE_CASE,
+    )
+
+    word_str = "".join(word)
+    assert word_str not in pronunciation_dict
+    pronunciation_dict[word_str] = OrderedSet([arpa_symbols])
+
+  clear_cache()
+
+  return pronunciation_dict
+
+
 def normalize_text(original_text: str, text_format: SymbolFormat, language: Language) -> str:
   logger = getLogger(__name__)
 
@@ -118,6 +162,94 @@ def normalize_text(original_text: str, text_format: SymbolFormat, language: Lang
   )
 
   return result
+
+
+def extract_sentences_to_textgrid(original_text: str, text_format: SymbolFormat, language: Language, audio: np.ndarray, sr: int, tier_name: str, time_factor: float) -> TextGrid:
+  logger = getLogger(__name__)
+  sentences = text_to_sentences(
+    text=original_text,
+    text_format=text_format,
+    lang=language,
+  )
+
+  logger.info(f"Extracted {len(sentences)} sentences.")
+  audio_len_s = get_duration_s_samples(len(audio), sr)
+  audio_len_s_streched = audio_len_s * time_factor
+  logger.info(f"Streched time by factor {time_factor}: {audio_len_s} -> {audio_len_s_streched}")
+
+  grid = TextGrid(
+    minTime=0,
+    maxTime=audio_len_s_streched,
+    name=None,
+    strict=True,
+  )
+
+  tier = IntervalTier(
+    name=tier_name,
+    minTime=grid.minTime,
+    maxTime=grid.maxTime,
+  )
+
+  avg_character_len_s = audio_len_s_streched / len(original_text)
+  durations: List[Tuple[str, float]] = []
+  for sentence in sentences:
+    sentence_duration = len(sentence) * avg_character_len_s
+    durations.append((sentence, sentence_duration))
+
+  intervals = durations_to_intervals(durations, maxTime=grid.maxTime)
+  tier.intervals.extend(intervals)
+  grid.append(tier)
+
+  return grid
+
+
+def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name: str, min_pause_s: float) -> TextGrid:
+  logger = getLogger(__name__)
+
+  new_grid = TextGrid(
+    minTime=grid.minTime,
+    maxTime=grid.maxTime,
+    name=grid.name,
+    strict=grid.strict,
+  )
+
+  tier = IntervalTier(
+    name=new_tier_name,
+    minTime=new_grid.minTime,
+    maxTime=new_grid.maxTime,
+  )
+
+  reference_tier = cast(IntervalTier, grid.getFirst(reference_tier_name))
+
+  durations: List[Tuple[str, float]] = []
+  current_batch = []
+  current_duration = 0
+  interval: Interval
+  for interval in reference_tier.intervals:
+    is_empty = interval_is_empty(interval)
+    if is_empty:
+      if interval.duration() < min_pause_s:
+        current_duration += interval.duration()
+      else:
+        if len(current_batch) > 0:
+          batch_str = " ".join(current_batch)
+          durations.append((batch_str, current_duration))
+          current_batch.clear()
+          current_duration = 0
+        durations.append((interval.mark, interval.duration()))
+    else:
+      current_batch.append(interval.mark)
+      current_duration += interval.duration()
+
+  if len(current_batch) > 0:
+    batch_str = " ".join(current_batch)
+    durations.append((batch_str, current_duration))
+
+  intervals = durations_to_intervals(durations, maxTime=new_grid.maxTime)
+  tier.intervals.extend(intervals)
+  new_grid.append(tier)
+
+  return new_grid
 
 
 def add_layer_containing_original_text(original_text: str, text_format: SymbolFormat, language: Language, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]) -> None:

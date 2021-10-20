@@ -266,3 +266,22 @@ Python 3.9 not working because of:
 Don't use ' instead of ˈ for primary stress.
 Don't use / in IPA transcriptions
 Don't insert line breaks in any transcription
+
+# V2
+
+```sh
+# Convert txt to textgrid
+
+export base_dir=$tipa_base_dir
+export PYTHONPATH=$tipa_code_dir
+cd $PYTHONPATH
+
+pipenv run python -m cli mfa-txt-to-textgrid \
+  --text_folder_in="$path_recordings_dir" \
+  --audio_folder="$path_recordings_dir" \
+  --text_format=GRAPHEMES \
+  --language=ENG \
+  --tier_name="sentences" \
+  --folder_out="$path_textgrid_dir" \
+  --overwrite
+```
