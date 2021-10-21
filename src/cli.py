@@ -15,6 +15,7 @@ from textgrid_tools.app.mfa_utils import (add_ipa_from_words,
                                           add_phonemes_from_phonemes,
                                           add_phonemes_from_words,
                                           convert_text_to_dict,
+                                          convert_texts_to_dict,
                                           extract_sentences_text_files,
                                           merge_words_to_new_textgrid,
                                           normalize_text_file,
@@ -36,6 +37,19 @@ def _add_parser_to(subparsers, name: str, init_method):
   parser.set_defaults(invoke_handler=invoke_method)
   add_base_dir(parser)
   return parser
+
+
+def init_convert_texts_to_dict_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--out_path", type=Path, required=True)
+  parser.add_argument("--trim_symbols", type=str, required=True)
+  parser.add_argument("--include_trim_symbols", action="store_true")
+  parser.add_argument("--include_only_arpa_in_pronunciation", action="store_true")
+  parser.add_argument("--overwrite", action="store_true")
+  return convert_texts_to_dict
 
 
 def init_normalize_text_file_parser(parser: ArgumentParser):
@@ -102,7 +116,6 @@ def init_add_original_texts_layer_parser(parser: ArgumentParser):
   parser.add_argument("--text_format", choices=SymbolFormat,
                       type=SymbolFormat.__getitem__, required=True)
   parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
-  parser.add_argument("--trim_symbols", type=str, required=True)
   parser.add_argument("--textgrid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return add_original_texts_layer
@@ -142,7 +155,6 @@ def init_add_phonemes_from_words_parser(parser: ArgumentParser):
                       type=SymbolFormat.__getitem__, required=True)
   parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--pronunciation_dict_file", type=Path, required=True)
-  parser.add_argument("--trim_symbols", type=str, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return add_phonemes_from_words
@@ -264,6 +276,7 @@ def _init_parser():
   _add_parser_to(subparsers, "rec-print-stats", init_log_stats_parser)
   _add_parser_to(subparsers, "rec-to-dataset", init_to_dataset_parser)
   _add_parser_to(subparsers, "mfa-create-dict", init_convert_to_dict_parser)
+  _add_parser_to(subparsers, "mfa-create-dict-from-texts", init_convert_texts_to_dict_parser)
   _add_parser_to(subparsers, "mfa-normalize-text", init_normalize_text_file_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)

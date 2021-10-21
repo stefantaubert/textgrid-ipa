@@ -1,10 +1,10 @@
 import os
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from pronunciation_dict_parser import export
-from pronunciation_dict_parser.parser import parse_file
+from pronunciation_dict_parser.parser import Symbol, parse_file
 from scipy.io.wavfile import read, write
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
@@ -13,7 +13,8 @@ from textgrid_tools.core.mfa_utils import (
     add_layer_containing_original_text,
     add_phoneme_layer_containing_punctuation,
     convert_original_text_to_phonemes, extract_sentences_to_textgrid,
-    get_pronunciation_dict, merge_words_together, normalize_text)
+    get_pronunciation_dict, get_pronunciation_dict_from_texts,
+    merge_words_together, normalize_text)
 from tqdm import tqdm
 
 
@@ -39,6 +40,54 @@ def convert_text_to_dict(base_dir: Path, text_path: Path, text_format: SymbolFor
     symbol_sep=" ",
     word_pronunciation_sep="  ",
   )
+
+
+def convert_texts_to_dict(base_dir: Path, folder_in: Path, text_format: SymbolFormat, language: Language, trim_symbols: str, include_trim_symbols: bool, include_only_arpa_in_pronunciation: bool, out_path: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("Folder does not exist!")
+
+  if out_path.is_file() and not overwrite:
+    logger.info("File already exists!")
+    return
+
+  trim_symbols_set = set(trim_symbols)
+  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
+
+  all_files = get_filepaths(folder_in)
+  text_files = [file for file in all_files if file.suffix.lower() == ".txt"]
+  logger.info(f"Found {len(text_files)} .txt files.")
+
+  text_file_in: Path
+  text_contents: List[str] = []
+  for text_file_in in tqdm(text_files):
+    logger.info(f"Processing {text_file_in}...")
+    text = text_file_in.read_text()
+    text_contents.append(text)
+
+  logger.info("Producing dictionary...")
+
+  pronunciation_dict = get_pronunciation_dict_from_texts(
+    texts=text_contents,
+    language=language,
+    text_format=text_format,
+    trim_symbols=trim_symbols_set,
+    include_trim_symbols=include_trim_symbols,
+    include_only_arpa_in_pronunciation=include_only_arpa_in_pronunciation,
+  )
+
+  logger.info("Saving dictionary...")
+  export(
+    include_counter=True,
+    path=out_path,
+    pronunciation_dict=pronunciation_dict,
+    symbol_sep=" ",
+    word_pronunciation_sep="  ",
+  )
+
+  logger.info(f"Written output pronunciation dictionary to {out_path}")
+  return
 
 
 def normalize_text_file(base_dir: Path, text_path: Path, text_format: SymbolFormat, language: Language, out_path: Path) -> None:
@@ -224,7 +273,7 @@ def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name
   grid.write(out_path)
 
 
-def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, text_format: SymbolFormat, language: Language, trim_symbols: str, textgrid_folder_out: Path, overwrite: bool):
+def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, text_format: SymbolFormat, language: Language, textgrid_folder_out: Path, overwrite: bool):
   logger = getLogger(__name__)
 
   if not text_folder.exists():
@@ -250,8 +299,6 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
   all_filenames = txt_files.keys() | textgrid_files.keys()
 
   logger.info(f"Found {len(all_filenames)} file names.")
-  trim_symbols_set = set(trim_symbols)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
 
   filename: str
   for filename in tqdm(sorted(all_filenames)):
@@ -283,7 +330,6 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
       overwrite_existing_tier=True,
       reference_tier_name=reference_tier_name,
       text_format=text_format,
-      trim_symbols=trim_symbols_set,
     )
 
     textgrid_folder_out.mkdir(parents=True, exist_ok=True)
@@ -346,7 +392,7 @@ def add_ipa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name:
   grid.write(out_path)
 
 
-def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, overwrite_existing_tiers: bool, text_format: SymbolFormat, language: Language, pronunciation_dict_file: Path, trim_symbols: str, folder_out: Path, overwrite: bool):
+def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, overwrite_existing_tiers: bool, text_format: SymbolFormat, language: Language, pronunciation_dict_file: Path, folder_out: Path, overwrite: bool):
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -360,9 +406,6 @@ def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_
   all_files = get_filepaths(folder_in)
   textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  trim_symbols_set = set(trim_symbols)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
 
   textgrid_file_in: Path
   for textgrid_file_in in tqdm(textgrid_files):
@@ -385,7 +428,6 @@ def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_
       pronunciation_dict=pronunciation_dict,
       overwrite_existing_tiers=overwrite_existing_tiers,
       text_format=text_format,
-      trim_symbols=trim_symbols_set,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
