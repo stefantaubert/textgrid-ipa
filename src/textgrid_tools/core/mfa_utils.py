@@ -1,3 +1,4 @@
+import re
 import string
 from collections import OrderedDict
 from functools import partial
@@ -13,18 +14,21 @@ from pronunciation_dict_parser.default_parser import (PublicDictType,
 from sentence2pronunciation.core import (get_non_annotated_words,
                                          sentence2pronunciation_cached)
 from sentence2pronunciation.lookup_cache import clear_cache
-from text_utils import (symbols_map_arpa_to_ipa,
+from text_utils import (merge_join, symbols_map_arpa_to_ipa,
                         symbols_remove_non_arpa_symbols, text_to_symbols)
 from text_utils.language import Language
-from text_utils.pronunciation.ipa2symb import merge_left, merge_right
+from text_utils.pronunciation.ipa2symb import (merge_left, merge_right,
+                                               merge_together)
 from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
                                            lookup_dict)
 from text_utils.symbol_format import SymbolFormat
-from text_utils.text import symbols_to_words, text_normalize, text_to_sentences
+from text_utils.text import (symbols_to_words, text_normalize,
+                             text_to_sentences, words_to_symbols)
 from text_utils.types import Symbol, Symbols
 from text_utils.utils import (pronunciation_dict_to_tuple_dict,
-                              split_symbols_on, symbols_split, symbols_strip,
-                              symbols_to_lower, symbols_to_upper)
+                              split_symbols_on, symbols_join, symbols_split,
+                              symbols_strip, symbols_to_lower,
+                              symbols_to_upper)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import durations_to_intervals
 
@@ -111,34 +115,37 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
   return pronunciation_dict
 
 
-def get_pronunciation_dict_from_texts(texts: List[str], text_format: SymbolFormat, language: Language, trim_symbols: Set[Symbol], include_trim_symbols: bool, include_only_arpa_in_pronunciation: bool) -> PronunciationDict:
+def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol]) -> Tuple[PronunciationDict, PronunciationDict]:
   logger = getLogger(__name__)
   merged_text = " ".join(texts)
   symbols = text_to_symbols(
-    lang=language,
+    lang=Language.ENG,
     text=merged_text,
-    text_format=text_format,
+    text_format=SymbolFormat.GRAPHEMES,
   )
 
+  include_trim_symbols = True
   if include_trim_symbols:
     #symbols_lower = symbols_to_upper(symbols)
     words = set(symbols_to_words(symbols))
     words -= {""}
-  else:
-    words = get_non_annotated_words(
-      sentence=symbols,
-      trim_symbols=trim_symbols,
-      consider_annotation=False,
-      annotation_split_symbol=None,
-      ignore_case=DEFAULT_IGNORE_CASE,
-      split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
-    )
+  # else:
+  #   words = get_non_annotated_words(
+  #     sentence=symbols,
+  #     trim_symbols=trim_symbols,
+  #     consider_annotation=False,
+  #     annotation_split_symbol=None,
+  #     ignore_case=DEFAULT_IGNORE_CASE,
+  #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+  #   )
 
   arpa_dict = parse_public_dict(PublicDictType.LIBRISPEECH_ARPA)
   arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
-  pronunciation_dict = OrderedDict()
+  pronunciation_dict_no_punctuation = OrderedDict()
+  pronunciation_dict_punctuation = OrderedDict()
   method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
   for word in sorted(words):
+    assert len(word) > 0
     arpa_symbols = sentence2pronunciation_cached(
       sentence=word,
       annotation_split_symbol=None,
@@ -149,19 +156,23 @@ def get_pronunciation_dict_from_texts(texts: List[str], text_format: SymbolForma
       ignore_case_in_cache=DEFAULT_IGNORE_CASE,
     )
 
-    if include_only_arpa_in_pronunciation:
-      arpa_symbols = symbols_remove_non_arpa_symbols(arpa_symbols)
-    if len(arpa_symbols) == 0:
-      logger.info(
-        f"For the word {''.join(word)} no pronunciation was generated therefore annotating \'sil\'.")
-      arpa_symbols = ("sil",)
+    assert len(arpa_symbols) > 0
     word_str = "".join(word)
-    assert word_str not in pronunciation_dict
-    pronunciation_dict[word_str] = OrderedSet([arpa_symbols])
+    assert word_str not in pronunciation_dict_punctuation
+    pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
+
+    arpa_symbols_no_punctuation = symbols_remove_non_arpa_symbols(arpa_symbols)
+    arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
+    if arpa_contains_only_punctuation:
+      logger.info(
+        f"The arpa of the word {''.join(word)} contains only punctuation, therefore annotating \'sil\'.")
+      arpa_symbols_no_punctuation = ("sil",)
+    assert word_str not in pronunciation_dict_no_punctuation
+    pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
 
   clear_cache()
 
-  return pronunciation_dict
+  return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
 
 
 def normalize_text(original_text: str, text_format: SymbolFormat, language: Language) -> str:
@@ -267,7 +278,7 @@ def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name
   return new_grid
 
 
-def add_layer_containing_original_text(original_text: str, text_format: SymbolFormat, language: Language, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool) -> None:
+def add_layer_containing_original_text(original_text: str, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool) -> None:
   logger = getLogger(__name__)
   reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if reference_tier is None:
@@ -277,9 +288,9 @@ def add_layer_containing_original_text(original_text: str, text_format: SymbolFo
     raise Exception("Tier already exists!")
 
   symbols = text_to_symbols(
-    lang=language,
+    lang=Language.ENG,
     text=original_text,
-    text_format=text_format,
+    text_format=SymbolFormat.GRAPHEMES,
   )
 
   words = symbols_to_words(symbols)
@@ -329,7 +340,7 @@ def add_layer_containing_original_text(original_text: str, text_format: SymbolFo
   return
 
 
-def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: str, new_ipa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool):
+def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: str, new_ipa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool):
   logger = getLogger(__name__)
 
   original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
@@ -347,9 +358,9 @@ def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Langu
   original_text = tier_to_text(original_text_tier)
 
   symbols = text_to_symbols(
-    lang=language,
+    lang=Language.ENG,
     text=original_text,
-    text_format=text_format,
+    text_format=SymbolFormat.GRAPHEMES,
   )
 
   arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
@@ -361,7 +372,7 @@ def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Langu
 
   clear_cache()
 
-  words_arpa = symbols_to_words(symbols_arpa)
+  words_arpa_with_punctuation = symbols_to_words(symbols_arpa)
 
   original_text_tier_intervals: List[Interval] = original_text_tier.intervals
 
@@ -382,10 +393,10 @@ def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Langu
     new_arpa = ""
 
     if not interval_is_empty(interval):
-      new_arpa_tuple = words_arpa.pop(0)
-      if new_arpa_tuple == ("sil",):
-        logger.info(f"Skip {interval.mark} as it is only sil.")
-        continue
+      new_arpa_tuple = words_arpa_with_punctuation.pop(0)
+      # if new_arpa_tuple == ("sil",):
+      #  logger.info(f"Skip {interval.mark} as it is only sil.")
+      #  continue
       new_arpa = " ".join(new_arpa_tuple)
 
       new_ipa_tuple = symbols_map_arpa_to_ipa(
@@ -418,7 +429,7 @@ def convert_original_text_to_phonemes(text_format: SymbolFormat, language: Langu
   grid.append(new_ipa_tier)
 
 
-def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language: Language, grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
+def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
 
   original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
@@ -439,10 +450,13 @@ def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language
 
   original_text = tier_to_text(original_text_tier)
 
+  if original_text.startswith("some of which -- as,"):
+    x = 1
+
   symbols = text_to_symbols(
-    lang=language,
+    lang=Language.ENG,
     text=original_text,
-    text_format=text_format,
+    text_format=SymbolFormat.GRAPHEMES,
   )
 
   arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
@@ -454,6 +468,19 @@ def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language
 
   clear_cache()
 
+  words_arpa = symbols_to_words(symbols_arpa)
+  replace_str = re.escape(''.join(trim_symbols))
+  pattern = re.compile(rf"[{replace_str}]+")
+  words_arpa_new = []
+  for word_arpa in words_arpa:
+    word_arpa_str = ''.join(word_arpa)
+    word_wo_punctuation = re.sub(pattern, "", word_arpa_str)
+    word_contains_only_punctuation = len(word_wo_punctuation) == 0
+    if word_contains_only_punctuation:
+      word_arpa = (word_arpa_str,)
+    words_arpa_new.append(word_arpa)
+  symbols_arpa = words_to_symbols(words_arpa_new)
+
   symbols_ipa = symbols_map_arpa_to_ipa(
     arpa_symbols=symbols_arpa,
     ignore=set(),
@@ -461,21 +488,22 @@ def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language
     replace_unknown_with=None,
   )
 
-  dont_merge = trim_symbols | set(string.whitespace)
-  merge_symbols = trim_symbols | {"-"}  # DEFAULT_IGNORE_PUNCTUATION | set("-"),
+  #dont_merge = trim_symbols | set(string.whitespace)
+  dont_merge = {" "}
+  # merge_symbols = trim_symbols | {"-"}  # DEFAULT_IGNORE_PUNCTUATION | set("-"),
 
   final_arpa_symbols = symbols_arpa
 
   final_arpa_symbols = merge_right(
     symbols=final_arpa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=merge_symbols,
+    merge_symbols=trim_symbols,
   )
 
   final_arpa_symbols = merge_left(
     symbols=final_arpa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=merge_symbols,
+    merge_symbols=trim_symbols,
   )
 
   final_arpa_symbols = [symbol for symbol in final_arpa_symbols if symbol != " "]
@@ -485,16 +513,23 @@ def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language
   final_ipa_symbols = merge_right(
     symbols=final_ipa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=merge_symbols,
+    merge_symbols=trim_symbols,
   )
 
   final_ipa_symbols = merge_left(
     symbols=final_ipa_symbols,
     ignore_merge_symbols=dont_merge,
-    merge_symbols=merge_symbols,
+    merge_symbols=trim_symbols,
   )
 
   final_ipa_symbols = [symbol for symbol in final_ipa_symbols if symbol != " "]
+
+  assert len(final_ipa_symbols) == len(final_arpa_symbols)
+
+  arpa_symbols_without_punctuation = [re.sub(pattern, "", symbol)
+                                      for symbol in final_arpa_symbols]
+
+  symbol_is_for_silence = [len(symbol) == 0 for symbol in arpa_symbols_without_punctuation]
 
   #logger.debug(f"Old symbols: {tier_to_text(reference_tier, join_with='')}")
   #logger.debug(f"New symbols: \"{''.join(final_ipa_symbols)}\" // \"{' '.join(final_arpa_symbols)}\"")
@@ -516,12 +551,15 @@ def add_phoneme_layer_containing_punctuation(text_format: SymbolFormat, language
     new_ipa_symbol = ""
     new_arpa_symbol = ""
 
-    if not interval_is_empty(interval):
+    if not interval_is_empty(interval) or (len(symbol_is_for_silence) > 0 and symbol_is_for_silence[0]):
+      if symbol_is_for_silence[0]:
+        x = 1
+      symbol_is_for_silence.pop(0)
       ipa_symbol = final_ipa_symbols.pop(0)
       arpa_symbol = final_arpa_symbols.pop(0)
 
       if arpa_symbol == "sil":
-        logger.info(f"Skipping sil.")
+        logger.info("Skipping sil.")
         ipa_symbol = final_ipa_symbols.pop(0)
         arpa_symbol = final_arpa_symbols.pop(0)
 
