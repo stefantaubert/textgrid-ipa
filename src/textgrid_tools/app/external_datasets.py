@@ -10,9 +10,10 @@ from general_utils import save_obj
 from general_utils.main import cast_as, load_obj
 from sentence2pronunciation.core import symbols_join
 from speech_dataset_parser import (Gender, Language, PreData, PreDataList,
-                                   Recording, Symbols, TextFormat, data,
+                                   Recording, Symbols, data,
                                    parse_custom, parse_ljs, save_custom)
 from text_utils import text_to_symbols
+from text_utils.symbol_format import SymbolFormat
 from textgrid import TextGrid
 from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.mfa_utils import interval_is_empty, tier_to_text
@@ -27,6 +28,7 @@ class TemporaryRecording:
   speaker_accent: str
   speaker_gender: Gender
   relative_audio_path: Path
+  relative_audio_path_source: Path
 
 
 def data_has_unique_identifiers(data: PreDataList) -> bool:
@@ -36,10 +38,9 @@ def data_has_unique_identifiers(data: PreDataList) -> bool:
 
 
 DATA_NAME = "data.pkl"
-AUDIO_DIR_NAME = "audio"
 
 
-def export_transcriptions_to_folder(dir_path: Path, data: PreDataList, target_folder: Path, overwrite: bool) -> None:
+def export_transcriptions_to_folder(dir_path: Path, data: PreDataList, target_folder: Path, audio_name: str, transcript_name: str, overwrite: bool) -> None:
   logger = getLogger(__name__)
   target_folder.mkdir(parents=True, exist_ok=True)
 
@@ -48,8 +49,9 @@ def export_transcriptions_to_folder(dir_path: Path, data: PreDataList, target_fo
   temp_recordings = {}
   entry: PreData
   for entry in tqdm(data.items()):
-    target_txt_path = target_folder / "txt_transcript" / f"{entry.relative_audio_path.stem}.txt"
-    target_audio_path = target_folder / AUDIO_DIR_NAME / entry.relative_audio_path.name
+    target_txt_path = target_folder / transcript_name / f"{entry.identifier}.txt"
+    target_audio_path = target_folder / audio_name / \
+        f"{entry.identifier}{entry.relative_audio_path.suffix}"
 
     if target_txt_path.is_file():
       if not overwrite:
@@ -75,6 +77,7 @@ def export_transcriptions_to_folder(dir_path: Path, data: PreDataList, target_fo
       speaker_name=entry.speaker_name,
       symbols_language=entry.symbols_language,
       relative_audio_path=target_audio_path.relative_to(target_folder),
+      relative_audio_path_source=entry.relative_audio_path,
     )
     temp_recordings[entry.identifier] = tmp_recording
 
@@ -82,13 +85,31 @@ def export_transcriptions_to_folder(dir_path: Path, data: PreDataList, target_fo
   logger.info(f"Written output to: {target_folder}")
 
 
-def convert_to_dataset(folder: Path, textgrid_folder_name: str, tier_name: str, symbols_format: TextFormat, target_dir: Path) -> None:
+def export_textgrids_to_original_filestructure(folder: Path, textgrid_folder_name_in: str, textgrid_folder_name_out: str, overwrite: bool):
+  logger = getLogger(__name__)
+  data_path = folder / DATA_NAME
+  data = cast_as(load_obj(data_path), Dict[int, TemporaryRecording])
+  entry: TemporaryRecording
+  for identifier, entry in data.items():
+    textgrid_path = folder / textgrid_folder_name_in / f"{identifier}.TextGrid"
+    assert textgrid_path.is_file()
+    target_textgrid_path = folder / textgrid_folder_name_out / entry.relative_audio_path_source.parent / \
+        f"{entry.relative_audio_path_source.stem}.TextGrid"
+    if target_textgrid_path.is_file() and not overwrite:
+      logger.info(f"Skipping {target_textgrid_path.relative_to(folder)} as it already exists.")
+    target_textgrid_path.parent.mkdir(parents=True, exist_ok=True)
+    copy2(textgrid_path, target_textgrid_path)
+  logger.info(f"Export successfull to {folder/textgrid_folder_name_out}")
+
+
+def convert_to_dataset(folder: Path, textgrid_folder_name: str, tier_name: str, symbols_format: SymbolFormat, target_dir: Path) -> None:
   logger = getLogger(__name__)
   data_path = folder / DATA_NAME
   data = cast_as(load_obj(data_path), Dict[int, TemporaryRecording])
   result: List[Recording] = []
   entry: TemporaryRecording
-  for identifier, entry in data.items():
+  identifier: int
+  for identifier, entry in tqdm(data.items()):
     audio_path = folder / entry.relative_audio_path
     textgrid_path = folder / textgrid_folder_name / f"{identifier}.TextGrid"
     grid = TextGrid()
@@ -141,6 +162,8 @@ def main():
       dir_path=dir_path,
       data=res,
       target_folder=target_folder,
+      audio_name="audio",
+      transcript_name="original_transcript_txt",
       overwrite=True,
     )
 
@@ -149,9 +172,15 @@ def main():
     convert_to_dataset(
       folder=target_folder,
       target_dir="/tmp/out_ds",
-      symbols_format=TextFormat.PHONEMES_IPA,
-      textgrid_folder_name="texgrid_transcript",
-      tier_name="words-ipa",
+      symbols_format=SymbolFormat.PHONEMES_IPA,
+      textgrid_folder_name="aligned_textgrid_words_and_phoneme_phonemes",
+      tier_name="words-IPA",
+    )
+    export_textgrids_to_original_filestructure(
+      folder=target_folder,
+      textgrid_folder_name_in="aligned_textgrid_words_and_phoneme_phonemes",
+      textgrid_folder_name_out="textgrids_out_fs",
+      overwrite=True,
     )
 
 

@@ -69,9 +69,6 @@ def init_normalize_text_file_parser(parser: ArgumentParser):
 
 def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--text_format", choices=SymbolFormat,
-                      type=SymbolFormat.__getitem__, required=True)
-  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return normalize_text_files_in_folder
@@ -116,6 +113,7 @@ def init_add_original_texts_layer_parser(parser: ArgumentParser):
   parser.add_argument("--reference_tier_name", type=str, required=True)
   parser.add_argument("--new_tier_name", type=str, required=True)
   parser.add_argument("--textgrid_folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite_existing_tier", action="store_true")
   parser.add_argument("--overwrite", action="store_true")
   return add_original_texts_layer
 
@@ -126,6 +124,7 @@ def init_merge_words_to_new_textgrid_parser(parser: ArgumentParser):
   parser.add_argument("--new_tier_name", type=str, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--min_pause_s", type=float, required=True)
+  parser.add_argument("--overwrite_existing_tier", action="store_true")
   parser.add_argument("--overwrite", action="store_true")
   return merge_words_to_new_textgrid
 

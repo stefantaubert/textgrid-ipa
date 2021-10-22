@@ -30,7 +30,7 @@ from text_utils.utils import (pronunciation_dict_to_tuple_dict,
                               symbols_strip, symbols_to_lower,
                               symbols_to_upper)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.utils import durations_to_intervals
+from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
 
 USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
 DEFAULT_IGNORE_CASE = True
@@ -115,6 +115,21 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
   return pronunciation_dict
 
 
+def normalize_text(original_text: str) -> str:
+  logger = getLogger(__name__)
+
+  original_text = original_text.replace("\n", " ")
+  original_text = original_text.replace("\r", "")
+
+  result = text_normalize(
+    text=original_text,
+    lang=Language.ENG,
+    text_format=SymbolFormat.GRAPHEMES,
+  )
+
+  return result
+
+
 def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType) -> Tuple[PronunciationDict, PronunciationDict]:
   logger = getLogger(__name__)
   logger.info(f"Chosen dictionary type: {dict_type}")
@@ -125,11 +140,9 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     text_format=SymbolFormat.GRAPHEMES,
   )
 
-  include_trim_symbols = True
-  if include_trim_symbols:
-    #symbols_lower = symbols_to_upper(symbols)
-    words = set(symbols_to_words(symbols))
-    words -= {""}
+  symbols_lower = symbols_to_lower(symbols)
+  unique_words = set(symbols_to_words(symbols_lower))
+  unique_words -= {""}
   # else:
   #   words = get_non_annotated_words(
   #     sentence=symbols,
@@ -145,10 +158,10 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
   pronunciation_dict_no_punctuation = OrderedDict()
   pronunciation_dict_punctuation = OrderedDict()
   method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
-  for word in sorted(words):
-    assert len(word) > 0
+  for unique_word in sorted(unique_words):
+    assert len(unique_word) > 0
     arpa_symbols = sentence2pronunciation_cached(
-      sentence=word,
+      sentence=unique_word,
       annotation_split_symbol=None,
       consider_annotation=False,
       get_pronunciation=method,
@@ -158,7 +171,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     )
 
     assert len(arpa_symbols) > 0
-    word_str = "".join(word)
+    word_str = "".join(unique_word)
     assert word_str not in pronunciation_dict_punctuation
     pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
 
@@ -166,7 +179,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
     if arpa_contains_only_punctuation:
       logger.info(
-        f"The arpa of the word {''.join(word)} contains only punctuation, therefore annotating \'sil\'.")
+        f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \'sil\'.")
       arpa_symbols_no_punctuation = ("sil",)
     assert word_str not in pronunciation_dict_no_punctuation
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
@@ -174,21 +187,6 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
   clear_cache()
 
   return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
-
-
-def normalize_text(original_text: str, text_format: SymbolFormat, language: Language) -> str:
-  logger = getLogger(__name__)
-
-  original_text = original_text.replace("\n", " ")
-  original_text = original_text.replace("\r", "")
-
-  result = text_normalize(
-    text=original_text,
-    lang=language,
-    text_format=text_format,
-  )
-
-  return result
 
 
 def extract_sentences_to_textgrid(original_text: str, text_format: SymbolFormat, language: Language, audio: np.ndarray, sr: int, tier_name: str, time_factor: float) -> TextGrid:
@@ -230,20 +228,18 @@ def extract_sentences_to_textgrid(original_text: str, text_format: SymbolFormat,
   return grid
 
 
-def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name: str, min_pause_s: float) -> TextGrid:
+def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name: str, min_pause_s: float, overwrite_existing_tier: bool) -> None:
   logger = getLogger(__name__)
 
-  new_grid = TextGrid(
+  new_tier = grid.getFirst(new_tier_name)
+  if new_tier is not None and not overwrite_existing_tier:
+    logger.error("Tier already exists!")
+    return
+
+  new_tier = IntervalTier(
+    name=new_tier_name,
     minTime=grid.minTime,
     maxTime=grid.maxTime,
-    name=grid.name,
-    strict=grid.strict,
-  )
-
-  tier = IntervalTier(
-    name=new_tier_name,
-    minTime=new_grid.minTime,
-    maxTime=new_grid.maxTime,
   )
 
   reference_tier = cast(IntervalTier, grid.getFirst(reference_tier_name))
@@ -272,11 +268,16 @@ def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name
     batch_str = " ".join(current_batch)
     durations.append((batch_str, current_duration))
 
-  intervals = durations_to_intervals(durations, maxTime=new_grid.maxTime)
-  tier.intervals.extend(intervals)
-  new_grid.append(tier)
+  intervals = durations_to_intervals(durations, maxTime=grid.maxTime)
+  new_tier.intervals.extend(intervals)
 
-  return new_grid
+  grid.append(new_tier)
+
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, new_tier)
+  else:
+    grid.append(new_tier)
+  return
 
 
 def add_layer_containing_original_text(original_text: str, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool) -> None:
@@ -337,7 +338,10 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
 
     new_tier.addInterval(new_interval)
 
-  grid.append(new_tier)
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, new_tier)
+  else:
+    grid.append(new_tier)
   return
 
 
@@ -407,7 +411,7 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
         replace_unknown_with=None,
       )
 
-      new_ipa = "".join(new_ipa_tuple)
+      new_ipa = " ".join(new_ipa_tuple)
       logger.debug(f"Assigned \"{new_arpa}\" & \"{new_ipa}\" to \"{interval.mark}\".")
 
     new_arpa_interval = Interval(
@@ -426,8 +430,12 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
 
     new_ipa_tier.addInterval(new_ipa_interval)
 
-  grid.append(new_arpa_tier)
-  grid.append(new_ipa_tier)
+  if overwrite_existing_tiers:
+    update_or_add_tier(grid, new_arpa_tier)
+    update_or_add_tier(grid, new_ipa_tier)
+  else:
+    grid.append(new_arpa_tier)
+    grid.append(new_ipa_tier)
 
 
 def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
@@ -506,14 +514,14 @@ def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_
     symbols=final_ipa_symbols,
     ignore_merge_symbols=dont_merge,
     merge_symbols=trim_symbols,
-    insert_symbol=None,
+    insert_symbol=" ",
   )
 
   final_ipa_symbols = merge_left(
     symbols=final_ipa_symbols,
     ignore_merge_symbols=dont_merge,
     merge_symbols=trim_symbols,
-    insert_symbol=None,
+    insert_symbol=" ",
   )
 
   final_ipa_symbols = [symbol for symbol in final_ipa_symbols if symbol != " "]
@@ -558,5 +566,9 @@ def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_
 
     new_ipa_tier.addInterval(new_ipa_interval)
 
-  grid.append(new_arpa_tier)
-  grid.append(new_ipa_tier)
+  if overwrite_existing_tiers:
+    update_or_add_tier(grid, new_arpa_tier)
+    update_or_add_tier(grid, new_ipa_tier)
+  else:
+    grid.append(new_arpa_tier)
+    grid.append(new_ipa_tier)

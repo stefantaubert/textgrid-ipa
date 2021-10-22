@@ -132,7 +132,7 @@ def get_filenames(parent_dir: Path) -> List[Path]:
   return filenames
 
 
-def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, text_format: SymbolFormat, language: Language, folder_out: Path, overwrite: bool) -> None:
+def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -155,8 +155,6 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, text_format:
 
     new_text = normalize_text(
       original_text=text,
-      text_format=text_format,
-      language=language,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
@@ -217,7 +215,7 @@ def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_fol
   logger.info(f"Written .TextGrid files to: {folder_out}")
 
 
-def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_name: str, min_pause_s: float, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
+def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_name: str, min_pause_s: float, new_tier_name: str, overwrite_existing_tier: bool, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -239,15 +237,16 @@ def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_
     grid = TextGrid()
     grid.read(grid_file_in)
 
-    new_grid = merge_words_together(
+    merge_words_together(
       grid=grid,
       new_tier_name=new_tier_name,
       reference_tier_name=reference_tier_name,
       min_pause_s=min_pause_s,
+      overwrite_existing_tier=overwrite_existing_tier,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
-    new_grid.write(grid_file_out)
+    grid.write(grid_file_out)
 
   logger.info(f"Written .TextGrid files to: {folder_out}")
 
@@ -278,7 +277,7 @@ def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name
   grid.write(out_path)
 
 
-def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, textgrid_folder_out: Path, overwrite: bool):
+def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, textgrid_folder_out: Path,overwrite_existing_tier:bool, overwrite: bool):
   logger = getLogger(__name__)
 
   if not text_folder.exists():
@@ -318,7 +317,7 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
       logger.warning(f"The .TextGrid file for {filename} was not found!")
       continue
 
-    logger.info(f"Processing {filename}...")
+    logger.debug(f"Processing {filename}...")
 
     txt_path = txt_files[filename]
     textgrid_path = textgrid_files[filename]
@@ -331,7 +330,7 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
       grid=grid,
       new_tier_name=new_tier_name,
       original_text=text,
-      overwrite_existing_tier=True,
+      overwrite_existing_tier=overwrite_existing_tier,
       reference_tier_name=reference_tier_name,
     )
 
@@ -417,7 +416,7 @@ def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_
       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
       continue
 
-    logger.info(f"Processing {textgrid_file_in}...")
+    logger.debug(f"Processing {textgrid_file_in}...")
 
     grid = TextGrid()
     grid.read(textgrid_file_in)
@@ -462,7 +461,7 @@ def add_phonemes_from_phonemes(base_dir: Path, folder_in: Path, original_text_ti
       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
       continue
 
-    logger.info(f"Processing {textgrid_file_in}...")
+    logger.debug(f"Processing {textgrid_file_in}...")
 
     grid = TextGrid()
     grid.read(textgrid_file_in)

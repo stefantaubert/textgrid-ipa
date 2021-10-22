@@ -112,8 +112,8 @@ def update_tier(grid: TextGrid, tier: IntervalTier) -> None:
   assert tier.name == existing_tier.name
   existing_tier.intervals.clear()
   existing_tier.intervals.extend(tier.intervals)
-  existing_tier.maxTime = tier.maxTime
   existing_tier.minTime = tier.minTime
+  existing_tier.maxTime = tier.maxTime
 
 
 def grid_contains_tier(grid: TextGrid, tier_name: str) -> bool:
