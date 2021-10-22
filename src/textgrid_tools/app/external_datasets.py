@@ -10,10 +10,11 @@ from general_utils import save_obj
 from general_utils.main import cast_as, load_obj
 from sentence2pronunciation.core import symbols_join
 from speech_dataset_parser import (Gender, Language, PreData, PreDataList,
-                                   Recording, Symbols, data,
-                                   parse_custom, parse_ljs, save_custom)
+                                   Recording, Symbols, data, parse_custom,
+                                   parse_ljs, save_custom)
 from text_utils import text_to_symbols
 from text_utils.symbol_format import SymbolFormat
+from text_utils.text import words_to_symbols
 from textgrid import TextGrid
 from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.mfa_utils import interval_is_empty, tier_to_text
@@ -119,19 +120,15 @@ def convert_to_dataset(folder: Path, textgrid_folder_name: str, tier_name: str, 
       logger.error(f"Tier {tier_name} not found!")
       raise Exception()
 
-    content = []
+    words = []
     interval: Interval
     for interval in tier.intervals:
       if not interval_is_empty(interval):
         # only word layers are supported so far
-        interval_symbols = text_to_symbols(
-          text=interval.mark,
-          text_format=symbols_format,
-          lang=entry.symbols_language,
-        )
-        content.append(interval_symbols)
+        interval_symbols = str(interval.mark).split(" ")
+        words.append(interval_symbols)
 
-    symbols = symbols_join(content, join_symbol=" ")
+    symbols = words_to_symbols(words)
 
     recording = Recording(
       basename=entry.basename,

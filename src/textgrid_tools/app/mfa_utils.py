@@ -11,7 +11,7 @@ from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
-    add_layer_containing_original_text,
+    add_graphemes_from_words, add_layer_containing_original_text,
     add_phoneme_layer_containing_punctuation,
     convert_original_text_to_phonemes, extract_sentences_to_textgrid,
     get_arpa_pronunciation_dicts_from_texts, get_pronunciation_dict,
@@ -277,7 +277,7 @@ def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name
   grid.write(out_path)
 
 
-def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, textgrid_folder_out: Path,overwrite_existing_tier:bool, overwrite: bool):
+def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, textgrid_folder_out: Path, overwrite_existing_tier: bool, overwrite: bool):
   logger = getLogger(__name__)
 
   if not text_folder.exists():
@@ -392,6 +392,41 @@ def add_ipa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name:
 
   out_path.parent.mkdir(parents=True, exist_ok=True)
   grid.write(out_path)
+
+
+def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, folder_out: Path, overwrite: bool):
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("Folder does not exist!")
+
+  all_files = get_filepaths(folder_in)
+  textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  textgrid_file_in: Path
+  for textgrid_file_in in tqdm(textgrid_files):
+    textgrid_file_out = folder_out / textgrid_file_in.name
+    if textgrid_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+      continue
+
+    logger.debug(f"Processing {textgrid_file_in}...")
+
+    grid = TextGrid()
+    grid.read(textgrid_file_in)
+
+    add_graphemes_from_words(
+      grid=grid,
+      new_tier_name=new_tier_name,
+      original_text_tier_name=original_text_tier_name,
+      overwrite_existing_tier=overwrite_existing_tier,
+    )
+
+    folder_out.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out)
+
+  logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
 def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, overwrite_existing_tiers: bool, pronunciation_dict_file: Path, folder_out: Path, overwrite: bool):
