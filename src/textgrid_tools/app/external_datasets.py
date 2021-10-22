@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from logging import getLogger
 from pathlib import Path
 from shutil import copy2
-from typing import Dict, List
+from typing import Dict, List, cast
 
 from general_utils import save_obj
 from general_utils.main import cast_as, load_obj
@@ -103,10 +103,10 @@ def export_textgrids_to_original_filestructure(folder: Path, textgrid_folder_nam
   logger.info(f"Export successfull to {folder/textgrid_folder_name_out}")
 
 
-def convert_to_dataset(folder: Path, textgrid_folder_name: str, tier_name: str, symbols_format: SymbolFormat, target_dir: Path) -> None:
+def convert_to_dataset(folder: Path, textgrid_folder_name: str, words_tier_name: str, symbols_format: SymbolFormat, target_dir: Path) -> None:
   logger = getLogger(__name__)
   data_path = folder / DATA_NAME
-  data = cast_as(load_obj(data_path), Dict[int, TemporaryRecording])
+  data = cast(Dict[int, TemporaryRecording], load_obj(data_path))
   result: List[Recording] = []
   entry: TemporaryRecording
   identifier: int
@@ -115,19 +115,18 @@ def convert_to_dataset(folder: Path, textgrid_folder_name: str, tier_name: str, 
     textgrid_path = folder / textgrid_folder_name / f"{identifier}.TextGrid"
     grid = TextGrid()
     grid.read(textgrid_path)
-    tier = cast_as(grid.getFirst(tier_name), IntervalTier)
+    tier = cast(IntervalTier, grid.getFirst(words_tier_name))
     if tier is None:
-      logger.error(f"Tier {tier_name} not found!")
+      logger.error(f"Tier {words_tier_name} not found!")
       raise Exception()
 
-    words = []
+    words: List[Symbols] = []
     interval: Interval
     for interval in tier.intervals:
       if not interval_is_empty(interval):
-        # only word layers are supported so far
-        interval_symbols = str(interval.mark).split(" ")
+        # only word layers are supported so far, i.e. graphemes, words-IPA, words-ARPA
+        interval_symbols = tuple(str(interval.mark).split(" "))
         words.append(interval_symbols)
-
     symbols = words_to_symbols(words)
 
     recording = Recording(
@@ -171,7 +170,7 @@ def main():
       target_dir="/tmp/out_ds",
       symbols_format=SymbolFormat.PHONEMES_IPA,
       textgrid_folder_name="aligned_textgrid_words_and_phoneme_phonemes",
-      tier_name="words-IPA",
+      words_tier_name="words-IPA",
     )
     export_textgrids_to_original_filestructure(
       folder=target_folder,
