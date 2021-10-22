@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 from pronunciation_dict_parser import export
+from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import Symbol, parse_file
 from scipy.io.wavfile import read, write
 from text_utils.language import Language
@@ -42,7 +43,7 @@ def convert_text_to_dict(base_dir: Path, text_path: Path, text_format: SymbolFor
   )
 
 
-def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: str, out_path_mfa_dict: Path, out_path_punctuation_dict: Path, overwrite: bool) -> None:
+def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: str, out_path_mfa_dict: Path, out_path_punctuation_dict: Path, dict_type: PublicDictType, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -71,6 +72,7 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
   pronunciation_dict, pronunciation_dict_punctuation = get_arpa_pronunciation_dicts_from_texts(
     texts=text_contents,
     trim_symbols=trim_symbols_set,
+    dict_type=dict_type,
   )
 
   logger.info("Saving dictionaries...")

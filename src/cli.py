@@ -2,6 +2,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 
+from pronunciation_dict_parser.default_parser import PublicDictType
 from text_utils.language import Language
 from text_utils.pronunciation.main import EngToIPAMode
 from text_utils.symbol_format import SymbolFormat
@@ -40,10 +41,19 @@ def _add_parser_to(subparsers, name: str, init_method):
 
 
 def init_convert_texts_to_dicts_parser(parser: ArgumentParser):
+  arpa_dicts = [
+    PublicDictType.MFA_ARPA,
+    PublicDictType.CMU_ARPA,
+    PublicDictType.LIBRISPEECH_ARPA,
+    PublicDictType.PROSODYLAB_ARPA,
+  ]
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--trim_symbols", type=str, required=True)
   parser.add_argument("--out_path_mfa_dict", type=Path, required=True)
   parser.add_argument("--out_path_punctuation_dict", type=Path, required=True)
+
+  parser.add_argument("--dict_type", choices=arpa_dicts,
+                      type=PublicDictType.__getitem__, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return convert_texts_to_arpa_dicts
 
