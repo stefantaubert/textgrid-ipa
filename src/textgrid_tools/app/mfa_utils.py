@@ -13,10 +13,10 @@ from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
     add_graphemes_from_words, add_layer_containing_original_text,
-    add_phoneme_layer_containing_punctuation,
-    convert_words_to_arpa, extract_sentences_to_textgrid,
-    extract_tier_to_text, get_arpa_pronunciation_dicts_from_texts, map_arpa_to_ipa, map_arpa_to_ipa_grids,
-    merge_words_together, normalize_text, remove_tiers)
+    extract_sentences_to_textgrid, extract_tier_to_text,
+    get_arpa_pronunciation_dicts_from_texts, map_arpa_to_ipa,
+    map_arpa_to_ipa_grids, merge_words_together, normalize_text, remove_tiers,
+    transcribe_words_to_arpa, transcribe_words_to_arpa_on_phoneme_level)
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
@@ -128,6 +128,7 @@ def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_ou
     output_path.parent.mkdir(parents=True, exist_ok=True)
     grid.write(output_path)
   logger.info(f"Done. Written output to: {folder_out}")
+
 
 def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, folder_out: Path, ipa_tier_name: str, overwrite_existing_tier: bool, overwrite: bool) -> None:
   logger = getLogger(__name__)
@@ -415,7 +416,7 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
   logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
-def app_convert_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
+def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -442,7 +443,7 @@ def app_convert_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tie
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
-    convert_words_to_arpa(
+    transcribe_words_to_arpa(
       grid=grid,
       tier_name=tier_name,
       original_text_tier_name=original_text_tier_name,
@@ -457,16 +458,16 @@ def app_convert_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tie
   logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
-def add_phonemes_from_phonemes(base_dir: Path, folder_in: Path, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, overwrite_existing_tiers: bool, pronunciation_dict_file: Path, trim_symbols: str, folder_out: Path, overwrite: bool):
+def app_transcribe_words_to_arpa_on_phoneme_level(base_dir: Path, folder_in: Path, words_tier_name: str, phoneme_tier_name: str, arpa_tier_name: str, consider_annotations: bool, overwrite_existing_tier: bool, path_cache: Path, trim_symbols: str, folder_out: Path, overwrite: bool):
   logger = getLogger(__name__)
 
   if not folder_in.exists():
     raise Exception("Folder does not exist!")
 
-  if not pronunciation_dict_file.exists():
-    raise Exception("Pronunciation dictionary not found!")
+  if not path_cache.exists():
+    raise Exception("Cache not found!")
 
-  pronunciation_dict = parse_file(pronunciation_dict_file)
+  cache = load_obj(path_cache)
 
   all_files = get_filepaths(folder_in)
   textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
@@ -487,15 +488,15 @@ def add_phonemes_from_phonemes(base_dir: Path, folder_in: Path, original_text_ti
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
-    add_phoneme_layer_containing_punctuation(
+    transcribe_words_to_arpa_on_phoneme_level(
       grid=grid,
-      new_ipa_tier_name=new_ipa_tier_name,
-      new_arpa_tier_name=new_arpa_tier_name,
-      reference_tier_name=reference_tier_name,
-      original_text_tier_name=original_text_tier_name,
-      pronunciation_dict=pronunciation_dict,
-      overwrite_existing_tiers=overwrite_existing_tiers,
+      arpa_tier_name=arpa_tier_name,
+      phoneme_tier_name=phoneme_tier_name,
+      words_tier_name=words_tier_name,
+      cache=cache,
+      overwrite_existing_tier=overwrite_existing_tier,
       trim_symbols=trim_symbols_set,
+      consider_annotations=consider_annotations,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)

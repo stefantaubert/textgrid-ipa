@@ -611,7 +611,7 @@ def map_arpa_to_ipa(grid: TextGrid, arpa_tier_name: str, ipa_tier_name: str, ove
     grid.append(ipa_tier)
 
 
-def convert_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_name: str, consider_annotations: bool, cache: LookupCache, overwrite_existing_tier: bool):
+def transcribe_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_name: str, consider_annotations: bool, cache: LookupCache, overwrite_existing_tier: bool):
   logger = getLogger(__name__)
 
   original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
@@ -674,26 +674,21 @@ def convert_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_nam
     grid.append(new_arpa_tier)
 
 
-def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
+def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier_name: str, phoneme_tier_name: str, arpa_tier_name: str, consider_annotations: bool, cache: LookupCache, overwrite_existing_tier: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
 
-  original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
-  if original_text_tier is None:
-    raise Exception("Original text-tier not found!")
+  word_tier: IntervalTier = grid.getFirst(words_tier_name)
+  if word_tier is None:
+    raise Exception("Word tier not found!")
 
-  reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
-  if reference_tier is None:
-    raise Exception("Reference-tier not found!")
+  phoneme_tier: IntervalTier = grid.getFirst(phoneme_tier_name)
+  if phoneme_tier is None:
+    raise Exception("Phoneme tier not found!")
 
-  new_ipa_tier: IntervalTier = grid.getFirst(new_ipa_tier_name)
-  if new_ipa_tier is not None and not overwrite_existing_tiers:
-    raise Exception("IPA tier already exists!")
-
-  new_arpa_tier = grid.getFirst(new_arpa_tier_name)
-  if new_arpa_tier is not None and not overwrite_existing_tiers:
+  if grid.getFirst(arpa_tier_name) is not None and not overwrite_existing_tier:
     raise Exception("ARPA tier already exists!")
 
-  original_text = tier_to_text(original_text_tier)
+  original_text = tier_to_text(word_tier)
 
   symbols = text_to_symbols(
     lang=Language.ENG,
@@ -701,28 +696,24 @@ def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_
     text_format=SymbolFormat.GRAPHEMES,
   )
 
-  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
+  symbols_arpa = sentences2pronunciations_from_cache_mp(
+    cache=cache,
+    sentences={symbols},
+    annotation_split_symbol="/",
+    chunksize=1,
+    consider_annotation=consider_annotations,
+    ignore_case=DEFAULT_IGNORE_CASE,
+    n_jobs=1,
+  )[symbols]
 
-  symbols_arpa = __eng_to_arpa_no_oov(
-    eng_sentence=symbols,
-    pronunciations=arpa_dict_tuple_based,
-  )
+  words_arpa_with_punctuation = symbols_to_words(symbols_arpa)
 
-  clear_cache()
-
-  words_arpa = symbols_to_words(symbols_arpa)
   replace_str = re.escape(''.join(trim_symbols))
   pattern = re.compile(rf"[{replace_str}]+")
   # remove words consisting only of punctuation since these were annotated as silence
-  words_arpa = [word for word in words_arpa if len(re.sub(pattern, "", ''.join(word))) > 0]
-  symbols_arpa = words_to_symbols(words_arpa)
-
-  symbols_ipa = symbols_map_arpa_to_ipa(
-    arpa_symbols=symbols_arpa,
-    ignore=set(),
-    replace_unknown=False,
-    replace_unknown_with=None,
-  )
+  words_arpa_with_punctuation = [word for word in words_arpa_with_punctuation if len(
+    re.sub(pattern, "", ''.join(word))) > 0]
+  symbols_arpa = words_to_symbols(words_arpa_with_punctuation)
 
   dont_merge = {" "}
 
@@ -744,47 +735,19 @@ def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_
 
   final_arpa_symbols = [symbol for symbol in final_arpa_symbols if symbol != " "]
 
-  final_ipa_symbols = symbols_ipa
-
-  final_ipa_symbols = merge_right(
-    symbols=final_ipa_symbols,
-    ignore_merge_symbols=dont_merge,
-    merge_symbols=trim_symbols,
-    insert_symbol=" ",
-  )
-
-  final_ipa_symbols = merge_left(
-    symbols=final_ipa_symbols,
-    ignore_merge_symbols=dont_merge,
-    merge_symbols=trim_symbols,
-    insert_symbol=" ",
-  )
-
-  final_ipa_symbols = [symbol for symbol in final_ipa_symbols if symbol != " "]
-
-  assert len(final_ipa_symbols) == len(final_arpa_symbols)
-
-  reference_tier_intervals: List[Interval] = reference_tier.intervals
-  new_arpa_tier = IntervalTier(
-    minTime=reference_tier.minTime,
-    maxTime=reference_tier.maxTime,
-    name=new_arpa_tier_name,
-  )
-
-  new_ipa_tier = IntervalTier(
-    minTime=reference_tier.minTime,
-    maxTime=reference_tier.maxTime,
-    name=new_ipa_tier_name,
+  reference_tier_intervals: List[Interval] = phoneme_tier.intervals
+  new_tier = IntervalTier(
+    minTime=phoneme_tier.minTime,
+    maxTime=phoneme_tier.maxTime,
+    name=arpa_tier_name,
   )
 
   for interval in reference_tier_intervals:
-    new_ipa_symbol = ""
     new_arpa_symbol = ""
 
     if not interval_is_empty(interval):
       new_arpa_symbol = final_arpa_symbols.pop(0)
-      new_ipa_symbol = final_ipa_symbols.pop(0)
-      logger.debug(f"Assigned \"{new_arpa_symbol}\" & \"{new_ipa_symbol}\" to \"{interval.mark}\".")
+      logger.debug(f"Assigned \"{new_arpa_symbol}\" to \"{interval.mark}\".")
 
     new_arpa_interval = Interval(
       minTime=interval.minTime,
@@ -792,19 +755,9 @@ def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_
       mark=new_arpa_symbol,
     )
 
-    new_arpa_tier.addInterval(new_arpa_interval)
+    new_tier.addInterval(new_arpa_interval)
 
-    new_ipa_interval = Interval(
-      minTime=interval.minTime,
-      maxTime=interval.maxTime,
-      mark=new_ipa_symbol,
-    )
-
-    new_ipa_tier.addInterval(new_ipa_interval)
-
-  if overwrite_existing_tiers:
-    update_or_add_tier(grid, new_arpa_tier)
-    update_or_add_tier(grid, new_ipa_tier)
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, new_tier)
   else:
-    grid.append(new_arpa_tier)
-    grid.append(new_ipa_tier)
+    grid.append(new_tier)
