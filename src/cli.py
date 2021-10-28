@@ -19,6 +19,7 @@ from textgrid_tools.app.mfa_utils import (add_graphemes, add_ipa_from_words,
                                           convert_texts_to_arpa_dicts,
                                           extract_sentences_text_files,
                                           files_extract_tier_to_text,
+                                          files_remove_tier,
                                           merge_words_to_new_textgrid,
                                           normalize_text_file,
                                           normalize_text_files_in_folder)
@@ -50,9 +51,10 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser):
   ]
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--trim_symbols", type=str, required=True)
-  parser.add_argument("--out_path_mfa_dict", type=Path, required=True)
-  parser.add_argument("--out_path_punctuation_dict", type=Path, required=True)
-
+  parser.add_argument("--consider_annotations", action="store_true")
+  parser.add_argument("--out_path_mfa_dict", type=Path, required=False)
+  parser.add_argument("--out_path_punctuation_dict", type=Path, required=False)
+  parser.add_argument("--out_path_cache", type=Path, required=False)
   parser.add_argument("--dict_type", choices=arpa_dicts,
                       type=PublicDictType.__getitem__, required=True)
   parser.add_argument("--overwrite", action="store_true")
@@ -73,6 +75,14 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return normalize_text_files_in_folder
+
+
+def init_files_remove_tier_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return files_remove_tier
 
 
 def init_files_extract_tier_to_text_parser(parser: ArgumentParser):
@@ -165,11 +175,12 @@ def init_add_graphemes_from_words_parser(parser: ArgumentParser):
 def init_add_phonemes_from_words_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--original_text_tier_name", type=str, required=True)
-  parser.add_argument("--new_ipa_tier_name", type=str, required=True)
-  parser.add_argument("--new_arpa_tier_name", type=str, required=True)
+  parser.add_argument("--new_ipa_tier_name", type=str, required=False)
+  parser.add_argument("--new_arpa_tier_name", type=str, required=False)
   parser.add_argument("--overwrite_existing_tiers", action="store_true")
-  parser.add_argument("--pronunciation_dict_file", type=Path, required=True)
+  parser.add_argument("--path_cache", type=Path, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--consider_annotations", action="store_true")
   parser.add_argument("--overwrite", action="store_true")
   return add_phonemes_from_words
 
@@ -296,6 +307,7 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
+  _add_parser_to(subparsers, "mfa-remove-tier", init_files_remove_tier_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-phonemes-from-words", init_add_phonemes_from_words_parser)

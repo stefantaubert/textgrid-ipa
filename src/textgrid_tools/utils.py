@@ -78,6 +78,20 @@ def check_interval_has_content(interval: Interval) -> bool:
   has_content = content != ""
   return has_content
 
+def get_filepaths(parent_dir: Path) -> List[Path]:
+  names = get_filenames(parent_dir)
+  res = [parent_dir / x for x in names]
+  return res
+
+
+def get_filenames(parent_dir: Path) -> List[Path]:
+  assert parent_dir.is_dir()
+  _, _, filenames = next(os.walk(parent_dir))
+  filenames.sort()
+  filenames = [Path(filename) for filename in filenames]
+  return filenames
+
+
 
 def check_paths_ok(in_path: str, out_path: str, logger: Logger) -> bool:
   if not os.path.exists(in_path):

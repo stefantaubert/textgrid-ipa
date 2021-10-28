@@ -2,9 +2,9 @@ import re
 import string
 from collections import OrderedDict
 from functools import partial
-from logging import getLogger, logMultiprocessing
+from logging import getLogger
 from multiprocessing import cpu_count
-from typing import Dict, List, Set, Tuple, cast
+from typing import Dict, List, Optional, Set, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import get_duration_s_samples
@@ -12,12 +12,17 @@ from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import (PublicDictType,
                                                       parse_public_dict)
-from sentence2pronunciation.core import (get_non_annotated_words,
-                                         prepare_cache_mp,
-                                         sentence2pronunciation_cached)
+from sentence2pronunciation.core import (
+    get_non_annotated_words, prepare_cache_mp, sentence2pronunciation_cached,
+    sentences2pronunciations_from_cache_mp)
+from sentence2pronunciation.lookup_cache import LookupCache
 from text_utils import (symbols_map_arpa_to_ipa,
                         symbols_remove_non_arpa_symbols, text_to_symbols)
 from text_utils.language import Language
+from text_utils.pronunciation.arpa_symbols import (ALL_ARPA_INCL_STRESSES,
+                                                   CONSONANTS, STRESS_NONE,
+                                                   STRESS_PRIMARY,
+                                                   STRESS_SECONDARY, VOWELS, H)
 from text_utils.pronunciation.ipa2symb import (merge_left, merge_right,
                                                merge_together)
 from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
@@ -30,8 +35,8 @@ from text_utils.text import (symbols_to_words, text_normalize,
                              text_to_sentences, words_to_symbols)
 from text_utils.types import Symbol, Symbols
 from text_utils.utils import (pronunciation_dict_to_tuple_dict,
-                              split_symbols_on, symbols_join, symbols_split,
-                              symbols_strip, symbols_to_lower,
+                              split_symbols_on, symbols_ignore, symbols_join,
+                              symbols_split, symbols_strip, symbols_to_lower,
                               symbols_to_upper)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
@@ -39,6 +44,83 @@ from tqdm import tqdm
 
 USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
 DEFAULT_IGNORE_CASE = True
+ALLOWED_MFA_MODEL_SYMBOLS = {
+  'AA0',
+  'AA1',
+  'AA2',
+  'AE0',
+  'AE1',
+  'AE2',
+  'AH0',
+  'AH1',
+  'AH2',
+  'AO0',
+  'AO1',
+  'AO2',
+  'AW0',
+  'AW1',
+  'AW2',
+  'AY0',
+  'AY1',
+  'AY2',
+  'B',
+  'CH',
+  'D',
+  'DH',
+  'EH0',
+  'EH1',
+  'EH2',
+  'ER0',
+  'ER1',
+  'ER2',
+  'EY0',
+  'EY1',
+  'EY2',
+  'F',
+  'G',
+  'HH',
+  'IH0',
+  'IH1',
+  'IH2',
+  'IY0',
+  'IY1',
+  'IY2',
+  'JH',
+  'K',
+  'L',
+  'M',
+  'N',
+  'NG',
+  'OW0',
+  'OW1',
+  'OW2',
+  'OY0',
+  'OY1',
+  'OY2',
+  'P',
+  'R',
+  'S',
+  'SH',
+  'T',
+  'TH',
+  'UH0',
+  'UH1',
+  'UH2',
+  'UW0',
+  'UW1',
+  'UW2',
+  'V',
+  'W',
+  'Y',
+  'Z',
+  'ZH',
+}
+
+# # MFA has no symbols which are not in ALL_ARPA_INCL_STRESSES
+# print(ALLOWED_MFA_MODEL_SYMBOLS.difference(ALL_ARPA_INCL_STRESSES))
+# # Some are not included in MFA
+# x = '\n'.join(sorted((ALL_ARPA_INCL_STRESSES - VOWELS).difference(ALLOWED_MFA_MODEL_SYMBOLS)))
+# print(f"Not included:\n{x}")
 
 
 def __lookup_dict_no_oov(word: Symbols, dictionary: Dict[Symbols, Symbols]) -> Symbols:
@@ -135,10 +217,28 @@ def normalize_text(original_text: str) -> str:
   return result
 
 
+def remove_tiers(grids: List[TextGrid], tier_name: str) -> None:
+  logger = getLogger(__name__)
+
+  for grid in grids:
+    remove_tier(grid, tier_name)
+
+
+def remove_tier(grid: TextGrid, tier_name: str) -> None:
+  logger = getLogger(__name__)
+
+  tier: IntervalTier = grid.getFirst(tier_name)
+  if tier is None:
+    logger.exception("Tier not found!")
+    raise Exception()
+
+  grid.tiers.remove(tier)
+
+
 MAX_THREAD_COUNT = cpu_count() - 1
 
 
-def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType) -> Tuple[PronunciationDict, PronunciationDict]:
+def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType, consider_annotations: bool) -> Tuple[PronunciationDict, PronunciationDict, LookupCache]:
   logger = getLogger(__name__)
   logger.info(f"Chosen dictionary type: {dict_type}")
   logger.info(f"Getting all sentences...")
@@ -152,7 +252,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     for sentence in text_to_sentences(
       text=text,
       text_format=SymbolFormat.GRAPHEMES,
-        lang=Language.ENG
+      lang=Language.ENG
     )
   }
 
@@ -163,7 +263,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     sentences=text_sentences,
     annotation_split_symbol="/",
     chunksize=500,
-    consider_annotation=True,
+    consider_annotation=consider_annotations,
     get_pronunciation=get_eng_to_arpa_lookup_method(),
     ignore_case=DEFAULT_IGNORE_CASE,
     n_jobs=MAX_THREAD_COUNT,
@@ -175,15 +275,26 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
   logger.info(f"Creating pronunciation dictionary...")
   pronunciation_dict_no_punctuation = OrderedDict()
   pronunciation_dict_punctuation = OrderedDict()
+
+  allowed_symbols = ALLOWED_MFA_MODEL_SYMBOLS | {"sil", "spn"}
   for unique_word, arpa_symbols in tqdm(sorted(cache.items())):
     assert len(unique_word) > 0
     assert len(arpa_symbols) > 0
 
     word_str = "".join(unique_word)
     assert word_str not in pronunciation_dict_punctuation
+    # maybe ignore spn here
     pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
 
-    arpa_symbols_no_punctuation = symbols_remove_non_arpa_symbols(arpa_symbols)
+    arpa_symbols_no_punctuation = symbols_ignore(arpa_symbols, trim_symbols)
+    not_allowed_symbols = {
+      symbol for symbol in arpa_symbols_no_punctuation if symbol not in allowed_symbols}
+    if len(not_allowed_symbols) > 0:
+      logger.error(
+        "Not all symbols can be aligned! You have missed some trim_symbols or annotated non existent ARPA symbols!")
+      logger.info(
+        f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({word_str})")
+
     arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
     if arpa_contains_only_punctuation:
       logger.info(
@@ -192,7 +303,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     assert word_str not in pronunciation_dict_no_punctuation
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
   logger.info(f"Done.")
-  return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
+  return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation, cache
 
   # symbols = text_to_symbols(
   #   lang=Language.ENG,
@@ -453,20 +564,64 @@ def add_graphemes_from_words(grid: TextGrid, original_text_tier_name: str, new_t
     grid.append(graphemes_tier)
 
 
-def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: str, new_ipa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool):
+def map_arpa_to_ipa(grid: TextGrid, arpa_tier_name: str, ipa_tier_name: str, overwrite_existing_tier: bool):
   logger = getLogger(__name__)
+
+  arpa_tier: IntervalTier = grid.getFirst(arpa_tier_name)
+  if arpa_tier is None:
+    raise Exception("ARPA tier not found!")
+
+  if grid.getFirst(ipa_tier_name) is not None and not overwrite_existing_tier:
+    raise Exception("IPA tier already exists!")
+
+  ipa_tier = IntervalTier(
+    minTime=arpa_tier.minTime,
+    maxTime=arpa_tier.maxTime,
+    name=ipa_tier_name,
+  )
+
+  for interval in arpa_tier.intervals:
+    arpa_str = cast(str, interval.mark)
+    arpa_symbols = tuple(arpa_str.split(" "))
+    new_ipa_tuple = symbols_map_arpa_to_ipa(
+      arpa_symbols=arpa_symbols,
+      ignore={},
+      replace_unknown=False,
+      replace_unknown_with=None,
+    )
+
+    new_ipa = " ".join(new_ipa_tuple)
+    logger.debug(f"Mapped \"{arpa_str}\" to \"{new_ipa}\".")
+
+    ipa_interval = Interval(
+      minTime=interval.minTime,
+      maxTime=interval.maxTime,
+      mark=new_ipa,
+    )
+    ipa_tier.intervals.append(ipa_interval)
+
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, ipa_tier)
+  else:
+    grid.append(ipa_tier)
+
+
+def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: Optional[str], new_ipa_tier_name: Optional[str], consider_annotations: bool, cache: LookupCache, overwrite_existing_tiers: bool):
+  logger = getLogger(__name__)
+  add_arpa_tier = new_arpa_tier_name is not None
+  add_ipa_tier = new_ipa_tier_name is not None
+  if not add_arpa_tier and not add_ipa_tier:
+    raise Exception()
 
   original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
   if original_text_tier is None:
     raise Exception("Original text-tier not found!")
 
-  new_ipa_tier: IntervalTier = grid.getFirst(new_ipa_tier_name)
-  if new_ipa_tier is not None and not overwrite_existing_tiers:
-    raise Exception("IPA tier already exists!")
-
-  new_arpa_tier = grid.getFirst(new_arpa_tier_name)
-  if new_arpa_tier is not None and not overwrite_existing_tiers:
+  if add_arpa_tier and grid.getFirst(new_arpa_tier_name) is not None and not overwrite_existing_tiers:
     raise Exception("ARPA tier already exists!")
+
+  if add_ipa_tier and grid.getFirst(new_ipa_tier_name) is not None and not overwrite_existing_tiers:
+    raise Exception("IPA tier already exists!")
 
   original_text = tier_to_text(original_text_tier)
 
@@ -476,30 +631,35 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
     text_format=SymbolFormat.GRAPHEMES,
   )
 
-  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
+  # arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
 
-  symbols_arpa = __eng_to_arpa_no_oov(
-    eng_sentence=symbols,
-    pronunciations=arpa_dict_tuple_based,
-  )
-
-  clear_cache()
+  symbols_arpa = sentences2pronunciations_from_cache_mp(
+    cache=cache,
+    sentences={symbols},
+    annotation_split_symbol="/",
+    chunksize=1,
+    consider_annotation=consider_annotations,
+    ignore_case=DEFAULT_IGNORE_CASE,
+    n_jobs=1,
+  )[symbols]
 
   words_arpa_with_punctuation = symbols_to_words(symbols_arpa)
 
   original_text_tier_intervals: List[Interval] = original_text_tier.intervals
 
-  new_arpa_tier = IntervalTier(
-    minTime=original_text_tier.minTime,
-    maxTime=original_text_tier.maxTime,
-    name=new_arpa_tier_name,
-  )
+  if add_arpa_tier:
+    new_arpa_tier = IntervalTier(
+      minTime=original_text_tier.minTime,
+      maxTime=original_text_tier.maxTime,
+      name=new_arpa_tier_name,
+    )
 
-  new_ipa_tier = IntervalTier(
-    minTime=original_text_tier.minTime,
-    maxTime=original_text_tier.maxTime,
-    name=new_ipa_tier_name,
-  )
+  if add_ipa_tier:
+    new_ipa_tier = IntervalTier(
+      minTime=original_text_tier.minTime,
+      maxTime=original_text_tier.maxTime,
+      name=new_ipa_tier_name,
+    )
 
   for interval in original_text_tier_intervals:
     new_ipa = ""
@@ -528,7 +688,8 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
       mark=new_arpa,
     )
 
-    new_arpa_tier.addInterval(new_arpa_interval)
+    if add_arpa_tier:
+      new_arpa_tier.addInterval(new_arpa_interval)
 
     new_ipa_interval = Interval(
       minTime=interval.minTime,
@@ -536,14 +697,19 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
       mark=new_ipa,
     )
 
-    new_ipa_tier.addInterval(new_ipa_interval)
+    if add_ipa_tier:
+      new_ipa_tier.addInterval(new_ipa_interval)
 
   if overwrite_existing_tiers:
-    update_or_add_tier(grid, new_arpa_tier)
-    update_or_add_tier(grid, new_ipa_tier)
+    if add_arpa_tier:
+      update_or_add_tier(grid, new_arpa_tier)
+    if add_ipa_tier:
+      update_or_add_tier(grid, new_ipa_tier)
   else:
-    grid.append(new_arpa_tier)
-    grid.append(new_ipa_tier)
+    if add_arpa_tier:
+      grid.append(new_arpa_tier)
+    if add_ipa_tier:
+      grid.append(new_ipa_tier)
 
 
 def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):
