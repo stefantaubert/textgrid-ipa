@@ -3,6 +3,7 @@ import string
 from collections import OrderedDict
 from functools import partial
 from logging import getLogger, logMultiprocessing
+from multiprocessing import cpu_count
 from typing import Dict, List, Set, Tuple, cast
 
 import numpy as np
@@ -12,15 +13,18 @@ from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import (PublicDictType,
                                                       parse_public_dict)
 from sentence2pronunciation.core import (get_non_annotated_words,
+                                         prepare_cache_mp,
                                          sentence2pronunciation_cached)
-from sentence2pronunciation.lookup_cache import clear_cache
-from text_utils import (merge_join, symbols_map_arpa_to_ipa,
+from text_utils import (symbols_map_arpa_to_ipa,
                         symbols_remove_non_arpa_symbols, text_to_symbols)
 from text_utils.language import Language
 from text_utils.pronunciation.ipa2symb import (merge_left, merge_right,
                                                merge_together)
 from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
+                                           get_eng_to_arpa_lookup_method,
                                            lookup_dict)
+from text_utils.pronunciation.pronunciation_dict_cache import \
+    get_eng_pronunciation_dict_arpa
 from text_utils.symbol_format import SymbolFormat
 from text_utils.text import (symbols_to_words, text_normalize,
                              text_to_sentences, words_to_symbols)
@@ -31,6 +35,7 @@ from text_utils.utils import (pronunciation_dict_to_tuple_dict,
                               symbols_to_upper)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
+from tqdm import tqdm
 
 USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
 DEFAULT_IGNORE_CASE = True
@@ -130,47 +135,50 @@ def normalize_text(original_text: str) -> str:
   return result
 
 
+MAX_THREAD_COUNT = cpu_count() - 1
+
+
 def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType) -> Tuple[PronunciationDict, PronunciationDict]:
   logger = getLogger(__name__)
   logger.info(f"Chosen dictionary type: {dict_type}")
-  merged_text = " ".join(texts)
-  symbols = text_to_symbols(
-    lang=Language.ENG,
-    text=merged_text,
-    text_format=SymbolFormat.GRAPHEMES,
+  logger.info(f"Getting all sentences...")
+  text_sentences = {
+    text_to_symbols(
+      lang=Language.ENG,
+      text=sentence,
+      text_format=SymbolFormat.GRAPHEMES,
+    )
+    for text in tqdm(texts)
+    for sentence in text_to_sentences(
+      text=text,
+      text_format=SymbolFormat.GRAPHEMES,
+        lang=Language.ENG
+    )
+  }
+
+  logger.info(f"Done. Retrieved {len(text_sentences)} unique sentences.")
+
+  logger.info(f"Converting all words to ARPA...")
+  cache = prepare_cache_mp(
+    sentences=text_sentences,
+    annotation_split_symbol="/",
+    chunksize=500,
+    consider_annotation=True,
+    get_pronunciation=get_eng_to_arpa_lookup_method(),
+    ignore_case=DEFAULT_IGNORE_CASE,
+    n_jobs=MAX_THREAD_COUNT,
+    split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+    trim_symbols=trim_symbols,
   )
+  logger.info(f"Done.")
 
-  symbols_lower = symbols_to_lower(symbols)
-  unique_words = set(symbols_to_words(symbols_lower))
-  unique_words -= {""}
-  # else:
-  #   words = get_non_annotated_words(
-  #     sentence=symbols,
-  #     trim_symbols=trim_symbols,
-  #     consider_annotation=False,
-  #     annotation_split_symbol=None,
-  #     ignore_case=DEFAULT_IGNORE_CASE,
-  #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
-  #   )
-
-  arpa_dict = parse_public_dict(dict_type)
-  arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
+  logger.info(f"Creating pronunciation dictionary...")
   pronunciation_dict_no_punctuation = OrderedDict()
   pronunciation_dict_punctuation = OrderedDict()
-  method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
-  for unique_word in sorted(unique_words):
+  for unique_word, arpa_symbols in tqdm(sorted(cache.items())):
     assert len(unique_word) > 0
-    arpa_symbols = sentence2pronunciation_cached(
-      sentence=unique_word,
-      annotation_split_symbol=None,
-      consider_annotation=False,
-      get_pronunciation=method,
-      split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
-      trim_symbols=trim_symbols,
-      ignore_case_in_cache=DEFAULT_IGNORE_CASE,
-    )
-
     assert len(arpa_symbols) > 0
+
     word_str = "".join(unique_word)
     assert word_str not in pronunciation_dict_punctuation
     pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
@@ -183,18 +191,68 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
       arpa_symbols_no_punctuation = ("sil",)
     assert word_str not in pronunciation_dict_no_punctuation
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
-
-  clear_cache()
-
+  logger.info(f"Done.")
   return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
 
+  # symbols = text_to_symbols(
+  #   lang=Language.ENG,
+  #   text=merged_text,
+  #   text_format=SymbolFormat.GRAPHEMES,
+  # )
 
-def extract_sentences_to_textgrid(original_text: str, text_format: SymbolFormat, language: Language, audio: np.ndarray, sr: int, tier_name: str, time_factor: float) -> TextGrid:
+  # symbols_lower = symbols_to_lower(symbols)
+  # unique_words = set(symbols_to_words(symbols_lower))
+  # unique_words -= {""}
+  # # else:
+  # #   words = get_non_annotated_words(
+  # #     sentence=symbols,
+  # #     trim_symbols=trim_symbols,
+  # #     consider_annotation=False,
+  # #     annotation_split_symbol=None,
+  # #     ignore_case=DEFAULT_IGNORE_CASE,
+  # #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+  # #   )
+
+  # arpa_dict = parse_public_dict(dict_type)
+  # arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
+  # pronunciation_dict_no_punctuation = OrderedDict()
+  # pronunciation_dict_punctuation = OrderedDict()
+  # method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
+  # for unique_word in sorted(unique_words):
+  #   assert len(unique_word) > 0
+  #   arpa_symbols = sentence2pronunciation_cached(
+  #     sentence=unique_word,
+  #     annotation_split_symbol=None,
+  #     consider_annotation=False,
+  #     get_pronunciation=method,
+  #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
+  #     trim_symbols=trim_symbols,
+  #     ignore_case_in_cache=DEFAULT_IGNORE_CASE,
+  #   )
+
+  #   assert len(arpa_symbols) > 0
+  #   word_str = "".join(unique_word)
+  #   assert word_str not in pronunciation_dict_punctuation
+  #   pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
+
+  #   arpa_symbols_no_punctuation = symbols_remove_non_arpa_symbols(arpa_symbols)
+  #   arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
+  #   if arpa_contains_only_punctuation:
+  #     logger.info(
+  #       f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \'sil\'.")
+  #     arpa_symbols_no_punctuation = ("sil",)
+  #   assert word_str not in pronunciation_dict_no_punctuation
+  #   pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
+
+  # return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
+
+
+def extract_sentences_to_textgrid(original_text: str, audio: np.ndarray, sr: int, tier_name: str, time_factor: float) -> TextGrid:
   logger = getLogger(__name__)
   sentences = text_to_sentences(
     text=original_text,
-    text_format=text_format,
-    lang=language,
+    text_format=SymbolFormat.GRAPHEMES,
+    lang=Language.ENG,
   )
 
   logger.info(f"Extracted {len(sentences)} sentences.")
@@ -226,6 +284,18 @@ def extract_sentences_to_textgrid(original_text: str, text_format: SymbolFormat,
   grid.append(tier)
 
   return grid
+
+
+def extract_tier_to_text(grid: TextGrid, tier_name: str) -> str:
+  logger = getLogger(__name__)
+
+  tier: IntervalTier = grid.getFirst(tier_name)
+  if tier is None:
+    logger.exception("Tier not found!")
+    raise Exception()
+
+  result = tier_to_text(tier, join_with=" ")
+  return result
 
 
 def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name: str, min_pause_s: float, overwrite_existing_tier: bool) -> None:

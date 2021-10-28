@@ -6,10 +6,9 @@ import numpy as np
 from audio_utils import (get_chunks, get_duration_s, get_duration_s_samples,
                          ms_to_samples)
 from pandas import DataFrame
-from text_utils import text_to_symbols
+from text_utils import EngToIPAMode, text_to_symbols
 from text_utils.language import Language
 from text_utils.pronunciation.main import symbols_to_ipa
-from text_utils.text import EngToIPAMode, text_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import (check_interval_has_content,
                                   collapse_whitespace, durations_to_intervals,

@@ -14,9 +14,11 @@ from textgrid_tools.core.mfa_utils import (
     add_graphemes_from_words, add_layer_containing_original_text,
     add_phoneme_layer_containing_punctuation,
     convert_original_text_to_phonemes, extract_sentences_to_textgrid,
-    get_arpa_pronunciation_dicts_from_texts, get_pronunciation_dict,
-    merge_words_together, normalize_text)
+    extract_tier_to_text, get_arpa_pronunciation_dicts_from_texts,
+    get_pronunciation_dict, merge_words_together, normalize_text)
 from tqdm import tqdm
+
+DEFAULT_TEXTGRID_PRECISION = 8
 
 
 def convert_text_to_dict(base_dir: Path, text_path: Path, text_format: SymbolFormat, language: Language, out_path: Path):
@@ -163,6 +165,35 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: 
   logger.info(f"Written normalized output to: {folder_out}")
 
 
+def files_extract_tier_to_text(base_dir: Path, textgrid_folder_in: Path, tier_name: str, txt_folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not textgrid_folder_in.exists():
+    raise Exception("Textgrid folder does not exist!")
+
+  all_files = get_filepaths(textgrid_folder_in)
+  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  textgrid_file_in: Path
+  for textgrid_file_in in tqdm(textgrid_files):
+    text_file_out = txt_folder_out / f"{textgrid_file_in.stem}.txt"
+    if text_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+      continue
+
+    logger.info(f"Processing {textgrid_file_in}...")
+    grid = TextGrid()
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+
+    text = extract_tier_to_text(grid, tier_name=tier_name)
+
+    txt_folder_out.mkdir(parents=True, exist_ok=True)
+    text_file_out.write_text(text, encoding="UTF-8")
+
+  logger.info(f"Written text output to: {txt_folder_out}")
+
+
 def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_folder: Path, text_format: SymbolFormat, language: Language, time_factor: float, tier_name: str, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
@@ -200,8 +231,6 @@ def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_fol
 
     grid = extract_sentences_to_textgrid(
       original_text=text,
-      text_format=text_format,
-      language=language,
       audio=wav,
       sr=sr,
       tier_name=tier_name,
@@ -235,7 +264,7 @@ def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_
     logger.info(f"Processing {grid_file_in}...")
 
     grid = TextGrid()
-    grid.read(grid_file_in)
+    grid.read(grid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
     merge_words_together(
       grid=grid,
@@ -263,7 +292,7 @@ def add_original_text_layer(base_dir: Path, grid_path: Path, reference_tier_name
     raise Exception("Grid not found!")
 
   grid = TextGrid()
-  grid.read(grid_path)
+  grid.read(grid_path, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
   add_layer_containing_original_text(
     grid=grid,
@@ -323,7 +352,7 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
     textgrid_path = textgrid_files[filename]
 
     grid = TextGrid()
-    grid.read(textgrid_path)
+    grid.read(textgrid_path, round_digits=DEFAULT_TEXTGRID_PRECISION)
     text = txt_path.read_text()
 
     add_layer_containing_original_text(
@@ -345,7 +374,7 @@ def add_arpa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name
     raise Exception("Grid not found!")
 
   grid = TextGrid()
-  grid.read(grid_path)
+  grid.read(grid_path, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
   if not pronunciation_dict_file.exists():
     raise Exception("Pronunciation dictionary not found!")
@@ -372,7 +401,7 @@ def add_ipa_from_words(base_dir: Path, grid_path: Path, original_text_tier_name:
     raise Exception("Grid not found!")
 
   grid = TextGrid()
-  grid.read(grid_path)
+  grid.read(grid_path, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
   if not pronunciation_dict_file.exists():
     raise Exception("Pronunciation dictionary not found!")
@@ -414,7 +443,7 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
     logger.debug(f"Processing {textgrid_file_in}...")
 
     grid = TextGrid()
-    grid.read(textgrid_file_in)
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
     add_graphemes_from_words(
       grid=grid,
@@ -454,7 +483,7 @@ def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_
     logger.debug(f"Processing {textgrid_file_in}...")
 
     grid = TextGrid()
-    grid.read(textgrid_file_in)
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
     convert_original_text_to_phonemes(
       grid=grid,
@@ -499,7 +528,7 @@ def add_phonemes_from_phonemes(base_dir: Path, folder_in: Path, original_text_ti
     logger.debug(f"Processing {textgrid_file_in}...")
 
     grid = TextGrid()
-    grid.read(textgrid_file_in)
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
     add_phoneme_layer_containing_punctuation(
       grid=grid,

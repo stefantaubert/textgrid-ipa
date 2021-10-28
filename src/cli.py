@@ -18,6 +18,7 @@ from textgrid_tools.app.mfa_utils import (add_graphemes, add_ipa_from_words,
                                           convert_text_to_dict,
                                           convert_texts_to_arpa_dicts,
                                           extract_sentences_text_files,
+                                          files_extract_tier_to_text,
                                           merge_words_to_new_textgrid,
                                           normalize_text_file,
                                           normalize_text_files_in_folder)
@@ -72,6 +73,14 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return normalize_text_files_in_folder
+
+
+def init_files_extract_tier_to_text_parser(parser: ArgumentParser):
+  parser.add_argument("--textgrid_folder_in", type=Path, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--txt_folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return files_extract_tier_to_text
 
 
 def init_extract_sentences_text_files_parser(parser: ArgumentParser):
@@ -286,6 +295,7 @@ def _init_parser():
                  init_merge_words_to_new_textgrid_parser)
   _add_parser_to(subparsers, "mfa-add-text", init_add_original_text_layer_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
+  _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "mfa-add-ipa", init_add_ipa_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-phonemes-from-words", init_add_phonemes_from_words_parser)
