@@ -564,6 +564,11 @@ def add_graphemes_from_words(grid: TextGrid, original_text_tier_name: str, new_t
     grid.append(graphemes_tier)
 
 
+def map_arpa_to_ipa_grids(grids: List[TextGrid], arpa_tier_name: str, ipa_tier_name: str, overwrite_existing_tier: bool) -> None:
+  for grid in grids:
+    map_arpa_to_ipa(grid, arpa_tier_name, ipa_tier_name, overwrite_existing_tier)
+
+
 def map_arpa_to_ipa(grid: TextGrid, arpa_tier_name: str, ipa_tier_name: str, overwrite_existing_tier: bool):
   logger = getLogger(__name__)
 
@@ -606,22 +611,15 @@ def map_arpa_to_ipa(grid: TextGrid, arpa_tier_name: str, ipa_tier_name: str, ove
     grid.append(ipa_tier)
 
 
-def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: str, new_arpa_tier_name: Optional[str], new_ipa_tier_name: Optional[str], consider_annotations: bool, cache: LookupCache, overwrite_existing_tiers: bool):
+def convert_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_name: str, consider_annotations: bool, cache: LookupCache, overwrite_existing_tier: bool):
   logger = getLogger(__name__)
-  add_arpa_tier = new_arpa_tier_name is not None
-  add_ipa_tier = new_ipa_tier_name is not None
-  if not add_arpa_tier and not add_ipa_tier:
-    raise Exception()
 
   original_text_tier: IntervalTier = grid.getFirst(original_text_tier_name)
   if original_text_tier is None:
     raise Exception("Original text-tier not found!")
 
-  if add_arpa_tier and grid.getFirst(new_arpa_tier_name) is not None and not overwrite_existing_tiers:
+  if grid.getFirst(tier_name) is not None and not overwrite_existing_tier:
     raise Exception("ARPA tier already exists!")
-
-  if add_ipa_tier and grid.getFirst(new_ipa_tier_name) is not None and not overwrite_existing_tiers:
-    raise Exception("IPA tier already exists!")
 
   original_text = tier_to_text(original_text_tier)
 
@@ -630,8 +628,6 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
     text=original_text,
     text_format=SymbolFormat.GRAPHEMES,
   )
-
-  # arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(pronunciation_dict)
 
   symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=cache,
@@ -647,22 +643,13 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
 
   original_text_tier_intervals: List[Interval] = original_text_tier.intervals
 
-  if add_arpa_tier:
-    new_arpa_tier = IntervalTier(
-      minTime=original_text_tier.minTime,
-      maxTime=original_text_tier.maxTime,
-      name=new_arpa_tier_name,
-    )
-
-  if add_ipa_tier:
-    new_ipa_tier = IntervalTier(
-      minTime=original_text_tier.minTime,
-      maxTime=original_text_tier.maxTime,
-      name=new_ipa_tier_name,
-    )
+  new_arpa_tier = IntervalTier(
+    minTime=original_text_tier.minTime,
+    maxTime=original_text_tier.maxTime,
+    name=tier_name,
+  )
 
   for interval in original_text_tier_intervals:
-    new_ipa = ""
     new_arpa = ""
 
     if not interval_is_empty(interval):
@@ -671,16 +658,7 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
       #  logger.info(f"Skip {interval.mark} as it is only sil.")
       #  continue
       new_arpa = " ".join(new_arpa_tuple)
-
-      new_ipa_tuple = symbols_map_arpa_to_ipa(
-        arpa_symbols=new_arpa_tuple,
-        ignore={},
-        replace_unknown=False,
-        replace_unknown_with=None,
-      )
-
-      new_ipa = " ".join(new_ipa_tuple)
-      logger.debug(f"Assigned \"{new_arpa}\" & \"{new_ipa}\" to \"{interval.mark}\".")
+      logger.debug(f"Assigned \"{new_arpa}\" to \"{interval.mark}\".")
 
     new_arpa_interval = Interval(
       minTime=interval.minTime,
@@ -688,28 +666,12 @@ def convert_original_text_to_phonemes(grid: TextGrid, original_text_tier_name: s
       mark=new_arpa,
     )
 
-    if add_arpa_tier:
-      new_arpa_tier.addInterval(new_arpa_interval)
+    new_arpa_tier.addInterval(new_arpa_interval)
 
-    new_ipa_interval = Interval(
-      minTime=interval.minTime,
-      maxTime=interval.maxTime,
-      mark=new_ipa,
-    )
-
-    if add_ipa_tier:
-      new_ipa_tier.addInterval(new_ipa_interval)
-
-  if overwrite_existing_tiers:
-    if add_arpa_tier:
-      update_or_add_tier(grid, new_arpa_tier)
-    if add_ipa_tier:
-      update_or_add_tier(grid, new_ipa_tier)
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, new_arpa_tier)
   else:
-    if add_arpa_tier:
-      grid.append(new_arpa_tier)
-    if add_ipa_tier:
-      grid.append(new_ipa_tier)
+    grid.append(new_arpa_tier)
 
 
 def add_phoneme_layer_containing_punctuation(grid: TextGrid, original_text_tier_name: str, reference_tier_name: str, new_ipa_tier_name: str, new_arpa_tier_name: str, pronunciation_dict: PronunciationDict, overwrite_existing_tiers: bool, trim_symbols: Set[Symbol]):

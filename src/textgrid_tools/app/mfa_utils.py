@@ -14,8 +14,8 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
     add_graphemes_from_words, add_layer_containing_original_text,
     add_phoneme_layer_containing_punctuation,
-    convert_original_text_to_phonemes, extract_sentences_to_textgrid,
-    extract_tier_to_text, get_arpa_pronunciation_dicts_from_texts,
+    convert_words_to_arpa, extract_sentences_to_textgrid,
+    extract_tier_to_text, get_arpa_pronunciation_dicts_from_texts, map_arpa_to_ipa, map_arpa_to_ipa_grids,
     merge_words_together, normalize_text, remove_tiers)
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
@@ -121,6 +121,47 @@ def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_ou
 
   logger.info("Removing tiers...")
   remove_tiers(grids, tier_name)
+  logger.info("Done.")
+
+  logger.info("Saving output...")
+  for grid, output_path in zip(grids, output_paths):
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(output_path)
+  logger.info(f"Done. Written output to: {folder_out}")
+
+def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, folder_out: Path, ipa_tier_name: str, overwrite_existing_tier: bool, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("Textgrid folder does not exist!")
+
+  all_files = get_filepaths(folder_in)
+  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  logger.info("Reading files...")
+  textgrid_file_in: Path
+  grids: List[TextGrid] = []
+  output_paths: List[Path] = []
+  for textgrid_file_in in tqdm(textgrid_files):
+    text_file_out = folder_out / textgrid_file_in.name
+    if text_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+      continue
+
+    grid = TextGrid()
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    grids.append(grid)
+    output_paths.append(text_file_out)
+  logger.info("Done.")
+
+  logger.info("Mapping ARPA to IPA...")
+  map_arpa_to_ipa_grids(
+    grids=grids,
+    arpa_tier_name=arpa_tier_name,
+    ipa_tier_name=ipa_tier_name,
+    overwrite_existing_tier=overwrite_existing_tier,
+  )
   logger.info("Done.")
 
   logger.info("Saving output...")
@@ -374,7 +415,7 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
   logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
-def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, new_arpa_tier_name: Optional[str], new_ipa_tier_name: Optional[str], overwrite_existing_tiers: bool, path_cache: Path, folder_out: Path, overwrite: bool):
+def app_convert_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -401,13 +442,12 @@ def add_phonemes_from_words(base_dir: Path, folder_in: Path, original_text_tier_
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
-    convert_original_text_to_phonemes(
+    convert_words_to_arpa(
       grid=grid,
-      new_ipa_tier_name=new_ipa_tier_name,
-      new_arpa_tier_name=new_arpa_tier_name,
+      tier_name=tier_name,
       original_text_tier_name=original_text_tier_name,
       cache=cache,
-      overwrite_existing_tiers=overwrite_existing_tiers,
+      overwrite_existing_tier=overwrite_existing_tier,
       consider_annotations=consider_annotations,
     )
 
