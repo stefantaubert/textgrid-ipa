@@ -1,10 +1,9 @@
 import re
-import string
 from collections import OrderedDict
 from functools import partial
 from logging import getLogger
 from multiprocessing import cpu_count
-from typing import Dict, List, Optional, Set, Tuple, cast
+from typing import List, Set, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import get_duration_s_samples
@@ -12,32 +11,20 @@ from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import (PublicDictType,
                                                       parse_public_dict)
-from sentence2pronunciation.core import (
-    get_non_annotated_words, prepare_cache_mp, sentence2pronunciation_cached,
-    sentences2pronunciations_from_cache_mp)
-from sentence2pronunciation.lookup_cache import LookupCache
-from text_utils import (symbols_map_arpa_to_ipa,
-                        symbols_remove_non_arpa_symbols, text_to_symbols)
-from text_utils.language import Language
-from text_utils.pronunciation.arpa_symbols import (ALL_ARPA_INCL_STRESSES,
-                                                   CONSONANTS, STRESS_NONE,
-                                                   STRESS_PRIMARY,
-                                                   STRESS_SECONDARY, VOWELS, H)
-from text_utils.pronunciation.ipa2symb import (merge_left, merge_right,
-                                               merge_together)
-from text_utils.pronunciation.main import (DEFAULT_IGNORE_PUNCTUATION,
-                                           get_eng_to_arpa_lookup_method,
+from sentence2pronunciation import (LookupCache, get_non_annotated_words,
+                                    prepare_cache_mp,
+                                    sentence2pronunciation_cached,
+                                    sentences2pronunciations_from_cache_mp)
+from sentence2pronunciation.lookup_cache import get_empty_cache
+from text_utils import Language, symbols_map_arpa_to_ipa, text_to_symbols
+from text_utils.pronunciation.ipa2symb import merge_left, merge_right
+from text_utils.pronunciation.main import (get_eng_to_arpa_lookup_method,
                                            lookup_dict)
-from text_utils.pronunciation.pronunciation_dict_cache import \
-    get_eng_pronunciation_dict_arpa
 from text_utils.symbol_format import SymbolFormat
 from text_utils.text import (symbols_to_words, text_normalize,
                              text_to_sentences, words_to_symbols)
-from text_utils.types import Symbol, Symbols
-from text_utils.utils import (pronunciation_dict_to_tuple_dict,
-                              split_symbols_on, symbols_ignore, symbols_join,
-                              symbols_split, symbols_strip, symbols_to_lower,
-                              symbols_to_upper)
+from text_utils.types import Symbol
+from text_utils.utils import pronunciation_dict_to_tuple_dict, symbols_ignore
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
 from tqdm import tqdm
@@ -123,30 +110,6 @@ ALLOWED_MFA_MODEL_SYMBOLS = {
 # print(f"Not included:\n{x}")
 
 
-def __lookup_dict_no_oov(word: Symbols, dictionary: Dict[Symbols, Symbols]) -> Symbols:
-  word_upper = symbols_to_upper(word)
-  if word_upper not in dictionary:
-    raise Exception(f"Word {word} pronunciation not found!")
-
-  return dictionary[word_upper][0]
-
-
-def __eng_to_arpa_no_oov(eng_sentence: Symbols, pronunciations: Dict[Symbols, Symbols]) -> Symbols:
-  method = partial(__lookup_dict_no_oov, dictionary=pronunciations)
-
-  result = sentence2pronunciation_cached(
-    sentence=eng_sentence,
-    annotation_split_symbol=None,
-    consider_annotation=False,
-    get_pronunciation=method,
-    split_on_hyphen=False,
-    trim_symbols={},
-    ignore_case_in_cache=DEFAULT_IGNORE_CASE,
-  )
-
-  return result
-
-
 def interval_is_empty(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark.strip()) == 0
 
@@ -182,6 +145,7 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
   arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
   pronunciation_dict = {}
   method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
+  cache = get_empty_cache()
   for word in words:
     arpa_symbols = sentence2pronunciation_cached(
       sentence=word,
@@ -191,13 +155,12 @@ def get_pronunciation_dict(text: str, text_format: SymbolFormat, language: Langu
       split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
       trim_symbols=trim_symbols,
       ignore_case_in_cache=DEFAULT_IGNORE_CASE,
+      cache=cache,
     )
 
     word_str = "".join(word)
     assert word_str not in pronunciation_dict
     pronunciation_dict[word_str] = OrderedSet([arpa_symbols])
-
-  clear_cache()
 
   return pronunciation_dict
 
@@ -235,7 +198,7 @@ def remove_tier(grid: TextGrid, tier_name: str) -> None:
   grid.tiers.remove(tier)
 
 
-MAX_THREAD_COUNT = cpu_count() - 1
+MAX_THREAD_COUNT = cpu_count()
 
 
 def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType, consider_annotations: bool) -> Tuple[PronunciationDict, PronunciationDict, LookupCache]:
@@ -269,6 +232,7 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     n_jobs=MAX_THREAD_COUNT,
     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
     trim_symbols=trim_symbols,
+    maxtasksperchild=None,
   )
   logger.info(f"Done.")
 
@@ -304,58 +268,6 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
   logger.info(f"Done.")
   return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation, cache
-
-  # symbols = text_to_symbols(
-  #   lang=Language.ENG,
-  #   text=merged_text,
-  #   text_format=SymbolFormat.GRAPHEMES,
-  # )
-
-  # symbols_lower = symbols_to_lower(symbols)
-  # unique_words = set(symbols_to_words(symbols_lower))
-  # unique_words -= {""}
-  # # else:
-  # #   words = get_non_annotated_words(
-  # #     sentence=symbols,
-  # #     trim_symbols=trim_symbols,
-  # #     consider_annotation=False,
-  # #     annotation_split_symbol=None,
-  # #     ignore_case=DEFAULT_IGNORE_CASE,
-  # #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
-  # #   )
-
-  # arpa_dict = parse_public_dict(dict_type)
-  # arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
-  # pronunciation_dict_no_punctuation = OrderedDict()
-  # pronunciation_dict_punctuation = OrderedDict()
-  # method = partial(lookup_dict, dictionary=arpa_dict_tuple_based)
-  # for unique_word in sorted(unique_words):
-  #   assert len(unique_word) > 0
-  #   arpa_symbols = sentence2pronunciation_cached(
-  #     sentence=unique_word,
-  #     annotation_split_symbol=None,
-  #     consider_annotation=False,
-  #     get_pronunciation=method,
-  #     split_on_hyphen=USE_DEFAULT_COMPOUND_MARKER,
-  #     trim_symbols=trim_symbols,
-  #     ignore_case_in_cache=DEFAULT_IGNORE_CASE,
-  #   )
-
-  #   assert len(arpa_symbols) > 0
-  #   word_str = "".join(unique_word)
-  #   assert word_str not in pronunciation_dict_punctuation
-  #   pronunciation_dict_punctuation[word_str] = OrderedSet([arpa_symbols])
-
-  #   arpa_symbols_no_punctuation = symbols_remove_non_arpa_symbols(arpa_symbols)
-  #   arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
-  #   if arpa_contains_only_punctuation:
-  #     logger.info(
-  #       f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \'sil\'.")
-  #     arpa_symbols_no_punctuation = ("sil",)
-  #   assert word_str not in pronunciation_dict_no_punctuation
-  #   pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
-
-  # return pronunciation_dict_no_punctuation, pronunciation_dict_punctuation
 
 
 def extract_sentences_to_textgrid(original_text: str, audio: np.ndarray, sr: int, tier_name: str, time_factor: float) -> TextGrid:
@@ -564,6 +476,39 @@ def add_graphemes_from_words(grid: TextGrid, original_text_tier_name: str, new_t
     grid.append(graphemes_tier)
 
 
+def add_marker_tier(grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool):
+  logger = getLogger(__name__)
+  reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
+  if reference_tier is None:
+    raise Exception("Reference tier not found!")
+
+  new_ipa_tier: IntervalTier = grid.getFirst(new_tier_name)
+  if new_ipa_tier is not None and not overwrite_existing_tier:
+    raise Exception("New tier already exists!")
+
+  reference_tier_intervals: List[Interval] = reference_tier.intervals
+
+  new_tier = IntervalTier(
+    minTime=reference_tier.minTime,
+    maxTime=reference_tier.maxTime,
+    name=new_tier_name,
+  )
+
+  for interval in reference_tier_intervals:
+    marker_interval = Interval(
+      minTime=interval.minTime,
+      maxTime=interval.maxTime,
+      mark="",
+    )
+
+    new_tier.addInterval(marker_interval)
+
+  if overwrite_existing_tier:
+    update_or_add_tier(grid, new_tier)
+  else:
+    grid.append(new_tier)
+
+
 def map_arpa_to_ipa_grids(grids: List[TextGrid], arpa_tier_name: str, ipa_tier_name: str, overwrite_existing_tier: bool) -> None:
   for grid in grids:
     map_arpa_to_ipa(grid, arpa_tier_name, ipa_tier_name, overwrite_existing_tier)
@@ -653,6 +598,11 @@ def transcribe_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_
     new_arpa = ""
 
     if not interval_is_empty(interval):
+      interval_contains_space = " " in interval.mark
+      if interval_contains_space:
+        logger.error(
+          f"Invalid interval mark: \"{interval.mark}\" on [{interval.minTime}, {interval.maxTime}]!")
+        #raise Exception()
       new_arpa_tuple = words_arpa_with_punctuation.pop(0)
       # if new_arpa_tuple == ("sil",):
       #  logger.info(f"Skip {interval.mark} as it is only sil.")

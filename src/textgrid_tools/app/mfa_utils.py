@@ -13,7 +13,7 @@ from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
     add_graphemes_from_words, add_layer_containing_original_text,
-    extract_sentences_to_textgrid, extract_tier_to_text,
+    add_marker_tier, extract_sentences_to_textgrid, extract_tier_to_text,
     get_arpa_pronunciation_dicts_from_texts, map_arpa_to_ipa,
     map_arpa_to_ipa_grids, merge_words_together, normalize_text, remove_tiers,
     transcribe_words_to_arpa, transcribe_words_to_arpa_on_phoneme_level)
@@ -407,6 +407,41 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
       grid=grid,
       new_tier_name=new_tier_name,
       original_text_tier_name=original_text_tier_name,
+      overwrite_existing_tier=overwrite_existing_tier,
+    )
+
+    folder_out.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out)
+
+  logger.info(f"Written output .TextGrid files to: {folder_out}")
+
+
+def add_marker(base_dir: Path, folder_in: Path, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, folder_out: Path, overwrite: bool):
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("Folder does not exist!")
+
+  all_files = get_filepaths(folder_in)
+  textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  textgrid_file_in: Path
+  for textgrid_file_in in tqdm(textgrid_files):
+    textgrid_file_out = folder_out / textgrid_file_in.name
+    if textgrid_file_out.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+      continue
+
+    logger.debug(f"Processing {textgrid_file_in}...")
+
+    grid = TextGrid()
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+
+    add_marker_tier(
+      grid=grid,
+      reference_tier_name=reference_tier_name,
+      new_tier_name=new_tier_name,
       overwrite_existing_tier=overwrite_existing_tier,
     )
 
