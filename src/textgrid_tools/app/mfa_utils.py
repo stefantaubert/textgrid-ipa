@@ -4,7 +4,8 @@ from typing import Dict, List, Optional, Set, cast
 
 from general_utils import load_obj, save_obj
 from pronunciation_dict_parser import export
-from pronunciation_dict_parser.default_parser import PublicDictType
+from pronunciation_dict_parser.default_parser import (PublicDictType,
+                                                      parse_public_dict)
 from pronunciation_dict_parser.parser import Symbol, parse_file
 from scipy.io.wavfile import read
 from sentence2pronunciation.lookup_cache import LookupCache
@@ -20,7 +21,8 @@ from textgrid_tools.core.mfa_utils import (
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
-DEFAULT_TEXTGRID_PRECISION = 8
+# default was 8 but praat has 15
+DEFAULT_TEXTGRID_PRECISION = 15
 
 
 def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: str, consider_annotations: bool, out_path_mfa_dict: Optional[Path], out_path_cache: Optional[Path], out_path_punctuation_dict: Optional[Path], dict_type: PublicDictType, overwrite: bool) -> None:
@@ -318,7 +320,7 @@ def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_
   logger.info(f"Written .TextGrid files to: {folder_out}")
 
 
-def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, textgrid_folder_out: Path, overwrite_existing_tier: bool, overwrite: bool):
+def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, path_align_dict: Path, textgrid_folder_out: Path, overwrite_existing_tier: bool, overwrite: bool):
   logger = getLogger(__name__)
 
   if not text_folder.exists():
@@ -326,6 +328,9 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
 
   if not textgrid_folder_in.exists():
     raise Exception("TextGrid folder does not exist!")
+
+  if not path_align_dict.exists():
+    raise Exception("Alignment dictionary does not exist!")
 
   all_files_text_folder = get_filepaths(text_folder)
   text_files_text_folder = [file for file in all_files_text_folder if str(file).endswith(".txt")]
@@ -340,6 +345,8 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
 
   txt_files: Dict[str, Path] = {file.stem: file for file in text_files_text_folder}
   textgrid_files: Dict[str, Path] = {file.stem: file for file in textgrid_files_textgrid_folder}
+
+  alignment_dict = parse_file(path_align_dict)
 
   all_filenames = txt_files.keys() | textgrid_files.keys()
 
@@ -373,6 +380,7 @@ def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_
       original_text=text,
       overwrite_existing_tier=overwrite_existing_tier,
       reference_tier_name=reference_tier_name,
+      alignment_dict=alignment_dict,
     )
 
     textgrid_folder_out.mkdir(parents=True, exist_ok=True)

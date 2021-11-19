@@ -105,6 +105,7 @@ def init_add_original_texts_layer_parser(parser: ArgumentParser):
   parser.add_argument("--textgrid_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier_name", type=str, required=True)
   parser.add_argument("--new_tier_name", type=str, required=True)
+  parser.add_argument("--path_align_dict", type=Path, required=True)
   parser.add_argument("--textgrid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite_existing_tier", action="store_true")
   parser.add_argument("--overwrite", action="store_true")

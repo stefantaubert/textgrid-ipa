@@ -31,6 +31,8 @@ from tqdm import tqdm
 
 USE_DEFAULT_COMPOUND_MARKER = True  # default compound marker is "-"
 DEFAULT_IGNORE_CASE = True
+SIL = "sil"
+SPN = "spn"
 ALLOWED_MFA_MODEL_SYMBOLS = {
   'AA0',
   'AA1',
@@ -101,7 +103,7 @@ ALLOWED_MFA_MODEL_SYMBOLS = {
   'Y',
   'Z',
   'ZH',
-}
+} | {SIL, SPN}
 
 # # MFA has no symbols which are not in ALL_ARPA_INCL_STRESSES
 # print(ALLOWED_MFA_MODEL_SYMBOLS.difference(ALL_ARPA_INCL_STRESSES))
@@ -237,10 +239,10 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
   logger.info(f"Done.")
 
   logger.info(f"Creating pronunciation dictionary...")
-  pronunciation_dict_no_punctuation = OrderedDict()
-  pronunciation_dict_punctuation = OrderedDict()
+  pronunciation_dict_no_punctuation: PronunciationDict = OrderedDict()
+  pronunciation_dict_punctuation: PronunciationDict = OrderedDict()
 
-  allowed_symbols = ALLOWED_MFA_MODEL_SYMBOLS | {"sil", "spn"}
+  allowed_symbols = ALLOWED_MFA_MODEL_SYMBOLS
   for unique_word, arpa_symbols in tqdm(sorted(cache.items())):
     assert len(unique_word) > 0
     assert len(arpa_symbols) > 0
@@ -262,8 +264,8 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
     arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
     if arpa_contains_only_punctuation:
       logger.info(
-        f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \'sil\'.")
-      arpa_symbols_no_punctuation = ("sil",)
+        f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \"{SIL}\".")
+      arpa_symbols_no_punctuation = (SIL,)
     assert word_str not in pronunciation_dict_no_punctuation
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
   logger.info(f"Done.")
@@ -373,7 +375,7 @@ def merge_words_together(grid: TextGrid, reference_tier_name: str, new_tier_name
   return
 
 
-def add_layer_containing_original_text(original_text: str, grid: TextGrid, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool) -> None:
+def add_layer_containing_original_text(original_text: str, grid: TextGrid, reference_tier_name: str, alignment_dict: PronunciationDict, new_tier_name: str, overwrite_existing_tier: bool) -> None:
   logger = getLogger(__name__)
   reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if reference_tier is None:
@@ -393,12 +395,12 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
     # due to whitespace collapsing there should not be any empty words
     assert len(word) > 0
 
-  # remove words containing only trim_symbols including `-` as these were all removed by MFA
-  #ignore_symbols = trim_symbols | {"-"}
-  #words = [word for word in words if len(symbols_strip(word, strip=ignore_symbols)) > 0]
-
   # remove words with silence annotations, that have no corresponding interval
-  # words = [word for word in words if len(symbols_strip(word, strip=trim_symbols)) > 0]
+  old_count = len(words)
+  words = [word for word in words if alignment_dict[''.join(word).upper()][0] != (SIL,)]
+  ignored_count = old_count - len(words)
+  if ignored_count > 0:
+    logger.info(f"Ignored {ignored_count} \"sil\" annotations.")
 
   intervals: List[Interval] = reference_tier.intervals
   new_tier = IntervalTier(
@@ -413,7 +415,9 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
     logger.error(f"Couldn't align words -> {len(non_empty_intervals)} vs. {len(words)}!")
     min_len = min(len(non_empty_intervals), len(words))
     for i in range(min_len):
-      logger.info(f"{non_empty_intervals[i].mark} vs. {''.join(words[i])}")
+      is_not_same = str(non_empty_intervals[i].mark).lower() != ''.join(words[i]).lower()
+      logger.info(
+        f"{'===>' if is_not_same else ''} {non_empty_intervals[i].mark} vs. {''.join(words[i])}")
     logger.info("...")
     return
 
@@ -604,7 +608,7 @@ def transcribe_words_to_arpa(grid: TextGrid, original_text_tier_name: str, tier_
           f"Invalid interval mark: \"{interval.mark}\" on [{interval.minTime}, {interval.maxTime}]!")
         #raise Exception()
       new_arpa_tuple = words_arpa_with_punctuation.pop(0)
-      # if new_arpa_tuple == ("sil",):
+      # if new_arpa_tuple == (SIL,):
       #  logger.info(f"Skip {interval.mark} as it is only sil.")
       #  continue
       new_arpa = " ".join(new_arpa_tuple)
