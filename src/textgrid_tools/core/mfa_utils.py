@@ -3,10 +3,12 @@ from collections import OrderedDict
 from functools import partial
 from logging import getLogger
 from multiprocessing import cpu_count
-from typing import Iterable, Iterator, List, Optional, Set, Tuple, cast
+from typing import (Generator, Iterable, Iterator, List, Optional, Set, Tuple,
+                    cast)
 
 import numpy as np
-from audio_utils.audio import get_duration_s_samples, ms_to_samples
+from audio_utils.audio import (get_duration_s_samples, ms_to_samples,
+                               samples_to_ms)
 from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import (PublicDictType,
@@ -200,6 +202,96 @@ def remove_tier(grid: TextGrid, tier_name: str) -> None:
   grid.tiers.remove(tier)
 
 
+def set_maxTime(grid: TextGrid, maxTime: float) -> None:
+  grid.maxTime = maxTime
+  for tier in grid.tiers:
+    tier.maxTime = maxTime
+    if len(tier.intervals) > 0:
+      if tier.intervals[-1].minTime >= maxTime:
+        raise Exception()
+      tier.intervals[-1].maxTime = maxTime
+
+
+def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str]) -> List[Tuple[TextGrid, np.ndarray]]:
+  logger = getLogger(__name__)
+
+  if ms_to_samples(grid.maxTime * 1000, sr) != audio.shape[0]:
+    logger.warning(
+      f"Audio length and grid length does not match ({audio.shape[0]} vs. {ms_to_samples(grid.maxTime * 1000, sr)})")
+    #audio_len = samples_to_ms(audio.shape[0], sr) / 1000
+    #set_maxTime(grid, audio_len)
+
+  ref_tier: IntervalTier = grid.getFirst(reference_tier_name)
+  if ref_tier is None:
+    logger.exception("Tier not found!")
+    raise Exception()
+
+  split_intervals = list(find_intervals_with_mark(ref_tier, split_markers))
+  if len(split_intervals) == 0:
+    return [(grid, audio)]
+  target_intervals: List[Tuple[float, float]] = []
+  if ref_tier.minTime < split_intervals[0].minTime:
+    target_intervals.append((ref_tier.minTime, split_intervals[0].minTime))
+  for i in range(1, len(split_intervals)):
+    prev_interval = split_intervals[i - 1]
+    curr_interval = split_intervals[i]
+    start = prev_interval.maxTime
+    end = curr_interval.minTime
+    duration = end - start
+    if duration > 0:
+      target_intervals.append((start, end))
+  if split_intervals[-1].maxTime < ref_tier.maxTime:
+    target_intervals.append((split_intervals[-1].maxTime, ref_tier.maxTime))
+  result = []
+
+  for minTime, maxTime in target_intervals:
+    range_grid = TextGrid(
+      name=None,
+      minTime=0,
+      maxTime=0,
+    )
+
+    valid_intervals = check_boundaries_exist_on_all_tiers(minTime, maxTime, grid.tiers)
+    if not valid_intervals:
+      logger.info("Skipping...")
+      continue
+    for tier in grid.tiers:
+
+      intervals_in_range = list(get_intervals_from_timespan(tier, minTime, maxTime))
+      assert len(intervals_in_range) > 0
+      assert intervals_in_range[0].minTime == minTime
+      assert intervals_in_range[-1].maxTime == maxTime
+
+      minTimeFirstInterval = intervals_in_range[0].minTime
+      for interval in intervals_in_range:
+        interval.minTime -= minTimeFirstInterval
+        interval.maxTime -= minTimeFirstInterval
+      # assert no time between intervals
+      duration = intervals_in_range[-1].maxTime
+      new_tier = IntervalTier(
+        ref_tier.name,
+        minTime=0,
+        maxTime=duration,
+      )
+      for interval in intervals_in_range:
+        new_tier.intervals.append(interval)
+      range_grid.tiers.append(new_tier)
+
+    if len(range_grid.tiers) > 0:
+      range_grid.maxTime = range_grid.tiers[0].maxTime
+
+    start = ms_to_samples(minTime * 1000, sr)
+    end = ms_to_samples(maxTime * 1000, sr)
+    if end > audio.shape[0]:
+      logger.warning(f"Ending of audio overreached by {end - audio.shape[0]} sample(s)!")
+      end = audio.shape[0]
+    r = range(start, end)
+    grid_audio = audio[r]
+    result.append((range_grid, grid_audio))
+
+  return result
+
+
 def fix_interval_boundaries_grids(grids: List[TextGrid], reference_tier_name: str, threshold: float) -> None:
   logger = getLogger(__name__)
   for grid in grids:
@@ -260,14 +352,7 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, thres
 
 
 def set_times_consecutively(tier: IntervalTier, keep_duration: bool):
-  for i in range(1, len(tier.intervals)):
-    prev_interval = cast(Interval, tier.intervals[i - 1])
-    current_interval = cast(Interval, tier.intervals[i])
-    if current_interval.minTime != prev_interval.maxTime:
-      duration = current_interval.duration()
-      current_interval.minTime = prev_interval.maxTime
-      if keep_duration:
-        current_interval.maxTime = current_interval.minTime + duration
+  set_times_consecutively_intervals(tier.intervals, keep_duration)
 
   if len(tier.intervals) > 0:
     if cast(Interval, tier.intervals[0]).minTime != tier.minTime:
@@ -275,8 +360,17 @@ def set_times_consecutively(tier: IntervalTier, keep_duration: bool):
 
     if cast(Interval, tier.intervals[-1]).maxTime != tier.maxTime:
       tier.maxTime = cast(Interval, tier.intervals[-1]).maxTime
-    # assert cast(Interval, tier.intervals[0]).minTime == tier.minTime
-    # assert cast(Interval, tier.intervals[-1]).maxTime == tier.maxTime
+
+
+def set_times_consecutively_intervals(intervals: List[Interval], keep_duration: bool):
+  for i in range(1, len(intervals)):
+    prev_interval = cast(Interval, intervals[i - 1])
+    current_interval = cast(Interval, intervals[i])
+    if current_interval.minTime != prev_interval.maxTime:
+      duration = current_interval.duration()
+      current_interval.minTime = prev_interval.maxTime
+      if keep_duration:
+        current_interval.maxTime = current_interval.minTime + duration
 
 
 def remove_intervals_grids(grids: List[TextGrid], audios: np.ndarray, srs: int, reference_tier_name: str, remove_marks: Set[str]) -> None:
@@ -284,6 +378,13 @@ def remove_intervals_grids(grids: List[TextGrid], audios: np.ndarray, srs: int, 
   for grid, audio, sr in zip(grids, audios, srs):
     logger.info(f"Processing grid \"{grid.name}\" [{grid.minTime}, {grid.maxTime}]...")
     remove_intervals(grid, audio, sr, reference_tier_name, remove_marks)
+
+
+def find_intervals_with_mark(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
+  for interval in cast(Iterable[Interval], tier.intervals):
+    do_remove_interval = interval.mark in marks
+    if do_remove_interval:
+      yield interval
 
 
 def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str]) -> np.ndarray:
@@ -294,11 +395,7 @@ def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_
     logger.exception("Tier not found!")
     raise Exception()
 
-  remove: List[Interval] = []
-  for interval in cast(Iterable[Interval], ref_tier.intervals):
-    do_remove_interval = interval.mark in remove_marks
-    if do_remove_interval:
-      remove.append(interval)
+  remove = list(find_intervals_with_mark(ref_tier, remove_marks))
 
   valid_intervals = check_interval_boundaries_exist_on_all_tiers(remove, grid.tiers)
   if not valid_intervals:
@@ -352,39 +449,47 @@ def get_interval_from_time(tier: IntervalTier, time: float) -> Optional[Interval
   return None
 
 
-def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Iterator[Interval]:
+def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
     if minTime <= interval.minTime and interval.maxTime <= maxTime:
       yield interval
 
 
 def check_interval_boundaries_exist_on_all_tiers(intervals: Interval, tiers: List[IntervalTier]):
+  result = True
+  for ref_interval in intervals:
+    valid = check_boundaries_exist_on_all_tiers(ref_interval.minTime, ref_interval.maxTime, tiers)
+    if not valid:
+      result = False
+  return result
+
+
+def check_boundaries_exist_on_all_tiers(minTime: float, maxTime: float, tiers: List[IntervalTier]) -> bool:
+
   logger = getLogger(__name__)
   result = True
+  for tier in tiers:
+    corresponding_intervals = list(get_intervals_from_timespan(
+      tier, minTime, maxTime))
 
-  for ref_interval in intervals:
-    for tier in tiers:
-      corresponding_intervals = list(get_intervals_from_timespan(
-        tier, ref_interval.minTime, ref_interval.maxTime))
+    if len(corresponding_intervals) == 0:
+      logger.error(
+        f"Tier \"{tier.name}\": Interval [{minTime}, {maxTime}] does not exist!")
+      result = False
+      continue
 
-      if len(corresponding_intervals) == 0:
-        logger.error(
-          f"Tier \"{tier.name}\": Interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\") does not exist!")
-        result = False
-        continue
+    minTime_matches = corresponding_intervals[0].minTime == minTime
+    maxTime_matches = corresponding_intervals[-1].maxTime == maxTime
 
-      minTime_matches = corresponding_intervals[0].minTime == ref_interval.minTime
-      maxTime_matches = corresponding_intervals[-1].maxTime == ref_interval.maxTime
+    if not minTime_matches:
+      logger.error(
+        f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[0].minTime - minTime}")
+      result = False
 
-      if not minTime_matches:
-        logger.error(
-          f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {corresponding_intervals[0].minTime - ref_interval.minTime}")
-        result = False
-
-      if not maxTime_matches:
-        logger.error(
-          f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {corresponding_intervals[-1].maxTime -ref_interval.maxTime}")
-        result = False
+    if not maxTime_matches:
+      logger.error(
+        f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[-1].maxTime - maxTime}")
+      result = False
   return result
 
 

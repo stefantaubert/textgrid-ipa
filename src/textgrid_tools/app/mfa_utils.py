@@ -18,7 +18,8 @@ from textgrid_tools.core.mfa_utils import (
     fix_interval_boundaries_grids, get_arpa_pronunciation_dicts_from_texts,
     map_arpa_to_ipa, map_arpa_to_ipa_grids, merge_words_together,
     normalize_text, remove_intervals, remove_intervals_grids, remove_tiers,
-    transcribe_words_to_arpa, transcribe_words_to_arpa_on_phoneme_level)
+    split_grid, transcribe_words_to_arpa,
+    transcribe_words_to_arpa_on_phoneme_level)
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
@@ -130,6 +131,60 @@ def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_ou
   for grid, output_path in zip(grids, output_paths):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     grid.write(output_path)
+  logger.info(f"Done. Written output to: {folder_out}")
+
+
+def files_split_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, split_marks: str, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    raise Exception("Textgrid folder does not exist!")
+
+  if not audio_folder_in.exists():
+    raise Exception("Audio folder does not exist!")
+
+  split_marks_set = set(split_marks.split(" "))
+  if len(split_marks_set) == 0:
+    return
+
+  all_files = get_filepaths(folder_in)
+  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  all_audio_files = get_filepaths(audio_folder_in)
+  wav_files = {file.stem: file for file in all_audio_files if file.suffix.lower() == ".wav"}
+  logger.info(f"Found {len(wav_files)} .wav files.")
+
+  logger.info("Reading files...")
+  textgrid_file_in: Path
+  for textgrid_file_in in tqdm(textgrid_files):
+    logger.info(f"Processing {textgrid_file_in.stem}...")
+    textgrid_files_out = folder_out / textgrid_file_in.stem
+    wav_files_out = audio_folder_out / f"{textgrid_file_in.stem}"
+    if (textgrid_files_out.exists() or wav_files_out.exists()) and not overwrite:
+      logger.info(f"Skipped already existing file (.TextGrid or .wav): {textgrid_file_in.name}")
+      continue
+
+    if textgrid_file_in.stem not in wav_files:
+      logger.error(f"For the .TextGrid file {textgrid_file_in} no .wav file was found. Skipping...")
+      continue
+
+    grid = TextGrid()
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+
+    audio_path = wav_files[textgrid_file_in.stem]
+    sr, wav = read(audio_path)
+    grids_wavs = split_grid(grid, wav, sr, reference_tier_name, split_marks_set)
+
+    textgrid_files_out.mkdir(parents=True, exist_ok=True)
+    wav_files_out.mkdir(parents=True, exist_ok=True)
+    logger.info("Saving...")
+    for i, (new_grid, new_wav) in enumerate(tqdm(grids_wavs)):
+      grid_out_path = textgrid_files_out / f"{i}.TextGrid"
+      wav_out_path = wav_files_out / f"{i}.wav"
+      new_grid.write(grid_out_path)
+      write(wav_out_path, sr, new_wav)
+
   logger.info(f"Done. Written output to: {folder_out}")
 
 

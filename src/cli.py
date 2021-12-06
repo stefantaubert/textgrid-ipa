@@ -15,7 +15,8 @@ from textgrid_tools.app.mfa_utils import (
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_extract_tier_to_text,
-    files_map_arpa_to_ipa, files_remove_tier, merge_words_to_new_textgrid,
+    files_fix_boundaries, files_map_arpa_to_ipa, files_remove_intervals,
+    files_remove_tier, files_split_intervals, merge_words_to_new_textgrid,
     normalize_text_files_in_folder)
 
 BASE_DIR_VAR = "base_dir"
@@ -98,6 +99,37 @@ def init_extract_sentences_text_files_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return extract_sentences_text_files
+
+
+def init_files_remove_intervals_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--audio_folder_in", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--remove_marks", type=str, required=True)
+  parser.add_argument("--audio_folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return files_remove_intervals
+
+
+def init_files_split_intervals_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--audio_folder_in", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--split_marks", type=str, required=True)
+  parser.add_argument("--audio_folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return files_split_intervals
+
+
+def init_files_fix_boundaries_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--reference_tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--threshold", type=float, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return files_fix_boundaries
 
 
 def init_add_original_texts_layer_parser(parser: ArgumentParser):
@@ -281,7 +313,12 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
   _add_parser_to(subparsers, "mfa-words-to-arpa-on-phoneme-level",
                  init_app_transcribe_words_to_arpa_on_phoneme_level_parser)
-
+  _add_parser_to(subparsers, "mfa-split",
+                 init_files_split_intervals_parser)
+  _add_parser_to(subparsers, "mfa-remove-intervals",
+                 init_files_remove_intervals_parser)
+  _add_parser_to(subparsers, "mfa-fix-boundaries",
+                 init_files_fix_boundaries_parser)
   return result
 
 
