@@ -240,7 +240,7 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
   logger.info(f"Done. Written output to: {folder_out}")
 
 
-def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, threshold: float, folder_out: Path, overwrite: bool) -> None:
+def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, threshold: float, beam_threshold: float, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -267,7 +267,7 @@ def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: s
   logger.info("Done.")
 
   logger.info("Fixing interval boundaries...")
-  fix_interval_boundaries_grids(grids, reference_tier_name, threshold)
+  fix_interval_boundaries_grids(grids, reference_tier_name, threshold, beam_threshold)
   logger.info("Done.")
 
   logger.info("Saving output...")

@@ -128,6 +128,7 @@ def init_files_fix_boundaries_parser(parser: ArgumentParser):
   parser.add_argument("--reference_tier_name", type=str, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--threshold", type=float, required=True)
+  parser.add_argument("--beam_threshold", type=float, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_fix_boundaries
 

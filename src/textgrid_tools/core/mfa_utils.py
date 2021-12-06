@@ -292,20 +292,54 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
   return result
 
 
-def fix_interval_boundaries_grids(grids: List[TextGrid], reference_tier_name: str, threshold: float) -> None:
+def fix_interval_boundaries_grids(grids: List[TextGrid], reference_tier_name: str, threshold: float, beam_threshold: float) -> None:
   logger = getLogger(__name__)
   for grid in grids:
     logger.info(f"Processing grid \"{grid.name}\" [{grid.minTime}, {grid.maxTime}]...")
-    fix_interval_boundaries_grid(grid, reference_tier_name, threshold)
+    fix_interval_boundaries_grid(grid, reference_tier_name, threshold, beam_threshold)
 
 
-def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, threshold: float):
+def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, threshold: float, beam_threshold: float):
   logger = getLogger(__name__)
 
   ref_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if ref_tier is None:
     logger.exception("Tier not found!")
     raise Exception()
+
+  for ref_interval in tqdm(ref_tier.intervals):
+    for tier in grid.tiers:
+      if tier == ref_tier:
+        continue
+      corresponding_intervals = list(get_intervals_from_timespan(
+        tier, ref_interval.minTime - beam_threshold, ref_interval.maxTime + beam_threshold))
+
+      if len(corresponding_intervals) == 0:
+        continue
+
+      minTime_difference = corresponding_intervals[0].minTime - ref_interval.minTime
+
+      if abs(minTime_difference) > 0:
+        base_msg = f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {minTime_difference}."
+
+        if abs(minTime_difference) <= threshold:
+          corresponding_intervals[0].minTime = ref_interval.minTime
+          logger.info(f"Changed: {base_msg}")
+        else:
+          logger.info(f"Did not changed: {base_msg}")
+
+      maxTime_difference = corresponding_intervals[-1].maxTime - ref_interval.maxTime
+
+      if abs(maxTime_difference) > 0:
+        base_msg = f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {maxTime_difference}"
+
+        if abs(maxTime_difference) <= threshold:
+          corresponding_intervals[-1].maxTime = ref_interval.maxTime
+          logger.info(f"Changed: {base_msg}")
+        else:
+          logger.info(f"Did not changed: {base_msg}")
+
+      set_times_consecutively(tier, keep_duration=False)
 
   for ref_interval in ref_tier.intervals:
     for tier in grid.tiers:
@@ -318,37 +352,13 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, thres
         logger.error(
           f"Tier \"{tier.name}\": Interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\") does not exist!")
         continue
-
-      minTime_difference = abs(corresponding_intervals[0].minTime - ref_interval.minTime)
-
-      if minTime_difference > 0:
-        logger.info(
-          f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {minTime_difference}.")
-
-        if minTime_difference <= threshold:
-          corresponding_intervals[0].minTime = ref_interval.minTime
-          logger.info(f"Set it to {ref_interval.minTime}.")
-        else:
-          logger.info(f"Did not changed it.")
-
-      maxTime_difference = abs(corresponding_intervals[-1].maxTime - ref_interval.maxTime)
-
-      if maxTime_difference > 0:
-        logger.info(
-          f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{ref_interval.minTime}, {ref_interval.maxTime}] (\"{ref_interval.mark}\")! Difference: {maxTime_difference}")
-
-        if maxTime_difference <= threshold:
-          corresponding_intervals[-1].maxTime = ref_interval.maxTime
-          logger.info(f"Set it to {ref_interval.maxTime}.")
-        else:
-          logger.info(f"Did not changed it.")
-
-  for tier in grid.tiers:
-    set_times_consecutively(tier, keep_duration=False)
+  # for tier in grid.tiers:
+  #   set_times_consecutively(tier, keep_duration=False)
 
   # nothing should not be changed a priori
   assert grid.minTime == ref_tier.minTime
   assert grid.maxTime == ref_tier.maxTime
+  # todo also change len if audio len is different
 
 
 def set_times_consecutively(tier: IntervalTier, keep_duration: bool):
@@ -465,31 +475,35 @@ def check_interval_boundaries_exist_on_all_tiers(intervals: Interval, tiers: Lis
 
 
 def check_boundaries_exist_on_all_tiers(minTime: float, maxTime: float, tiers: List[IntervalTier]) -> bool:
-
-  logger = getLogger(__name__)
   result = True
   for tier in tiers:
-    corresponding_intervals = list(get_intervals_from_timespan(
-      tier, minTime, maxTime))
+    result &= check_boundaries_exist_in_tier(minTime, maxTime, tier)
+  return result
 
-    if len(corresponding_intervals) == 0:
-      logger.error(
-        f"Tier \"{tier.name}\": Interval [{minTime}, {maxTime}] does not exist!")
-      result = False
-      continue
 
-    minTime_matches = corresponding_intervals[0].minTime == minTime
-    maxTime_matches = corresponding_intervals[-1].maxTime == maxTime
+def check_boundaries_exist_in_tier(minTime: float, maxTime: float, tier: IntervalTier) -> bool:
+  logger = getLogger(__name__)
+  corresponding_intervals = list(get_intervals_from_timespan(
+    tier, minTime, maxTime))
 
-    if not minTime_matches:
-      logger.error(
-        f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[0].minTime - minTime}")
-      result = False
+  if len(corresponding_intervals) == 0:
+    logger.error(
+      f"Tier \"{tier.name}\": Interval [{minTime}, {maxTime}] does not exist!")
+    return False
 
-    if not maxTime_matches:
-      logger.error(
-        f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[-1].maxTime - maxTime}")
-      result = False
+  minTime_matches = corresponding_intervals[0].minTime == minTime
+  maxTime_matches = corresponding_intervals[-1].maxTime == maxTime
+
+  result = True
+  if not minTime_matches:
+    logger.error(
+      f"Tier \"{tier.name}\": Start of interval [{corresponding_intervals[0].minTime}, {corresponding_intervals[0].maxTime}] (\"{corresponding_intervals[0].mark}\") does not match with start of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[0].minTime - minTime}")
+    result = False
+
+  if not maxTime_matches:
+    logger.error(
+      f"Tier \"{tier.name}\": End of interval [{corresponding_intervals[-1].minTime}, {corresponding_intervals[-1].maxTime}] (\"{corresponding_intervals[-1].mark}\") does not match with end of interval [{minTime}, {maxTime}]! Difference: {corresponding_intervals[-1].maxTime - maxTime}")
+    result = False
   return result
 
 
