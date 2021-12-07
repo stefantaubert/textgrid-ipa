@@ -15,9 +15,9 @@ from textgrid_tools.app.mfa_utils import (
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_extract_tier_to_text,
-    files_fix_boundaries, files_map_arpa_to_ipa, files_remove_intervals,
-    files_remove_tier, files_split_intervals, merge_words_to_new_textgrid,
-    normalize_text_files_in_folder)
+    files_fix_boundaries, files_map_arpa_to_ipa, files_print_stats,
+    files_remove_intervals, files_remove_tier, files_split_intervals,
+    merge_words_to_new_textgrid, normalize_text_files_in_folder)
 
 BASE_DIR_VAR = "base_dir"
 DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -123,12 +123,17 @@ def init_files_split_intervals_parser(parser: ArgumentParser):
   return files_split_intervals
 
 
+def init_files_print_stats_parser(parser: ArgumentParser):
+  parser.add_argument("--folder", type=Path, required=True)
+  parser.add_argument("--duration_threshold", type=float, required=True)
+  return files_print_stats
+
+
 def init_files_fix_boundaries_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier_name", type=str, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--threshold", type=float, required=True)
-  parser.add_argument("--beam_threshold", type=float, required=True)
+  parser.add_argument("--difference_threshold", type=float, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_fix_boundaries
 
@@ -320,6 +325,8 @@ def _init_parser():
                  init_files_remove_intervals_parser)
   _add_parser_to(subparsers, "mfa-fix-boundaries",
                  init_files_fix_boundaries_parser)
+  _add_parser_to(subparsers, "mfa-stats",
+                 init_files_print_stats_parser)
   return result
 
 

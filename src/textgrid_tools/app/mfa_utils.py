@@ -1,6 +1,6 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, List, Optional, Set, cast
+from typing import Dict, Iterator, List, Optional, Set, cast
 
 from general_utils import load_obj, save_obj
 from pronunciation_dict_parser import export
@@ -15,10 +15,10 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa_utils import (
     add_graphemes_from_words, add_layer_containing_original_text,
     add_marker_tier, extract_sentences_to_textgrid, extract_tier_to_text,
-    fix_interval_boundaries_grids, get_arpa_pronunciation_dicts_from_texts,
+    fix_interval_boundaries_grid, get_arpa_pronunciation_dicts_from_texts,
     map_arpa_to_ipa, map_arpa_to_ipa_grids, merge_words_together,
-    normalize_text, remove_intervals, remove_intervals_grids, remove_tiers,
-    split_grid, transcribe_words_to_arpa,
+    normalize_text, print_stats, remove_intervals, remove_intervals_grids,
+    remove_tiers, split_grid, transcribe_words_to_arpa,
     transcribe_words_to_arpa_on_phoneme_level)
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
@@ -240,7 +240,7 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
   logger.info(f"Done. Written output to: {folder_out}")
 
 
-def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, threshold: float, beam_threshold: float, folder_out: Path, overwrite: bool) -> None:
+def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, difference_threshold: float, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -252,29 +252,40 @@ def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: s
 
   logger.info("Reading files...")
   textgrid_file_in: Path
-  grids: List[TextGrid] = []
-  output_paths: List[Path] = []
   for textgrid_file_in in tqdm(textgrid_files):
-    text_file_out = folder_out / textgrid_file_in.name
-    if text_file_out.exists() and not overwrite:
+    textgrid_file_out = folder_out / textgrid_file_in.name
+    if textgrid_file_out.exists() and not overwrite:
       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
       continue
 
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    grids.append(grid)
-    output_paths.append(text_file_out)
-  logger.info("Done.")
+    logger.info("Fixing interval boundaries...")
+    fix_interval_boundaries_grid(grid, reference_tier_name, difference_threshold)
+    logger.info("Saving output...")
+    textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out)
+    logger.info(f"Written grid to: {textgrid_file_out}")
 
-  logger.info("Fixing interval boundaries...")
-  fix_interval_boundaries_grids(grids, reference_tier_name, threshold, beam_threshold)
-  logger.info("Done.")
-
-  logger.info("Saving output...")
-  for grid, output_path in zip(grids, output_paths):
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(output_path)
   logger.info(f"Done. Written output to: {folder_out}")
+
+
+def files_print_stats(base_dir: Path, folder: Path, duration_threshold: float) -> None:
+  logger = getLogger(__name__)
+
+  if not folder.exists():
+    raise Exception("Textgrid folder does not exist!")
+
+  all_files = get_filepaths(folder)
+  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  for textgrid_file_in in textgrid_files:
+    grid = TextGrid()
+    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    logger.info(f"Statistics for file {textgrid_file_in.relative_to(folder)}")
+    print_stats(grid, duration_threshold)
+    logger.info("")
 
 
 def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, folder_out: Path, ipa_tier_name: str, overwrite_existing_tier: bool, overwrite: bool) -> None:
@@ -288,10 +299,9 @@ def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, 
   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
 
   logger.info("Reading files...")
-  textgrid_file_in: Path
   grids: List[TextGrid] = []
   output_paths: List[Path] = []
-  for textgrid_file_in in tqdm(textgrid_files):
+  for textgrid_file_in in cast(Iterator[Path], tqdm(textgrid_files)):
     text_file_out = folder_out / textgrid_file_in.name
     if text_file_out.exists() and not overwrite:
       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
