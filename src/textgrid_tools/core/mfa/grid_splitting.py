@@ -6,8 +6,8 @@ import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (
-    check_timepoints_exist_on_all_tiers, find_intervals_with_mark,
-    get_intervals_from_timespan)
+    check_timepoints_exist_on_all_tiers_as_boundaries,
+    find_intervals_with_mark, get_intervals_from_timespan)
 from tqdm import tqdm
 
 
@@ -51,7 +51,7 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
       maxTime=0,
     )
 
-    all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers(
+    all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
       timepoints=[minTime, maxTime], tiers=grid.tiers)
     if not all_tiers_share_timepoints:
       logger.warning(
@@ -93,5 +93,10 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     audio_part = range(start, end)
     grid_audio = audio[audio_part]
     result.append((range_grid, grid_audio))
-
+  durations = list(res_grid.maxTime for res_grid, _ in result)
+  logger.info(f"# Files: {len(result)}")
+  logger.info(f"Min duration: {min(durations):.2f}s")
+  logger.info(f"Max duration: {max(durations):.2f}s")
+  logger.info(f"Mean duration: {np.mean(durations):.2f}s")
+  logger.info(f"Total duration: {sum(durations):.2f}s ({sum(durations)/60:.2f}min)")
   return result

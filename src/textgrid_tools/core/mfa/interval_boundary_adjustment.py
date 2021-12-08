@@ -3,11 +3,14 @@ from typing import Iterable, Optional, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_boundary_timepoints_from_tier, get_interval_from_maxTime, get_interval_from_minTime, get_interval_from_time)
+                                            get_boundary_timepoints_from_tier,
+                                            get_interval_from_maxTime,
+                                            get_interval_from_minTime,
+                                            timepoint_is_boundary)
 from tqdm import tqdm
 
 
-def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, difference_threshold: float):
+def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, difference_threshold: Optional[float]) -> bool:
   assert check_is_valid_grid(grid)
 
   logger = getLogger(__name__)
@@ -39,19 +42,38 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, diffe
   assert grid.maxTime == ref_tier.maxTime
   assert check_is_valid_grid(grid)
   # todo also change len if audio len is different
+  return total_success
 
 
-def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: float) -> bool:
+def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: Optional[float]) -> bool:
+  is_already_fixed = timepoint_is_boundary(timepoint, tier)
+  if is_already_fixed:
+    return True
   interval = get_interval_from_time(tier, timepoint)
-  assert interval is not None
   prev_interval = get_interval_from_maxTime(tier, interval.minTime)
   next_interval = get_interval_from_minTime(tier, interval.maxTime)
-  return fix_timepoint_interval(timepoint, prev_interval, interval, next_interval, threshold)
+  fixed = fix_timepoint_interval(timepoint, prev_interval, interval, next_interval, threshold)
+  if prev_interval is None and tier.minTime != interval.minTime:
+    tier.minTime = interval.minTime
+  if next_interval is None and tier.maxTime != interval.maxTime:
+    tier.maxTime = interval.maxTime
+  return fixed
 
 
-def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], interval: Interval, next_interval: Optional[Interval], threshold: float) -> bool:
-  assert interval.minTime <= timepoint
-  assert interval.maxTime > timepoint
+def get_interval_from_time(tier: IntervalTier, time: float) -> Interval:
+  assert len(tier.intervals) > 0
+  for interval in cast(Iterable[Interval], tier.intervals):
+    if interval.minTime <= time < interval.maxTime:
+      return interval
+  if time < tier.intervals[0].minTime:
+    return tier.intervals[0]
+  if time >= tier.intervals[-1].maxTime:
+    return tier.intervals[-1]
+  assert False
+
+
+def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], interval: Interval, next_interval: Optional[Interval], threshold: Optional[float]) -> bool:
+  assert interval.minTime <= timepoint < interval.maxTime
   logger = getLogger(__name__)
   fixed = True
 
@@ -68,7 +90,7 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
   minTime_is_more_near = minTime_difference < maxTime_difference
   maxTime_is_more_near = maxTime_difference < minTime_difference
   if minTime_is_more_near:
-    if minTime_difference <= threshold:
+    if threshold is None or minTime_difference <= threshold:
       # move starting forward
       logger.info(
         f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{minTime_difference}).")
@@ -80,7 +102,7 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
       logger.info(
         f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (+{minTime_difference}).")
   elif maxTime_is_more_near:
-    if maxTime_difference <= threshold:
+    if threshold is None or maxTime_difference <= threshold:
       # move ending backward, outside of the boundaries
       logger.info(
         f"Interval [{interval.minTime}, {interval.maxTime}]: Set maxTime to {timepoint} (-{maxTime_difference}).")
@@ -92,7 +114,7 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
       logger.info(
         f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set maxTime to {timepoint} (-{maxTime_difference}).")
   else:
-    if minTime_difference <= threshold:
+    if threshold is None or minTime_difference <= threshold:
       # both have same difference, move starting forward
       logger.info(
         f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{minTime_difference}).")

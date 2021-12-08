@@ -15,6 +15,25 @@ def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
   return text
 
 
+def set_precision_grid(grid: TextGrid, ndigits: int) -> None:
+  grid.minTime = round(grid.minTime, ndigits)
+  grid.maxTime = round(grid.maxTime, ndigits)
+  for tier in grid.tiers:
+    set_precision_tier(tier, ndigits)
+
+
+def set_precision_tier(tier: IntervalTier, ndigits: int) -> None:
+  tier.minTime = round(tier.minTime, ndigits)
+  tier.maxTime = round(tier.maxTime, ndigits)
+  for interval in tier.intervals:
+    set_precision_interval(interval, ndigits)
+
+
+def set_precision_interval(interval: Interval, ndigits: int) -> None:
+  interval.minTime = round(interval.minTime, ndigits)
+  interval.maxTime = round(interval.maxTime, ndigits)
+
+
 def check_is_valid_grid(grid: TextGrid) -> bool:
   for tier in grid.tiers:
     tier_is_valid = check_is_valid_tier(tier)
@@ -30,15 +49,19 @@ def check_is_valid_grid(grid: TextGrid) -> bool:
 
 
 def check_is_valid_tier(tier: IntervalTier) -> bool:
-  # maybe check if no 0 duration intervals exist
-  for i in range(1, len(tier.intervals)):
-    prev_interval = cast(Interval, tier.intervals[i - 1])
-    current_interval = cast(Interval, tier.intervals[i])
-    if prev_interval.maxTime != current_interval.minTime:
-      return False
+  if not check_tier_intervals_are_consecutive(tier):
+    return False
+
+  # minTime must not be greater than maxTime
   for interval in tier.intervals:
     if interval.minTime > interval.maxTime:
       return False
+
+  # 0 durations are not allowed
+  for interval in tier.intervals:
+    if interval.minTime == interval.maxTime:
+      return False
+  # tier boundaries match those from intervals
   if len(tier.intervals) > 0:
     first_interval = tier.intervals[0]
     last_interval = tier.intervals[-1]
@@ -46,49 +69,28 @@ def check_is_valid_tier(tier: IntervalTier) -> bool:
       return False
     if tier.maxTime != last_interval.maxTime:
       return False
-  if tier.minTime > tier.maxTime:
-    return False
+  assert tier.minTime <= tier.maxTime
   return True
 
 
-def set_times_consecutively_tier(tier: IntervalTier, keep_duration: bool):
-  set_times_consecutively_intervals(tier.intervals, keep_duration)
-
-  if len(tier.intervals) > 0:
-    if cast(Interval, tier.intervals[0]).minTime != tier.minTime:
-      tier.minTime = cast(Interval, tier.intervals[0]).minTime
-
-    if cast(Interval, tier.intervals[-1]).maxTime != tier.maxTime:
-      tier.maxTime = cast(Interval, tier.intervals[-1]).maxTime
+def check_tier_intervals_are_consecutive(tier: IntervalTier) -> bool:
+  for i in range(1, len(tier.intervals)):
+    prev_interval = cast(Interval, tier.intervals[i - 1])
+    current_interval = cast(Interval, tier.intervals[i])
+    if prev_interval.maxTime != current_interval.minTime:
+      return False
+  return True
 
 
-def set_times_consecutively_intervals(intervals: List[Interval], keep_duration: bool):
-  for i in range(1, len(intervals)):
-    prev_interval = cast(Interval, intervals[i - 1])
-    current_interval = cast(Interval, intervals[i])
-    gap_exists = current_interval.minTime != prev_interval.maxTime
-    if gap_exists:
-      assert prev_interval.maxTime < current_interval.minTime
-      difference = current_interval.minTime - prev_interval.maxTime
-      assert difference > 0
-      duration = current_interval.duration()
-      current_interval.minTime = prev_interval.maxTime
-      if keep_duration:
-        current_interval.maxTime = current_interval.minTime + duration
-
-
-def get_interval_from_time(tier: IntervalTier, time: float) -> Optional[Interval]:
-  for interval in cast(Iterable[Interval], tier.intervals):
-    if interval.minTime <= time < interval.maxTime:
-      return interval
-  return None
-
-
-def get_interval_from_timepoint(tier: IntervalTier, timepoint: float) -> Optional[Interval]:
-  for interval in cast(Iterable[Interval], tier.intervals):
-    if interval.minTime == timepoint or interval.maxTime == timepoint:
-      return interval
-  return None
+def timepoint_is_boundary(timepoint: float, tier: IntervalTier) -> bool:
+  minTime_interval = get_interval_from_minTime(tier, timepoint)
+  if minTime_interval is not None:
+    return True
+  maxTime_interval = get_interval_from_maxTime(tier, timepoint)
+  if maxTime_interval is not None:
+    # it is the last interval
+    return True
+  return False
 
 
 def get_interval_from_minTime(tier: IntervalTier, minTime: float) -> Optional[Interval]:
@@ -121,25 +123,18 @@ def get_intervals_part_of_timespan(tier: IntervalTier, minTime: float, maxTime: 
       yield interval
 
 
-def check_timepoints_exist_on_all_tiers(timepoints: List[float], tiers: List[IntervalTier]) -> bool:
+def check_timepoints_exist_on_all_tiers_as_boundaries(timepoints: List[float], tiers: List[IntervalTier]) -> bool:
   result = True
   for timepoint in timepoints:
-    for tier in tiers:
-      result &= check_timepoint_is_boundary_on_tier(timepoint, tier)
+    result &= check_timepoint_exist_on_all_tiers_as_boundary(timepoint, tiers)
   return result
 
 
-def check_timepoint_exist_on_all_tiers(timepoint: float, tiers: List[IntervalTier]) -> bool:
+def check_timepoint_exist_on_all_tiers_as_boundary(timepoint: float, tiers: List[IntervalTier]) -> bool:
   result = True
   for tier in tiers:
-    result &= check_timepoint_is_boundary_on_tier(timepoint, tier)
+    result &= timepoint_is_boundary(timepoint, tier)
   return result
-
-
-def check_timepoint_is_boundary_on_tier(timepoint: float, tier: IntervalTier) -> bool:
-  interval = get_interval_from_timepoint(tier, timepoint)
-  timepoint_exist = interval is not None
-  return timepoint_exist
 
 
 def get_boundary_timepoints_from_tier(tier: IntervalTier) -> OrderedSet[float]:
