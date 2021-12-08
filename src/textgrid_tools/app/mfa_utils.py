@@ -1,25 +1,17 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Set, cast
+from typing import Dict, Iterator, List, Optional, cast
 
 from general_utils import load_obj, save_obj
 from pronunciation_dict_parser import export
-from pronunciation_dict_parser.default_parser import (PublicDictType,
-                                                      parse_public_dict)
-from pronunciation_dict_parser.parser import Symbol, parse_file
+from pronunciation_dict_parser.default_parser import PublicDictType
+from pronunciation_dict_parser.parser import parse_file
 from scipy.io.wavfile import read, write
 from sentence2pronunciation.lookup_cache import LookupCache
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa_utils import (
-    add_graphemes_from_words, add_layer_containing_original_text,
-    add_marker_tier, extract_sentences_to_textgrid, extract_tier_to_text,
-    fix_interval_boundaries_grid, get_arpa_pronunciation_dicts_from_texts,
-    map_arpa_to_ipa, map_arpa_to_ipa_grids, merge_words_together,
-    normalize_text, print_stats, remove_intervals, remove_intervals_grids,
-    remove_tiers, split_grid, transcribe_words_to_arpa,
-    transcribe_words_to_arpa_on_phoneme_level)
+from textgrid_tools.core.mfa import *
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
@@ -62,6 +54,9 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
     trim_symbols=trim_symbols_set,
     dict_type=dict_type,
     consider_annotations=consider_annotations,
+    ignore_case=True,
+    n_jobs=15,
+    split_on_hyphen=True,
   )
 
   if out_path_mfa_dict is not None:
@@ -97,7 +92,6 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
 
 
 def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_out: Path, overwrite: bool) -> None:
-
   logger = getLogger(__name__)
 
   if not folder_in.exists():
@@ -109,8 +103,6 @@ def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_ou
 
   logger.info("Reading files...")
   textgrid_file_in: Path
-  grids: List[TextGrid] = []
-  output_paths: List[Path] = []
   for textgrid_file_in in tqdm(textgrid_files):
     text_file_out = folder_out / textgrid_file_in.name
     if text_file_out.exists() and not overwrite:
@@ -119,18 +111,10 @@ def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_ou
 
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    grids.append(grid)
-    output_paths.append(text_file_out)
-  logger.info("Done.")
+    remove_tier(grid, tier_name)
+    text_file_out.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(text_file_out)
 
-  logger.info("Removing tiers...")
-  remove_tiers(grids, tier_name)
-  logger.info("Done.")
-
-  logger.info("Saving output...")
-  for grid, output_path in zip(grids, output_paths):
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(output_path)
   logger.info(f"Done. Written output to: {folder_out}")
 
 
@@ -299,33 +283,26 @@ def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, 
   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
 
   logger.info("Reading files...")
-  grids: List[TextGrid] = []
-  output_paths: List[Path] = []
   for textgrid_file_in in cast(Iterator[Path], tqdm(textgrid_files)):
-    text_file_out = folder_out / textgrid_file_in.name
-    if text_file_out.exists() and not overwrite:
+    textgrid_file_out = folder_out / textgrid_file_in.name
+    if textgrid_file_out.exists() and not overwrite:
       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
       continue
 
     grid = TextGrid()
     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    grids.append(grid)
-    output_paths.append(text_file_out)
-  logger.info("Done.")
 
-  logger.info("Mapping ARPA to IPA...")
-  map_arpa_to_ipa_grids(
-    grids=grids,
-    arpa_tier_name=arpa_tier_name,
-    ipa_tier_name=ipa_tier_name,
-    overwrite_existing_tier=overwrite_existing_tier,
-  )
-  logger.info("Done.")
+    logger.info("Mapping ARPA to IPA...")
+    map_arpa_to_ipa(
+      grid=grid,
+      arpa_tier_name=arpa_tier_name,
+      ipa_tier_name=ipa_tier_name,
+      overwrite_existing_tier=overwrite_existing_tier,
+    )
 
-  logger.info("Saving output...")
-  for grid, output_path in zip(grids, output_paths):
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(output_path)
+    textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out)
+
   logger.info(f"Done. Written output to: {folder_out}")
 
 
@@ -648,6 +625,7 @@ def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_
       cache=cache,
       overwrite_existing_tier=overwrite_existing_tier,
       consider_annotations=consider_annotations,
+      ignore_case=True,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
@@ -695,6 +673,7 @@ def app_transcribe_words_to_arpa_on_phoneme_level(base_dir: Path, folder_in: Pat
       overwrite_existing_tier=overwrite_existing_tier,
       trim_symbols=trim_symbols_set,
       consider_annotations=consider_annotations,
+      ignore_case=True,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
