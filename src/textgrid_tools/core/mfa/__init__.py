@@ -13,7 +13,7 @@ from textgrid_tools.core.mfa.stats_generation import print_stats
 from textgrid_tools.core.mfa.text_addition import \
     add_layer_containing_original_text
 from textgrid_tools.core.mfa.text_normalization import normalize_text
-from textgrid_tools.core.mfa.tier_removal import remove_tier
+from textgrid_tools.core.mfa.tier_removal import remove_tiers
 from textgrid_tools.core.mfa.tier_to_text_conversion import \
     extract_tier_to_text
 from textgrid_tools.core.mfa.word_to_arpa_transcription import (

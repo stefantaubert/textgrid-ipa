@@ -1,8 +1,9 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, cast
+from typing import Dict, Iterable, Iterator, List, Optional, Set, Tuple, cast
 
 from general_utils import load_obj, save_obj
+from general_utils.main import get_all_files_in_all_subfolders
 from pronunciation_dict_parser import export
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import parse_file
@@ -12,6 +13,9 @@ from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa import *
+from textgrid_tools.core.mfa.tier_cloning import clone_tier
+from textgrid_tools.core.mfa.tier_moving import move_tier
+from textgrid_tools.core.mfa.tier_renaming import rename_tier
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
@@ -91,31 +95,129 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
   return
 
 
-def files_remove_tier(base_dir: Path, folder_in: Path, tier_name: str, folder_out: Path, overwrite: bool) -> None:
+def files_remove_tiers(base_dir: Path, folder_in: Path, tier_names: str, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
+    logger.error("Textgrid folder does not exist!")
+    return
 
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
+  tier_names_set = set(tier_names.split(","))
+  if len(tier_names_set) == 0:
+    logger.error("Please specify at least one tier!")
+    return
+
+  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
 
   logger.info("Reading files...")
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    text_file_out = folder_out / textgrid_file_in.name
-    if text_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+  textgrid_file_in_rel: Path
+  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
+    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
+    if textgrid_file_out_abs.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
       continue
 
     grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    remove_tier(grid, tier_name)
-    text_file_out.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(text_file_out)
+    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    remove_tiers(grid, tier_names_set)
+    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out_abs)
 
   logger.info(f"Done. Written output to: {folder_out}")
+  return
+
+
+def get_files_dict(folder: Path, filetype: str) -> Dict[str, Path]:
+  all_files = get_all_files_in_all_subfolders(folder)
+  resulting_files = {str(file.relative_to(folder).parent / file.stem): file.relative_to(folder)
+                     for file in all_files if file.suffix.lower() == filetype.lower()}
+  return resulting_files
+
+
+TEXTGRID_FILE_TYPE = ".TextGrid"
+
+
+def files_rename_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    logger.error("Textgrid folder does not exist!")
+    return
+
+  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  logger.info("Reading files...")
+  textgrid_file_in_rel: Path
+  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
+    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
+    if textgrid_file_out_abs.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
+      continue
+
+    grid = TextGrid()
+    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    rename_tier(grid, tier_name, new_tier_name)
+    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out_abs)
+
+  logger.info(f"Done. Written output to: {folder_out}")
+  return
+
+
+def files_clone_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    logger.error("Textgrid folder does not exist!")
+    return
+
+  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  logger.info("Reading files...")
+  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
+    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
+    if textgrid_file_out_abs.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
+      continue
+
+    grid = TextGrid()
+    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    clone_tier(grid, tier_name, new_tier_name)
+    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out_abs)
+
+  logger.info(f"Done. Written output to: {folder_out}")
+  return
+
+
+def files_move_tier(base_dir: Path, folder_in: Path, tier_name: str, position: int, folder_out: Path, overwrite: bool) -> None:
+  logger = getLogger(__name__)
+
+  if not folder_in.exists():
+    logger.error("Textgrid folder does not exist!")
+    return
+
+  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
+  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+
+  logger.info("Reading files...")
+  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
+    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
+    if textgrid_file_out_abs.exists() and not overwrite:
+      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
+      continue
+
+    grid = TextGrid()
+    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    move_tier(grid, tier_name, position)
+    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
+    grid.write(textgrid_file_out_abs)
+
+  logger.info(f"Done. Written output to: {folder_out}")
+  return
 
 
 def files_split_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, split_marks: str, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
