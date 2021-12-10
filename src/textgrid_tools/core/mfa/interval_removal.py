@@ -1,9 +1,10 @@
 from logging import getLogger
-from typing import Iterable, List, Set, cast
+from typing import Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.mfa.audio_grid_syncing import set_end_to_audio_len
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     find_intervals_with_mark, get_boundary_timepoints_from_intervals,
@@ -13,23 +14,30 @@ from textgrid_tools.core.mfa.interval_boundary_adjustment import fix_timepoint
 from tqdm import tqdm
 
 
-def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str], ndigits: int) -> np.ndarray:
+def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str], remove_empty: bool, ndigits: int) -> Tuple[bool, Optional[np.ndarray]]:
   assert check_is_valid_grid(grid)
   logger = getLogger(__name__)
 
+  if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
+    logger.error(
+      f"Audio length and grid length does not match ({audio.shape[0]} vs. {s_to_samples(grid.maxTime, sr)})")
+    return False, None
+    # audio_len = samples_to_s(audio.shape[0], sr)
+    # set_maxTime(grid, audio_len)
+
   ref_tier: IntervalTier = grid.getFirst(reference_tier_name)
   if ref_tier is None:
-    logger.exception("Tier not found!")
-    raise Exception()
+    logger.error("Tier not found!")
+    return False, None
 
-  ref_intervals_to_remove = list(find_intervals_with_mark(ref_tier, remove_marks))
+  ref_intervals_to_remove = list(find_intervals_with_mark(ref_tier, remove_marks, remove_empty))
   timepoints = get_boundary_timepoints_from_intervals(ref_intervals_to_remove)
 
   all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
     timepoints, grid.tiers)
   if not all_tiers_share_timepoints:
     logger.error("Not all tiers share the same interval boundaries at the deletion intervals!")
-    return
+    return False, None
 
   for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers)):
     for ref_interval_to_remove in ref_intervals_to_remove:
@@ -61,11 +69,20 @@ def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_
   for ref_interval_to_remove in reversed(ref_intervals_to_remove):
     start = s_to_samples(ref_interval_to_remove.minTime, sr)
     end = s_to_samples(ref_interval_to_remove.maxTime, sr)
+    assert end <= audio.shape[0]
     r = range(start, end)
     remove_range.extend(r)
   res_audio = np.delete(audio, remove_range, axis=0)
 
-  return res_audio
+  # after multiple removals in audio some difference occurrs
+  success = set_end_to_audio_len(grid, res_audio, sr, ndigits)
+  if not success:
+    logger.error("Couldn't set grid maxTime to audio len!")
+    return False, None
+
+  removed_duration = sum(interval.duration() for interval in ref_intervals_to_remove)
+  logger.info(f"Removed {len(ref_intervals_to_remove)} intervals ({removed_duration:.2f}s).")
+  return True, res_audio
 
 
 def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interval]:

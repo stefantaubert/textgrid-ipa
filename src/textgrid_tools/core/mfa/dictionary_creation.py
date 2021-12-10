@@ -20,7 +20,7 @@ from tqdm import tqdm
 def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool) -> Tuple[PronunciationDict, PronunciationDict, LookupCache]:
   logger = getLogger(__name__)
   logger.info(f"Chosen dictionary type: {dict_type}")
-  logger.info(f"Getting all sentences...")
+  logger.info("Getting all sentences...")
   text_sentences = {
     text_to_symbols(
       lang=Language.ENG,

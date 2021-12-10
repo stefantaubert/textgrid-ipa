@@ -1,6 +1,6 @@
 from copy import deepcopy
 from logging import getLogger
-from typing import Iterable, List, Set, Tuple, cast
+from typing import Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -11,12 +11,13 @@ from textgrid_tools.core.mfa.helper import (
 from tqdm import tqdm
 
 
-def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str]) -> List[Tuple[TextGrid, np.ndarray]]:
+def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str]) -> Tuple[bool, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
   logger = getLogger(__name__)
 
   if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
-    logger.warning(
+    logger.error(
       f"Audio length and grid length does not match ({audio.shape[0]} vs. {s_to_samples(grid.maxTime, sr)})")
+    return False, None
     # audio_len = samples_to_s(audio.shape[0], sr)
     # set_maxTime(grid, audio_len)
 
@@ -25,9 +26,9 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     logger.exception("Tier not found!")
     raise Exception()
 
-  split_intervals = list(find_intervals_with_mark(ref_tier, split_markers))
+  split_intervals = list(find_intervals_with_mark(ref_tier, split_markers, include_empty=False))
   if len(split_intervals) == 0:
-    return [(grid, audio)]
+    return True, [(grid, audio)]
   target_intervals: List[Tuple[float, float]] = []
   if ref_tier.minTime < split_intervals[0].minTime:
     target_intervals.append((ref_tier.minTime, split_intervals[0].minTime))
@@ -86,10 +87,7 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
 
     start = s_to_samples(minTime, sr)
     end = s_to_samples(maxTime, sr)
-    if end > audio.shape[0]:
-      logger.warning(f"Ending of audio overreached by {end - audio.shape[0]} sample(s)!")
-      end = audio.shape[0]
-      assert end >= start
+    assert end <= audio.shape[0]
     audio_part = range(start, end)
     grid_audio = audio[audio_part]
     result.append((range_grid, grid_audio))
@@ -99,4 +97,4 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
   logger.info(f"Max duration: {max(durations):.2f}s")
   logger.info(f"Mean duration: {np.mean(durations):.2f}s")
   logger.info(f"Total duration: {sum(durations):.2f}s ({sum(durations)/60:.2f}min)")
-  return result
+  return True, result
