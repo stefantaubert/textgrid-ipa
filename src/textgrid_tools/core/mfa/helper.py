@@ -152,6 +152,12 @@ def check_timepoints_exist_on_all_tiers_as_boundaries(timepoints: List[float], t
   return result
 
 
+def get_tiers_with_name(grid: TextGrid, tier_name: str) -> Generator[IntervalTier, None, None]:
+  for tier in cast(Iterable[IntervalTier], grid.tiers):
+    if tier.name == tier_name:
+      yield tier
+
+
 def check_timepoint_exist_on_all_tiers_as_boundary(timepoint: float, tiers: List[IntervalTier]) -> bool:
   result = True
   for tier in tiers:

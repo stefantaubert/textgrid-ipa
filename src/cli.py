@@ -15,10 +15,11 @@ from textgrid_tools.app.mfa_utils import (
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_clone_tier, files_extract_tier_to_text,
-    files_fix_boundaries, files_map_arpa_to_ipa, files_print_stats,
-    files_remove_intervals, files_remove_symbols, files_remove_tiers,
-    files_rename_tier, files_split_intervals, files_sync_grids,
-    merge_words_to_new_textgrid, normalize_text_files_in_folder)
+    files_fix_boundaries, files_map_arpa_to_ipa, files_move_tier,
+    files_print_stats, files_remove_intervals, files_remove_symbols,
+    files_remove_tiers, files_rename_tier, files_split_intervals,
+    files_sync_grids, merge_words_to_new_textgrid,
+    normalize_text_files_in_folder)
 
 BASE_DIR_VAR = "base_dir"
 DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -66,7 +67,7 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
 
 def init_files_remove_tiers_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_names", type=str, required=True)
+  parser.add_argument("--tier_names", type=str, nargs='+', required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_tiers
@@ -96,7 +97,7 @@ def init_files_move_tier_parser(parser: ArgumentParser):
   parser.add_argument("--position", type=int, required=True)
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
-  return files_clone_tier
+  return files_move_tier
 
 
 def init_files_map_arpa_to_ipa_parser(parser: ArgumentParser):
@@ -139,6 +140,7 @@ def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_intervals
+
 
 def init_files_sync_grids_parser(parser: ArgumentParser):
   parser.add_argument("--folder", type=Path, required=True)

@@ -100,14 +100,14 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
   return
 
 
-def files_remove_tiers(base_dir: Path, folder_in: Path, tier_names: str, folder_out: Path, overwrite: bool) -> None:
+def files_remove_tiers(base_dir: Path, folder_in: Path, tier_names: List[str], folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not folder_in.exists():
     logger.error("Textgrid folder does not exist!")
     return
 
-  tier_names_set = set(tier_names.split(","))
+  tier_names_set = set(tier_names)
   if len(tier_names_set) == 0:
     logger.error("Please specify at least one tier!")
     return
@@ -217,7 +217,7 @@ def files_clone_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_n
   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
 
   logger.info("Reading files...")
-  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
+  for file_path, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
     textgrid_file_out_abs = folder_out / textgrid_file_in_rel
     if textgrid_file_out_abs.exists() and not overwrite:
       logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
@@ -225,6 +225,7 @@ def files_clone_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_n
 
     grid = TextGrid()
     grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
+    logger.info(f"Cloning tier \"{tier_name}\" in file \"{file_path}\"...")
     clone_tier(grid, tier_name, new_tier_name)
     textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
     grid.write(textgrid_file_out_abs)
@@ -300,7 +301,8 @@ def files_split_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path
 
     audio_path = wav_files[textgrid_file_in.stem]
     sr, wav = read(audio_path)
-    success, grids_wavs = split_grid(grid, wav, sr, reference_tier_name, split_marks_set)
+    success, grids_wavs = split_grid(
+      grid, wav, sr, reference_tier_name, split_marks_set, n_digits=DEFAULT_TEXTGRID_PRECISION)
 
     if success:
       assert grids_wavs is not None
@@ -365,7 +367,7 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
     logger.info("Removing intervals...")
     success, new_wav = remove_intervals(grid, wav, sr, reference_tier_name,
                                         remove_marks_set, remove_empty,
-                                        ndigits=DEFAULT_TEXTGRID_PRECISION)
+                                        n_digits=DEFAULT_TEXTGRID_PRECISION)
     if success:
       assert new_wav is not None
       textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
@@ -394,7 +396,7 @@ def files_sync_grids(base_dir: Path, folder: Path, audio_folder: Path, folder_ou
 
   logger.info("Reading files...")
   textgrid_file_in_rel: Path
-  changed_anything = False
+  # changed_anything = False
   all_successfull = True
   for path, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
     if path not in audio_files:
@@ -412,9 +414,9 @@ def files_sync_grids(base_dir: Path, folder: Path, audio_folder: Path, folder_ou
     audio_file_in_abs = audio_folder / audio_files[path]
     sr, wav = read(audio_file_in_abs)
 
-    success, changed_something = sync_grid_to_audio(
+    success = sync_grid_to_audio(
       grid, wav, sr, ndigits=DEFAULT_TEXTGRID_PRECISION)
-    changed_anything |= changed_something
+    # changed_anything |= changed_something
     all_successfull &= success
 
     if success:
@@ -425,8 +427,8 @@ def files_sync_grids(base_dir: Path, folder: Path, audio_folder: Path, folder_ou
     logger.info("Not all was successfull!")
   else:
     logger.info("All was successfull!")
-  if not changed_anything:
-    logger.info("Didn't changed anything.")
+  # if not changed_anything:
+  #   logger.info("Didn't changed anything.")
   logger.info(f"Done. Written output to: {folder_out}")
 
 

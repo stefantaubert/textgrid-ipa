@@ -14,7 +14,7 @@ from textgrid_tools.core.mfa.interval_boundary_adjustment import fix_timepoint
 from tqdm import tqdm
 
 
-def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str], remove_empty: bool, ndigits: int) -> Tuple[bool, Optional[np.ndarray]]:
+def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str], remove_empty: bool, n_digits: int) -> Tuple[bool, Optional[np.ndarray]]:
   assert check_is_valid_grid(grid)
   logger = getLogger(__name__)
 
@@ -44,8 +44,8 @@ def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_
       for interval_on_tier in get_intervals_on_tier(ref_interval_to_remove, tier):
         tier.removeInterval(interval_on_tier)
     if len(tier.intervals) > 0:
-      move_interval(tier.intervals[0], 0, ndigits)
-      set_times_consecutively_tier(tier, ndigits)
+      move_interval(tier.intervals[0], 0, n_digits)
+      set_times_consecutively_tier(tier, n_digits)
 
   sync_timepoints = get_boundary_timepoints_from_tier(ref_tier)
   for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers)):
@@ -75,7 +75,7 @@ def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_
   res_audio = np.delete(audio, remove_range, axis=0)
 
   # after multiple removals in audio some difference occurrs
-  success = set_end_to_audio_len(grid, res_audio, sr, ndigits)
+  success = set_end_to_audio_len(grid, res_audio, sr, n_digits)
   if not success:
     logger.error("Couldn't set grid maxTime to audio len!")
     return False, None

@@ -5,13 +5,14 @@ from typing import Iterable, List, Optional, Set, Tuple, cast
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import IntervalTier, TextGrid
+from textgrid_tools.core.mfa.audio_grid_syncing import set_end_to_audio_len
 from textgrid_tools.core.mfa.helper import (
     check_timepoints_exist_on_all_tiers_as_boundaries,
     find_intervals_with_mark, get_intervals_from_timespan)
 from tqdm import tqdm
 
 
-def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str]) -> Tuple[bool, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
+def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str], n_digits: int) -> Tuple[bool, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
   logger = getLogger(__name__)
 
   if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
@@ -90,6 +91,13 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     assert end <= audio.shape[0]
     audio_part = range(start, end)
     grid_audio = audio[audio_part]
+
+    # set ending correct
+    success = set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
+    if not success:
+      logger.error("Couldn't set grid maxTime to audio len!")
+      return False, None
+
     result.append((range_grid, grid_audio))
   durations = list(res_grid.maxTime for res_grid, _ in result)
   logger.info(f"# Files: {len(result)}")
