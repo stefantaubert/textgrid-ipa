@@ -21,8 +21,8 @@ from textgrid_tools.core.mfa.tier_renaming import rename_tier
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
-# default was 8 but praat has 15
-DEFAULT_TEXTGRID_PRECISION = 15
+# default was 8 but praat has 16
+DEFAULT_TEXTGRID_PRECISION = 16
 
 TEXTGRID_FILE_TYPE = ".TextGrid"
 AUDIO_FILE_TYPE = ".wav"
