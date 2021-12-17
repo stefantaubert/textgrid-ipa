@@ -7,16 +7,12 @@ from general_utils.main import get_all_files_in_all_subfolders
 from pronunciation_dict_parser import export
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import parse_file
-from scipy.io.wavfile import read, write
+from scipy.io.wavfile import read
 from sentence2pronunciation.lookup_cache import LookupCache
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa import *
-from textgrid_tools.core.mfa.audio_grid_syncing import sync_grid_to_audio
-from textgrid_tools.core.mfa.tier_cloning import clone_tier
-from textgrid_tools.core.mfa.tier_moving import move_tier
-from textgrid_tools.core.mfa.tier_renaming import rename_tier
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 
@@ -104,67 +100,6 @@ def get_files_dict(folder: Path, filetype: str) -> Dict[str, Path]:
   resulting_files = {str(file.relative_to(folder).parent / file.stem): file.relative_to(folder)
                      for file in all_files if file.suffix.lower() == filetype.lower()}
   return resulting_files
-
-
-def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, remove_marks: Optional[List[str]], remove_empty: bool, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  if not audio_folder_in.exists():
-    raise Exception("Audio folder does not exist!")
-
-  remove_marks_set = set(remove_marks) if remove_marks is not None else set()
-
-  if len(remove_marks_set) == 0 and not remove_empty:
-    logger.info("Please set marks and/or remove_empty!")
-    return
-
-  logger.info(f"Marks: {remove_marks_set} and empty: {'yes' if remove_empty else 'no'}")
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  all_audio_files = get_filepaths(audio_folder_in)
-  wav_files = {file.stem: file for file in all_audio_files if file.suffix.lower() == ".wav"}
-  logger.info(f"Found {len(wav_files)} .wav files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    logger.info(f"Processing {textgrid_file_in.stem}...")
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    wav_file_out = audio_folder_out / f"{textgrid_file_in.stem}.wav"
-    if (textgrid_file_out.exists() or wav_file_out.exists()) and not overwrite:
-      logger.info(f"Skipped already existing file (.TextGrid or .wav): {textgrid_file_in.name}")
-      continue
-
-    if textgrid_file_in.stem not in wav_files:
-      logger.error(f"For the .TextGrid file {textgrid_file_in} no .wav file was found. Skipping...")
-      continue
-
-    logger.info(f"Removing intervals with: {remove_marks}")
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    audio_path = wav_files[textgrid_file_in.stem]
-    sr, wav = read(audio_path)
-    logger.info("Removing intervals...")
-    success, new_wav = remove_intervals(grid, wav, sr, reference_tier_name,
-                                        remove_marks_set, remove_empty,
-                                        n_digits=DEFAULT_TEXTGRID_PRECISION)
-    if success:
-      assert new_wav is not None
-      textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
-      grid.write(textgrid_file_out)
-
-      wav_file_out.parent.mkdir(parents=True, exist_ok=True)
-      write(wav_file_out, sr, new_wav)
-
-  logger.info(f"Done. Written output to: {folder_out}")
 
 
 def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: Path, overwrite: bool) -> None:
@@ -408,41 +343,6 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
       grid=grid,
       new_tier_name=new_tier_name,
       original_text_tier_name=original_text_tier_name,
-      overwrite_existing_tier=overwrite_existing_tier,
-    )
-
-    folder_out.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out)
-
-  logger.info(f"Written output .TextGrid files to: {folder_out}")
-
-
-def add_marker(base_dir: Path, folder_in: Path, reference_tier_name: str, new_tier_name: str, overwrite_existing_tier: bool, folder_out: Path, overwrite: bool):
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Folder does not exist!")
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    if textgrid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
-
-    logger.debug(f"Processing {textgrid_file_in}...")
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    add_marker_tier(
-      grid=grid,
-      reference_tier_name=reference_tier_name,
-      new_tier_name=new_tier_name,
       overwrite_existing_tier=overwrite_existing_tier,
     )
 

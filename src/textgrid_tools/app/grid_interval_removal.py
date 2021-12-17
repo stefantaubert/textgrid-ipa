@@ -11,7 +11,7 @@ from textgrid_tools.core.mfa.grid_interval_removal import (
 from tqdm import tqdm
 
 
-def init_files_split_grid_parser(parser: ArgumentParser):
+def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--audio_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)
@@ -21,10 +21,10 @@ def init_files_split_grid_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
-  return files_split_grid
+  return files_remove_intervals
 
 
-def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier: str, remove_marks: Optional[List[str]], remove_empty: bool, n_digits: int, grid_folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
+def files_remove_intervals(grid_folder_in: Path, audio_folder_in: Path, reference_tier: str, remove_marks: Optional[List[str]], remove_empty: bool, n_digits: int, grid_folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not grid_folder_in.exists():
@@ -66,7 +66,7 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
     audio_file_out_abs = audio_folder_out / audio_files[file_stem]
 
     if (grid_file_out_abs.exists() or audio_file_out_abs.exists()) and not overwrite:
-      logger.info("Target grids/audios already exist.")
+      logger.info("Target grid/audio already exist.")
       logger.info("Skipped.")
       continue
 

@@ -1,33 +1,37 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, cast
+from typing import Iterable, List, cast
 
+from text_utils.language import Language
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
-from textgrid_tools.core.mfa.tier_cloning import can_clone_tier, clone_tier
+from textgrid_tools.core.mfa.tier_normalization import (can_normalize_tiers,
+                                                        normalize_tiers)
 from tqdm import tqdm
 
-# clones the first tier with the name
 
-
-def init_files_clone_tier_parser(parser: ArgumentParser):
+def init_files_normalize_tiers_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_in", type=Path, required=True)
-  parser.add_argument("--tier", type=str, required=True)
-  parser.add_argument("--new_tier", type=str, required=True)
+  parser.add_argument("--tiers", type=str, nargs='+', required=True)
+  parser.add_argument('--language', choices=Language,
+                      type=Language.__getitem__, default=Language.ENG)
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
-  # parser.add_argument("--overwrite_tier", action="store_true")
-  parser.add_argument("--ignore_marks", action="store_true")
   parser.add_argument("--overwrite", action="store_true")
-  return files_clone_tier
+  return files_normalize_tiers
 
 
-def files_clone_tier(grid_folder_in: Path, tier: str, new_tier: str, n_digits: int, grid_folder_out: Path, ignore_marks: bool, overwrite: bool) -> None:
+def files_normalize_tiers(grid_folder_in: Path, tiers: List[str], language: Language, n_digits: int, grid_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not grid_folder_in.exists():
     logger.error("Textgrid folder does not exist!")
+    return
+
+  tiers_set = set(tiers)
+  if len(tiers_set) == 0:
+    logger.error("Please specify at least one tier!")
     return
 
   grid_files = get_grid_files(grid_folder_in)
@@ -47,12 +51,12 @@ def files_clone_tier(grid_folder_in: Path, tier: str, new_tier: str, n_digits: i
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    can_rename = can_clone_tier(grid_in, tier)
-    if not can_rename:
+    can_remove = can_normalize_tiers(grid_in, tiers_set)
+    if not can_remove:
       logger.info("Skipped.")
       continue
 
-    clone_tier(grid_in, tier, new_tier, ignore_marks)
+    normalize_tiers(grid_in, tiers_set, language)
 
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)
