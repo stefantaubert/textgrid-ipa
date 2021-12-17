@@ -1,43 +1,55 @@
 from logging import getLogger
-from typing import Iterable, List, Set, Tuple, cast
 
 import numpy as np
-from audio_utils.audio import s_to_samples, samples_to_s
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from audio_utils.audio import samples_to_s
+from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa.helper import check_is_valid_grid
 
 
-def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sr: int, ndigits: int) -> bool:
-  """return success"""
+def can_sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sr: int, n_digits: int) -> bool:
   logger = getLogger(__name__)
+  possible = can_set_end_to_audio_len(grid, audio, sr, n_digits)
+  if not possible:
+    logger.error(
+      "Couldn't change maxTime because it would be <= than minTime for at least one last interval!")
+    return False
+  return True
+
+
+def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sr: int, n_digits: int) -> bool:
+  assert can_sync_grid_to_audio(grid, audio, sr, n_digits)
+  logger = getLogger(__name__)
+  changed_something = False
 
   old_minTime = grid.minTime
   set_minTime(grid, 0)
 
   if old_minTime != grid.minTime:
+    changed_something = True
     logger.info(f"Adjusted start from {old_minTime} to 0.")
 
   oldMaxTime = grid.maxTime
-  success = set_end_to_audio_len(grid, audio, sr, ndigits)
-  if not success:
-    logger.error(
-      "Couldn't change maxTime because it would be <= than minTime of at least one last interval!")
+  set_end_to_audio_len(grid, audio, sr, n_digits)
 
   if oldMaxTime != grid.maxTime:
+    changed_something = True
     logger.info(f"Adjusted end from {oldMaxTime} to {grid.maxTime}.")
 
-  return success
+  return changed_something
 
 
-def set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sr: bool, ndigits: int) -> bool:
+def can_set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sr: bool, n_digits: int) -> bool:
   audio_duration_s = samples_to_s(audio.shape[0], sr)
-  audio_duration_s = round(audio_duration_s, ndigits)
-  if not can_set_maxTime(grid, audio_duration_s):
-    return False
+  audio_duration_s = round(audio_duration_s, n_digits)
+  return can_set_maxTime(grid, audio_duration_s)
+
+
+def set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sr: bool, n_digits: int) -> None:
+  assert can_set_end_to_audio_len(grid, audio, sr, n_digits)
+  audio_duration_s = samples_to_s(audio.shape[0], sr)
+  audio_duration_s = round(audio_duration_s, n_digits)
 
   set_maxTime(grid, audio_duration_s)
-
-  return True
 
 
 def can_set_maxTime(grid: TextGrid, maxTime: float) -> bool:

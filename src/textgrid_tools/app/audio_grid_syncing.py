@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, cast
 
 from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid)
-from textgrid_tools.core.mfa.audio_grid_syncing import sync_grid_to_audio
+from textgrid_tools.core.mfa.audio_grid_syncing import (can_sync_grid_to_audio,
+                                                        sync_grid_to_audio)
 from tqdm import tqdm
 
 
@@ -47,6 +48,7 @@ def files_sync_grids(grid_folder_in: Path, audio_folder_in: Path, n_digits: int,
 
   logger.info("Reading files...")
   all_successfull = True
+  all_changed_anything = False
   for file_stem in cast(Iterable[str], tqdm(common_files)):
     logger.info(f"Processing {file_stem} ...")
 
@@ -63,18 +65,28 @@ def files_sync_grids(grid_folder_in: Path, audio_folder_in: Path, n_digits: int,
     audio_file_in_abs = audio_folder_in / grid_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
 
-    success = sync_grid_to_audio(grid_in, audio_in, sample_rate, ndigits=n_digits)
-    all_successfull &= success
+    can_sync = can_sync_grid_to_audio(grid_in, audio_in, sample_rate, n_digits)
 
-    if success:
-      logger.info("Saving...")
-      grid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-      grid_in.write(grid_file_out_abs)
+    if not can_sync:
+      logger.info("Skipped.")
+      all_successfull = False
+      continue
+
+    changed_anything = sync_grid_to_audio(grid_in, audio_in, sample_rate, n_digits)
+    all_changed_anything |= changed_anything
+
+    if not changed_anything:
+      logger.info("Didn't changed anything.")
+
+    logger.info("Saving...")
+    grid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
+    grid_in.write(grid_file_out_abs)
 
   if not all_successfull:
     logger.info("Not all was successfull!")
   else:
     logger.info("All was successfull!")
-  # if not changed_anything:
-  #   logger.info("Didn't changed anything.")
+
+  if not all_changed_anything:
+    logger.info("Didn't changed anything on any file.")
   logger.info(f"Done. Written output to: {grid_folder_out}")

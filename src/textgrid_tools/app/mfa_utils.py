@@ -167,59 +167,6 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
   logger.info(f"Done. Written output to: {folder_out}")
 
 
-def files_sync_grids(base_dir: Path, folder: Path, audio_folder: Path, folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  if not audio_folder.exists():
-    raise Exception("Audio folder does not exist!")
-
-  textgrid_files = get_files_dict(folder, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  audio_files = get_files_dict(audio_folder, filetype=AUDIO_FILE_TYPE)
-  logger.info(f"Found {len(audio_files)} audio files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in_rel: Path
-  # changed_anything = False
-  all_successfull = True
-  for path, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    if path not in audio_files:
-      logger.info(f"No corresponding audio file found for {str(textgrid_file_in_rel)}!")
-      continue
-
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    audio_file_out_abs = folder_out / audio_files[path]
-    if (textgrid_file_out_abs.exists() or audio_file_out_abs.exists()) and not overwrite:
-      logger.info(f"Skipped already existing file: {path}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    audio_file_in_abs = audio_folder / audio_files[path]
-    sr, wav = read(audio_file_in_abs)
-
-    success = sync_grid_to_audio(
-      grid, wav, sr, ndigits=DEFAULT_TEXTGRID_PRECISION)
-    # changed_anything |= changed_something
-    all_successfull &= success
-
-    if success:
-      textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-      grid.write(textgrid_file_out_abs)
-
-  if not all_successfull:
-    logger.info("Not all was successfull!")
-  else:
-    logger.info("All was successfull!")
-  # if not changed_anything:
-  #   logger.info("Didn't changed anything.")
-  logger.info(f"Done. Written output to: {folder_out}")
-
-
 def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, difference_threshold: Optional[float], folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
