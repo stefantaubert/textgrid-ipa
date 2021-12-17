@@ -2,30 +2,29 @@ from logging import getLogger
 from typing import Iterable, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import get_tiers
+from textgrid_tools.core.mfa.helper import get_tiers, tier_exists
 
 
-def can_clone_tier(grid: TextGrid, tier_name: str) -> bool:
+def can_clone_tier(grid: TextGrid, tier: str) -> bool:
   logger = getLogger(__name__)
 
-  tiers = list(get_tiers(grid, {tier_name}))
-  if len(tiers) == 0:
-    logger.error(f"Tier \"{tier_name}\" not found!")
+  if not tier_exists(grid, tier):
+    logger.error(f"Tier \"{tier}\" not found!")
     return False
 
   return True
 
 
-def clone_tier(grid: TextGrid, tier_name: str, new_tier_name: str) -> None:
+def clone_tier(grid: TextGrid, tier: str, new_name: str) -> None:
   logger = getLogger(__name__)
-  tiers = list(get_tiers(grid, {tier_name}))
+  tiers = list(get_tiers(grid, {tier}))
   if len(tiers) > 1:
     logger.warning(
-      f"Found multiple tiers with name \"{tier_name}\", therefore cloning only the first one.")
+      f"Found multiple tiers with name \"{tier}\", therefore cloning only the first one.")
 
   first_tier = tiers[0]
   new_tier = copy_tier(first_tier)
-  new_tier.name = new_tier_name
+  new_tier.name = new_name
   grid.append(new_tier)
 
 

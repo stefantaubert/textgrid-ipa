@@ -272,40 +272,6 @@ def files_print_stats(base_dir: Path, folder: Path, duration_threshold: float, p
     logger.info("")
 
 
-def files_map_arpa_to_ipa(base_dir: Path, folder_in: Path, arpa_tier_name: str, folder_out: Path, ipa_tier_name: str, overwrite_existing_tier: bool, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  for textgrid_file_in in cast(Iterator[Path], tqdm(textgrid_files)):
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    if textgrid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    logger.info("Mapping ARPA to IPA...")
-    map_arpa_to_ipa(
-      grid=grid,
-      arpa_tier_name=arpa_tier_name,
-      ipa_tier_name=ipa_tier_name,
-      overwrite_existing_tier=overwrite_existing_tier,
-    )
-
-    textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out)
-
-  logger.info(f"Done. Written output to: {folder_out}")
-
-
 def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 

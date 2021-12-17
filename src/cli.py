@@ -12,9 +12,11 @@ from textgrid_tools.app.mfa_utils import (
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_extract_tier_to_text,
-    files_fix_boundaries, files_map_arpa_to_ipa, files_move_tier,
-    files_print_stats, files_remove_intervals, files_sync_grids,
-    merge_words_to_new_textgrid, normalize_text_files_in_folder)
+    files_fix_boundaries, files_print_stats, files_remove_intervals,
+    files_sync_grids, merge_words_to_new_textgrid,
+    normalize_text_files_in_folder)
+from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
+    init_map_arpa_tier_to_ipa_parser
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
 from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
@@ -64,16 +66,6 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return normalize_text_files_in_folder
-
-
-def init_files_map_arpa_to_ipa_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--arpa_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--ipa_tier_name", type=str, required=True)
-  parser.add_argument("--overwrite_existing_tier", action="store_true")
-  parser.add_argument("--overwrite", action="store_true")
-  return files_map_arpa_to_ipa
 
 
 def init_files_extract_tier_to_text_parser(parser: ArgumentParser):
@@ -212,7 +204,7 @@ def _init_parser():
                  init_merge_words_to_new_textgrid_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
-  _add_parser_to(subparsers, "mfa-arpa-to-ipa", init_files_map_arpa_to_ipa_parser)
+  _add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser)
   _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
   _add_parser_to(subparsers, "remove-symbols-from-tiers", init_remove_symbols_from_tiers_parser)
   _add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser)

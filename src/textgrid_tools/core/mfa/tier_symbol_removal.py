@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Iterable, Set, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import get_tiers
+from textgrid_tools.core.mfa.helper import get_tiers, tier_exists
 
 
 def can_remove_symbols(grid: TextGrid, tiers: Set[str], symbols: Set[str]) -> bool:
@@ -11,12 +11,17 @@ def can_remove_symbols(grid: TextGrid, tiers: Set[str], symbols: Set[str]) -> bo
   if len(symbols) == 0:
     logger.error("No symbols defined!")
     return False
-  grid_tiers = list(get_tiers(grid, tiers))
-  if len(grid_tiers) == 0:
-    logger.error("No tiers found!")
+
+  if len(tiers) == 0:
+    logger.error("No tiers given!")
     return False
 
-  return True
+  result = True
+  for tier in tiers:
+    if not tier_exists(grid, tier):
+      logger.error(f"Tier \"{tier}\" not found!")
+      result = False
+  return result
 
 
 def remove_symbols(grid: TextGrid, tiers: Set[str], symbols: Set[str]) -> bool:

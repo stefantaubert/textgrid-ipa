@@ -1,27 +1,32 @@
 from logging import getLogger
 from typing import Set
 
-from textgrid.textgrid import IntervalTier, TextGrid
+from textgrid.textgrid import TextGrid
+from textgrid_tools.core.mfa.helper import get_tiers, tier_exists
 
 
-def can_remove_tiers(grid: TextGrid, tier_names: Set[str]) -> bool:
+def can_remove_tiers(grid: TextGrid, tiers: Set[str]) -> bool:
   logger = getLogger(__name__)
 
-  if len(tier_names) == 0:
+  if len(tiers) == 0:
+    return False
+
+  if len(tiers) == 0:
+    logger.error("No tiers given!")
     return False
 
   result = True
-  for tier_name in tier_names:
-    tier: IntervalTier = grid.getFirst(tier_name)
-    if tier is None:
-      logger.exception(f"Tier \"{tier_name}\" not found!")
+  for tier in tiers:
+    if not tier_exists(grid, tier):
+      logger.error(f"Tier \"{tier}\" not found!")
       result = False
 
   return result
 
 
-def remove_tiers(grid: TextGrid, tier_names: Set[str]) -> None:
-  assert can_remove_tiers(grid, tier_names)
-  for tier_name in tier_names:
-    tier: IntervalTier = grid.getFirst(tier_name)
-    grid.tiers.remove(tier)
+def remove_tiers(grid: TextGrid, tiers: Set[str]) -> None:
+  assert can_remove_tiers(grid, tiers)
+  for tier in tiers:
+    remove_tiers_list = list(get_tiers(grid, tier))
+    for remove_tier in remove_tiers_list:
+      grid.tiers.remove(remove_tier)

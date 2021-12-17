@@ -1,12 +1,12 @@
 from logging import getLogger
 
 from textgrid.textgrid import IntervalTier, TextGrid
+from textgrid_tools.core.mfa.helper import tier_exists
 
 
-def can_move_tier(grid: TextGrid, tier_name: str, to_position: int) -> bool:
+def can_move_tier(grid: TextGrid, tier: str, to_position: int) -> bool:
   logger = getLogger(__name__)
-  target_tier: IntervalTier = grid.getFirst(tier_name)
-  if target_tier is None:
+  if not tier_exists(grid, tier):
     logger.info("Tier does not exist.")
     return False
 
@@ -17,13 +17,11 @@ def can_move_tier(grid: TextGrid, tier_name: str, to_position: int) -> bool:
   return True
 
 
-def move_tier(grid: TextGrid, tier_name: str, to_position: int) -> bool:
-  assert can_move_tier(grid, tier_name, to_position)
+def move_tier(grid: TextGrid, tier: str, to_position: int) -> bool:
+  assert can_move_tier(grid, tier, to_position)
 
-  logger = getLogger(__name__)
-  target_tier: IntervalTier = grid.getFirst(tier_name)
+  target_tier: IntervalTier = grid.getFirst(tier)
   if grid.tiers[to_position] == target_tier:
-    logger.info("Tier is already on the position.")
     return False
 
   grid.tiers.remove(target_tier)
