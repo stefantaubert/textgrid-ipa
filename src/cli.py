@@ -113,19 +113,15 @@ def _init_parser():
   _add_parser_to(subparsers, "convert-text-to-grid",
                  init_files_convert_text_to_grid_parser)
   _add_parser_to(subparsers, "create-dict-from-grids", init_convert_texts_to_dicts_parser)
-  _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
-  _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
   _add_parser_to(subparsers, "join-tier-intervals",
                  init_files_join_intervals_parser)
   _add_parser_to(subparsers, "map-words-to-tier", init_files_map_words_to_tier_parser)
-  _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser)
   _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
   _add_parser_to(subparsers, "remove-symbols-from-tiers", init_remove_symbols_from_tiers_parser)
   _add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser)
   _add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser)
   _add_parser_to(subparsers, "move-tier", init_files_move_tier_parser)
-  _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
   # _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
   _add_parser_to(subparsers, "transcribe-words-to-arpa-on-phoneme-level",
                  init_app_transcribe_words_to_arpa_on_phoneme_level_parser)
@@ -141,6 +137,11 @@ def _init_parser():
                  init_files_print_stats_parser)
   _add_parser_to(subparsers, "normalize-tiers",
                  init_files_normalize_tiers_parser)
+                 
+  _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
+  _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
+  _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
+  _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   return result
 
 
