@@ -132,14 +132,6 @@ def init_files_sync_grids_parser(parser: ArgumentParser):
   return files_sync_grids
 
 
-def init_files_remove_symbols_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_names", type=str, nargs='+', required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--symbols", type=str, nargs='+', required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_remove_symbols
-
 
 def init_files_print_stats_parser(parser: ArgumentParser):
   parser.add_argument("--folder", type=Path, required=True)

@@ -61,7 +61,8 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
     audios_folder_out_abs = audio_folder_out / file_stem
 
     if (grids_folder_out_abs.exists() or audios_folder_out_abs.exists()) and not overwrite:
-      logger.info("Skipped because target grids/audios already exist.")
+      logger.info("Target grids/audios already exist.")
+      logger.info("Skipped.")
       continue
 
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]

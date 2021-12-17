@@ -39,3 +39,4 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
   grid_in = TextGrid()
   grid_in.read(path, round_digits=n_digits)
   return grid_in
+

@@ -40,7 +40,8 @@ def files_remove_tiers(grid_folder_in: Path, tiers: List[str], n_digits: int, gr
     grid_file_out_abs = grid_folder_out / grid_files[file_stem]
 
     if grid_file_out_abs.exists() and not overwrite:
-      logger.info("Skipped because target grid already exists.")
+      logger.info("Target grid already exists.")
+      logger.info("Skipped.")
       continue
 
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
@@ -48,7 +49,7 @@ def files_remove_tiers(grid_folder_in: Path, tiers: List[str], n_digits: int, gr
 
     can_remove = can_remove_tiers(grid_in, tiers_set)
     if not can_remove:
-      logger.info("Skipped because removal was not possible.")
+      logger.info("Skipped.")
       continue
 
     remove_tiers(grid_in, tiers_set)

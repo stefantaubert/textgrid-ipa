@@ -2,12 +2,12 @@ from logging import getLogger
 from typing import Iterable, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import get_tiers_with_name
+from textgrid_tools.core.mfa.helper import get_tiers
 
 
 def clone_tier(grid: TextGrid, tier_name: str, new_tier_name: str) -> None:
   logger = getLogger(__name__)
-  tiers = list(get_tiers_with_name(grid, tier_name))
+  tiers = list(get_tiers(grid, {tier_name}))
   if len(tiers) > 1:
     logger.warning(
       f"Found multiple tiers with name {tier_name}, therefore cloning only the first one.")

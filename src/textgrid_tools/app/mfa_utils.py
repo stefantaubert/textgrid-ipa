@@ -14,7 +14,6 @@ from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa import *
 from textgrid_tools.core.mfa.audio_grid_syncing import sync_grid_to_audio
-from textgrid_tools.core.mfa.symbol_removal import remove_symbols
 from textgrid_tools.core.mfa.tier_cloning import clone_tier
 from textgrid_tools.core.mfa.tier_moving import move_tier
 from textgrid_tools.core.mfa.tier_renaming import rename_tier
@@ -97,44 +96,6 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
     logger.info(
         f"Written cache to: {out_path_cache}")
 
-  return
-
-
-def files_remove_symbols(base_dir: Path, folder_in: Path, tier_names: List[str], symbols: List[str], folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
-
-  tier_names_set = set(tier_names)
-  if len(tier_names_set) == 0:
-    logger.error("Please specify at least one tier!")
-    return
-
-  symbols_set = set(symbols)
-  if len(symbols_set) == 0:
-    logger.error("Please specify at least one symbol!")
-    return
-
-  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in_rel: Path
-  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    if textgrid_file_out_abs.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    remove_symbols(grid, tier_names_set, symbols)
-    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out_abs)
-
-  logger.info(f"Done. Written output to: {folder_out}")
   return
 
 
