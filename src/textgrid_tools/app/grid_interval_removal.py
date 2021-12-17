@@ -6,7 +6,8 @@ from typing import Iterable, List, Optional, cast
 from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_audio, save_grid)
-from textgrid_tools.core.mfa.grid_interval_removal import remove_intervals
+from textgrid_tools.core.mfa.grid_interval_removal import (
+    can_remove_intervals, remove_intervals)
 from tqdm import tqdm
 
 
@@ -75,12 +76,22 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
     audio_file_in_abs = audio_folder_in / grid_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
 
-    success, new_audio = remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
-                                        remove_marks_set, remove_empty, n_digits)
-    if success:
-      assert new_audio is not None
-      logger.info("Saving...")
-      save_grid(grid_file_out_abs, grid_in)
-      save_audio(audio_file_out_abs, new_audio, sample_rate)
+    can_remove = can_remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
+                                      remove_marks_set, remove_empty)
+    if not can_remove:
+      logger.info("Skipped.")
+      continue
+
+    try:
+      new_audio = remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
+                                   remove_marks_set, remove_empty, n_digits)
+    except Exception:
+      logger.info("Skipped.")
+      continue
+
+    assert new_audio is not None
+    logger.info("Saving...")
+    save_grid(grid_file_out_abs, grid_in)
+    save_audio(audio_file_out_abs, new_audio, sample_rate)
 
   logger.info(f"Done. Written output to: {grid_folder_out}")
