@@ -8,12 +8,14 @@ from text_utils.symbol_format import SymbolFormat
 
 from textgrid_tools.app.audio_grid_syncing import init_files_sync_grids_parser
 from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
+from textgrid_tools.app.grid_stats_generation import \
+    init_files_print_stats_parser
 from textgrid_tools.app.mfa_utils import (
     add_graphemes, add_marker, add_original_texts_layer,
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_extract_tier_to_text,
-    files_print_stats, files_remove_intervals, merge_words_to_new_textgrid,
+    files_remove_intervals, merge_words_to_new_textgrid,
     normalize_text_files_in_folder)
 from textgrid_tools.app.text_to_grid_conversion import \
     init_files_convert_text_to_grid_parser
@@ -102,13 +104,6 @@ def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_intervals
-
-
-def init_files_print_stats_parser(parser: ArgumentParser):
-  parser.add_argument("--folder", type=Path, required=True)
-  parser.add_argument("--duration_threshold", type=float, default=0.002)
-  parser.add_argument("--print_symbols_tier_names", type=str, nargs='*', default="")
-  return files_print_stats
 
 
 def init_add_original_texts_layer_parser(parser: ArgumentParser):

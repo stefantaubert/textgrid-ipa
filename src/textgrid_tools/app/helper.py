@@ -3,7 +3,9 @@ from pathlib import Path
 from typing import OrderedDict as OrderedDictType
 from typing import Set
 
+import numpy as np
 from general_utils.main import get_all_files_in_all_subfolders
+from scipy.io.wavfile import write
 from textgrid.textgrid import TextGrid
 
 GRID_FILE_TYPE = ".TextGrid"
@@ -44,3 +46,8 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
 def save_grid(path: Path, grid: TextGrid) -> None:
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)
+
+
+def save_audio(path: Path, audio: np.ndarray, sampling_rate: int) -> None:
+  path.parent.mkdir(exist_ok=True, parents=True)
+  write(path, sampling_rate, audio)

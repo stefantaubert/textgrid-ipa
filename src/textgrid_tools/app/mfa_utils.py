@@ -167,24 +167,6 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
   logger.info(f"Done. Written output to: {folder_out}")
 
 
-def files_print_stats(base_dir: Path, folder: Path, duration_threshold: float, print_symbols_tier_names: List[str]) -> None:
-  logger = getLogger(__name__)
-
-  if not folder.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  all_files = get_filepaths(folder)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  for textgrid_file_in in textgrid_files:
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    logger.info(f"Statistics for file {textgrid_file_in.relative_to(folder)}")
-    print_stats(grid, duration_threshold, set(print_symbols_tier_names))
-    logger.info("")
-
-
 def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 

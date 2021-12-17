@@ -1,12 +1,12 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, List, Optional, cast
 
-from scipy.io.wavfile import read, write
+from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_audio, save_grid)
-from textgrid_tools.core.mfa.grid_splitting import split_grid
+from textgrid_tools.core.mfa.grid_interval_removal import remove_intervals
 from tqdm import tqdm
 
 
@@ -14,7 +14,8 @@ def init_files_split_grid_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--audio_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)
-  parser.add_argument("--split_marks", type=str, nargs='+', required=True)
+  parser.add_argument("--remove_marks", type=str, nargs='+', required=True)
+  parser.add_argument("--remove_empty", action="store_true")
   parser.add_argument("--n_digits", type=int, required=True)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--audio_folder_out", type=Path, required=True)
@@ -22,7 +23,7 @@ def init_files_split_grid_parser(parser: ArgumentParser):
   return files_split_grid
 
 
-def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier: str, split_marks: List[str], n_digits: int, grid_folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
+def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier: str, remove_marks: Optional[List[str]], remove_empty: bool, n_digits: int, grid_folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not grid_folder_in.exists():
@@ -33,10 +34,13 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
     logger.error("Audio folder does not exist!")
     return
 
-  split_marks_set = set(split_marks)
-  if len(split_marks_set) == 0:
-    logger.error("No split marks provided.")
+  remove_marks_set = set(remove_marks) if remove_marks is not None else set()
+
+  if len(remove_marks_set) == 0 and not remove_empty:
+    logger.info("Please set marks and/or remove_empty!")
     return
+
+  logger.info(f"Marks: {remove_marks_set} and empty: {'yes' if remove_empty else 'no'}")
 
   grid_files = get_grid_files(grid_folder_in)
   logger.info(f"Found {len(grid_files)} grid files.")
@@ -57,10 +61,10 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
   for file_stem in cast(Iterable[str], tqdm(common_files)):
     logger.info(f"Processing {file_stem} ...")
 
-    grids_folder_out_abs = grid_folder_out / file_stem
-    audios_folder_out_abs = audio_folder_out / file_stem
+    grid_file_out_abs = grid_folder_out / grid_files[file_stem]
+    audio_file_out_abs = audio_folder_out / audio_files[file_stem]
 
-    if (grids_folder_out_abs.exists() or audios_folder_out_abs.exists()) and not overwrite:
+    if (grid_file_out_abs.exists() or audio_file_out_abs.exists()) and not overwrite:
       logger.info("Target grids/audios already exist.")
       logger.info("Skipped.")
       continue
@@ -70,16 +74,13 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
 
     audio_file_in_abs = audio_folder_in / grid_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
-    success, grids_audios = split_grid(
-      grid_in, audio_in, sample_rate, reference_tier, split_marks_set, n_digits=n_digits)
 
+    success, new_audio = remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
+                                        remove_marks_set, remove_empty, n_digits)
     if success:
-      assert grids_audios is not None
+      assert new_audio is not None
       logger.info("Saving...")
-      for i, (new_grid, new_audio) in enumerate(tqdm(grids_audios)):
-        grid_file_out_abs = grids_folder_out_abs / f"{i}.TextGrid"
-        audio_file_out_abs = audios_folder_out_abs / f"{i}.wav"
-        save_grid(grid_file_out_abs, new_grid)
-        save_audio(audio_file_out_abs, new_audio, sample_rate)
+      save_grid(grid_file_out_abs, grid_in)
+      save_audio(audio_file_out_abs, new_audio, sample_rate)
 
   logger.info(f"Done. Written output to: {grid_folder_out}")
