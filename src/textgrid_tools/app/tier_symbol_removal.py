@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Iterable, List, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import get_grid_files, load_grid
+from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
 from textgrid_tools.core.mfa.tier_symbol_removal import (can_remove_symbols,
                                                          remove_symbols)
 from tqdm import tqdm
@@ -65,6 +65,6 @@ def remove_symbols_from_tiers(grid_folder_in: Path, tiers: List[str], symbols: L
       logger.info("Nothing was changed.")
 
     logger.info("Saving...")
-    grid_in.write(grid_file_out_abs)
+    save_grid(grid_file_out_abs, grid_in)
 
   logger.info(f"Done. Written output to: {grid_folder_out}")

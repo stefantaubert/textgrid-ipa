@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Iterable, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import get_grid_files, load_grid
+from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
 from textgrid_tools.core.mfa.tier_renaming import can_rename_tier, rename_tier
 from tqdm import tqdm
 
@@ -57,6 +57,6 @@ def files_rename_tier(grid_folder_in: Path, tier: str, new_name: str, n_digits: 
     rename_tier(grid_in, tier, new_name)
 
     logger.info("Saving...")
-    grid_in.write(grid_file_out_abs)
+    save_grid(grid_file_out_abs, grid_in)
 
   logger.info(f"Done. Written output to: {grid_folder_out}")

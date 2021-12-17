@@ -3,7 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
-from textgrid_tools.app.helper import get_text_files
+from textgrid_tools.app.helper import get_text_files, save_grid
 from textgrid_tools.core.mfa.text_to_grid_conversion import (
     can_convert_text_to_grid, convert_text_to_grid)
 from tqdm import tqdm
@@ -52,6 +52,6 @@ def files_convert_text_to_grid(text_folder_in: Path, grid_name_out: Optional[str
     grid_out = convert_text_to_grid(text, grid_name_out, tier_out, characters_per_second)
 
     logger.info("Saving...")
-    grid_out.write(grid_file_out_abs)
+    save_grid(grid_file_out_abs, grid_out)
 
   logger.info(f"Done. Written output to: {grid_folder_out}")

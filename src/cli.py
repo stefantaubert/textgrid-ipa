@@ -13,13 +13,14 @@ from textgrid_tools.app.mfa_utils import (
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
     extract_sentences_text_files, files_extract_tier_to_text,
-    files_fix_boundaries, files_print_stats, files_remove_intervals,
-    files_sync_grids, merge_words_to_new_textgrid,
+    files_print_stats, files_remove_intervals, merge_words_to_new_textgrid,
     normalize_text_files_in_folder)
 from textgrid_tools.app.text_to_grid_conversion import \
     init_files_convert_text_to_grid_parser
 from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
     init_map_arpa_tier_to_ipa_parser
+from textgrid_tools.app.tier_boundary_adjustment import \
+    init_files_fix_boundaries_parser
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
 from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
@@ -108,15 +109,6 @@ def init_files_print_stats_parser(parser: ArgumentParser):
   parser.add_argument("--duration_threshold", type=float, default=0.002)
   parser.add_argument("--print_symbols_tier_names", type=str, nargs='*', default="")
   return files_print_stats
-
-
-def init_files_fix_boundaries_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--reference_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--difference_threshold", type=float, required=False)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_fix_boundaries
 
 
 def init_add_original_texts_layer_parser(parser: ArgumentParser):
@@ -216,7 +208,7 @@ def _init_parser():
                  init_files_split_grid_parser)
   _add_parser_to(subparsers, "mfa-remove-intervals",
                  init_files_remove_intervals_parser)
-  _add_parser_to(subparsers, "mfa-fix-boundaries",
+  _add_parser_to(subparsers, "fix-boundaries",
                  init_files_fix_boundaries_parser)
   _add_parser_to(subparsers, "sync-grid-to-audio",
                  init_files_sync_grids_parser)

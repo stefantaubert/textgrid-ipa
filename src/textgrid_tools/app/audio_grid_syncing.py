@@ -5,7 +5,7 @@ from typing import Iterable, cast
 
 from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
-                                       load_grid)
+                                       load_grid, save_grid)
 from textgrid_tools.core.mfa.audio_grid_syncing import (can_sync_grid_to_audio,
                                                         sync_grid_to_audio)
 from tqdm import tqdm
@@ -79,8 +79,7 @@ def files_sync_grids(grid_folder_in: Path, audio_folder_in: Path, n_digits: int,
       logger.info("Didn't changed anything.")
 
     logger.info("Saving...")
-    grid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid_in.write(grid_file_out_abs)
+    save_grid(grid_file_out_abs, grid_in)
 
   if not all_successfull:
     logger.info("Not all was successfull!")

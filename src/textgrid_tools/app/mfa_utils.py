@@ -167,40 +167,6 @@ def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Pat
   logger.info(f"Done. Written output to: {folder_out}")
 
 
-def files_fix_boundaries(base_dir: Path, folder_in: Path, reference_tier_name: str, difference_threshold: Optional[float], folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-  success = True
-  logger.info("Reading files...")
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    if textgrid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    logger.info("Fixing interval boundaries...")
-    success &= fix_interval_boundaries_grid(grid, reference_tier_name, difference_threshold)
-    logger.info("Saving output...")
-    textgrid_file_out.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out)
-    logger.info(f"Written grid to: {textgrid_file_out}")
-
-  if success:
-    logger.info(f"Done. Everything was successfully fixed!")
-  else:
-    logger.info(f"Done. Not everything was successfully fixed!")
-  logger.info(f"Written output to: {folder_out}")
-
-
 def files_print_stats(base_dir: Path, folder: Path, duration_threshold: float, print_symbols_tier_names: List[str]) -> None:
   logger = getLogger(__name__)
 

@@ -2,11 +2,15 @@ from logging import getLogger
 from typing import Set
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa.helper import get_tiers, tier_exists
+from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_tiers, tier_exists
 
 
 def can_remove_tiers(grid: TextGrid, tiers: Set[str]) -> bool:
   logger = getLogger(__name__)
+
+  if not check_is_valid_grid(grid):
+    logger.error("Grid is invalid!")
+    return False
 
   if len(tiers) == 0:
     return False

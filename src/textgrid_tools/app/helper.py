@@ -40,3 +40,7 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
   grid_in.read(path, round_digits=n_digits)
   return grid_in
 
+
+def save_grid(path: Path, grid: TextGrid) -> None:
+  path.parent.mkdir(exist_ok=True, parents=True)
+  grid.write(path)

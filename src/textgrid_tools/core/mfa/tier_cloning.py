@@ -2,11 +2,15 @@ from logging import getLogger
 from typing import Iterable, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import get_tiers, tier_exists
+from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_tiers, tier_exists
 
 
 def can_clone_tier(grid: TextGrid, tier: str) -> bool:
   logger = getLogger(__name__)
+  
+  if not check_is_valid_grid(grid):
+    logger.error("Grid is invalid!")
+    return False
 
   if not tier_exists(grid, tier):
     logger.error(f"Tier \"{tier}\" not found!")

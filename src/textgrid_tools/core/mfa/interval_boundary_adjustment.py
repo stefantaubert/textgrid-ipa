@@ -1,31 +1,57 @@
 from logging import getLogger
-from typing import Iterable, Optional, cast
+from typing import Iterable, Optional, Set, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_boundary_timepoints_from_tier,
+                                            get_first_tier,
                                             get_interval_from_maxTime,
                                             get_interval_from_minTime,
+                                            get_tiers, tier_exists,
                                             timepoint_is_boundary)
 from tqdm import tqdm
 
 
-def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, difference_threshold: Optional[float]) -> bool:
-  assert check_is_valid_grid(grid)
+def can_fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> bool:
+  logger = getLogger(__name__)
+  if not check_is_valid_grid(grid):
+    logger.error("Grid is invalid!")
+    return False
+
+  if difference_threshold <= 0:
+    logger.error("Threshold needs to be > 0!")
+    return False
+
+  if not tier_exists(grid, reference_tier_name):
+    logger.error(f"Tier \"{reference_tier_name}\" not found!")
+    return False
+
+  for tier in target_tiers:
+    if tier == reference_tier_name:
+      logger.error("Can not fix same tier as input tier!")
+      return False
+
+    if not tier_exists(grid, tier):
+      logger.error(f"Tier \"{tier}\" not found!")
+      return False
+
+  return True
+
+
+def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> bool:
+  assert can_fix_interval_boundaries_grid(
+    grid, reference_tier_name, target_tiers, difference_threshold)
 
   logger = getLogger(__name__)
 
-  ref_tier: IntervalTier = grid.getFirst(reference_tier_name)
-  if ref_tier is None:
-    logger.exception("Tier not found!")
-    raise Exception()
+  ref_tier = get_first_tier(grid, reference_tier_name)
 
   synchronize_timepoints = list(get_boundary_timepoints_from_tier(ref_tier))
 
-  for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers, desc="Tier", position=0, unit="t")):
-    if tier == ref_tier:
-      continue
-    logger.info(f"Fixing tier {tier.name}...")
+  targets = list(get_tiers(grid, target_tiers))
+
+  for tier in cast(Iterable[IntervalTier], tqdm(targets, desc="Tier", position=0, unit="t")):
+    logger.info(f"Fixing tier {tier.name} ...")
     total_success = True
     for timepoint in tqdm(synchronize_timepoints, desc="Interval", position=1, unit="in"):
       success = fix_timepoint(timepoint, tier, difference_threshold)
@@ -35,13 +61,12 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, diffe
   if total_success:
     logger.info("All tiers: Successfully fixed all boundaries!")
   else:
-    logger.info("All tiers: Not all boundaries could be fixed!")
+    logger.info("All tiers: Not all boundaries could be fixed with the threshold!")
 
   # nothing should not be changed a priori
   assert grid.minTime == ref_tier.minTime
   assert grid.maxTime == ref_tier.maxTime
   assert check_is_valid_grid(grid)
-  # todo also change len if audio len is different
   return total_success
 
 
