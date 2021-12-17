@@ -212,42 +212,6 @@ def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_fol
   logger.info(f"Written .TextGrid files to: {folder_out}")
 
 
-def merge_words_to_new_textgrid(base_dir: Path, folder_in: Path, reference_tier_name: str, min_pause_s: float, new_tier_name: str, overwrite_existing_tier: bool, folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("TextGrid folder does not exist!")
-
-  all_text_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_text_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  grid_file_in: Path
-  for grid_file_in in tqdm(textgrid_files):
-    grid_file_out = folder_out / grid_file_in.name
-    if grid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {grid_file_in.name}")
-      continue
-
-    logger.info(f"Processing {grid_file_in}...")
-
-    grid = TextGrid()
-    grid.read(grid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    merge_words_together(
-      grid=grid,
-      new_tier_name=new_tier_name,
-      reference_tier_name=reference_tier_name,
-      min_pause_s=min_pause_s,
-      overwrite_existing_tier=overwrite_existing_tier,
-    )
-
-    folder_out.mkdir(parents=True, exist_ok=True)
-    grid.write(grid_file_out)
-
-  logger.info(f"Written .TextGrid files to: {folder_out}")
-
-
 def add_original_texts_layer(base_dir: Path, text_folder: Path, textgrid_folder_in: Path, reference_tier_name: str, new_tier_name: str, path_align_dict: Path, textgrid_folder_out: Path, overwrite_existing_tier: bool, overwrite: bool):
   logger = getLogger(__name__)
 

@@ -24,6 +24,8 @@ from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
 from textgrid_tools.app.tier_boundary_adjustment import \
     init_files_fix_boundaries_parser
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
+from textgrid_tools.app.tier_interval_joining import \
+    init_files_join_intervals_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
 from textgrid_tools.app.tier_normalization import \
     init_files_normalize_tiers_parser
@@ -108,17 +110,6 @@ def init_add_original_texts_layer_parser(parser: ArgumentParser):
   return add_original_texts_layer
 
 
-def init_merge_words_to_new_textgrid_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--reference_tier_name", type=str, required=True)
-  parser.add_argument("--new_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--min_pause_s", type=float, required=True)
-  parser.add_argument("--overwrite_existing_tier", action="store_true")
-  parser.add_argument("--overwrite", action="store_true")
-  return merge_words_to_new_textgrid
-
-
 def init_add_graphemes_from_words_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--original_text_tier_name", type=str, required=True)
@@ -164,8 +155,8 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-create-dict-from-texts", init_convert_texts_to_dicts_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
-  _add_parser_to(subparsers, "mfa-merge-words",
-                 init_merge_words_to_new_textgrid_parser)
+  _add_parser_to(subparsers, "join-tier-intervals",
+                 init_files_join_intervals_parser)
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser)
