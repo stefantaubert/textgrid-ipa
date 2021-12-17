@@ -316,47 +316,47 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
   logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
-def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
-  logger = getLogger(__name__)
+# def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
+#   logger = getLogger(__name__)
 
-  if not folder_in.exists():
-    raise Exception("Folder does not exist!")
+#   if not folder_in.exists():
+#     raise Exception("Folder does not exist!")
 
-  if not path_cache.exists():
-    raise Exception("Cache not found!")
+#   if not path_cache.exists():
+#     raise Exception("Cache not found!")
 
-  cache = cast(LookupCache, load_obj(path_cache))
+#   cache = cast(LookupCache, load_obj(path_cache))
 
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
+#   all_files = get_filepaths(folder_in)
+#   textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
+#   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
 
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    if textgrid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
+#   textgrid_file_in: Path
+#   for textgrid_file_in in tqdm(textgrid_files):
+#     textgrid_file_out = folder_out / textgrid_file_in.name
+#     if textgrid_file_out.exists() and not overwrite:
+#       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
+#       continue
 
-    logger.debug(f"Processing {textgrid_file_in}...")
+#     logger.debug(f"Processing {textgrid_file_in}...")
 
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
+#     grid = TextGrid()
+#     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
 
-    transcribe_words_to_arpa(
-      grid=grid,
-      tier_name=tier_name,
-      original_text_tier_name=original_text_tier_name,
-      cache=cache,
-      overwrite_existing_tier=overwrite_existing_tier,
-      consider_annotations=consider_annotations,
-      ignore_case=True,
-    )
+#     transcribe_words_to_arpa(
+#       grid=grid,
+#       tier_name=tier_name,
+#       original_text_tier_name=original_text_tier_name,
+#       cache=cache,
+#       overwrite_existing_tier=overwrite_existing_tier,
+#       consider_annotations=consider_annotations,
+#       ignore_case=True,
+#     )
 
-    folder_out.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out)
+#     folder_out.mkdir(parents=True, exist_ok=True)
+#     grid.write(textgrid_file_out)
 
-  logger.info(f"Written output .TextGrid files to: {folder_out}")
+#   logger.info(f"Written output .TextGrid files to: {folder_out}")
 
 
 def app_transcribe_words_to_arpa_on_phoneme_level(base_dir: Path, folder_in: Path, words_tier_name: str, phoneme_tier_name: str, arpa_tier_name: str, consider_annotations: bool, overwrite_existing_tier: bool, path_cache: Path, trim_symbols: str, folder_out: Path, overwrite: bool):

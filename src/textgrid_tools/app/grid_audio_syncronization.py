@@ -6,7 +6,7 @@ from typing import Iterable, cast
 from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_grid)
-from textgrid_tools.core.mfa.audio_grid_syncing import (can_sync_grid_to_audio,
+from textgrid_tools.core.mfa.grid_audio_syncronization import (can_sync_grid_to_audio,
                                                         sync_grid_to_audio)
 from tqdm import tqdm
 

@@ -5,17 +5,17 @@ from pathlib import Path
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 
-from textgrid_tools.app.audio_grid_syncing import init_files_sync_grids_parser
+from textgrid_tools.app.grid_audio_syncronization import \
+    init_files_sync_grids_parser
 from textgrid_tools.app.grid_interval_removal import \
     init_files_remove_intervals_parser
 from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
 from textgrid_tools.app.grid_stats_generation import \
     init_files_print_stats_parser
-from textgrid_tools.app.mfa_utils import (
-    add_graphemes, app_transcribe_words_to_arpa,
-    app_transcribe_words_to_arpa_on_phoneme_level,
-    extract_sentences_text_files, files_extract_tier_to_text,
-    normalize_text_files_in_folder)
+from textgrid_tools.app.mfa_utils import (add_graphemes,
+                                          extract_sentences_text_files,
+                                          files_extract_tier_to_text,
+                                          normalize_text_files_in_folder)
 from textgrid_tools.app.text_to_grid_conversion import \
     init_files_convert_text_to_grid_parser
 from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
@@ -36,6 +36,8 @@ from textgrid_tools.app.tier_symbol_removal import \
     init_remove_symbols_from_tiers_parser
 from textgrid_tools.app.tier_words_mapping import \
     init_files_map_words_to_tier_parser
+from textgrid_tools.app.tier_words_to_arpa_transcription import \
+    init_app_transcribe_words_to_arpa_on_phoneme_level_parser
 
 BASE_DIR_VAR = "base_dir"
 # DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -92,30 +94,16 @@ def init_add_graphemes_from_words_parser(parser: ArgumentParser):
   return add_graphemes
 
 
-def init_app_transcribe_words_to_arpa_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--original_text_tier_name", type=str, required=True)
-  parser.add_argument("--tier_name", type=str, required=True)
-  parser.add_argument("--overwrite_existing_tier", action="store_true")
-  parser.add_argument("--path_cache", type=Path, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--consider_annotations", action="store_true")
-  parser.add_argument("--overwrite", action="store_true")
-  return app_transcribe_words_to_arpa
-
-
-def init_app_transcribe_words_to_arpa_on_phoneme_level_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--words_tier_name", type=str, required=True)
-  parser.add_argument("--phoneme_tier_name", type=str, required=True)
-  parser.add_argument("--arpa_tier_name", type=str, required=True)
-  parser.add_argument("--consider_annotations", action="store_true")
-  parser.add_argument("--overwrite_existing_tier", action="store_true")
-  parser.add_argument("--path_cache", type=Path, required=True)
-  parser.add_argument("--trim_symbols", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return app_transcribe_words_to_arpa_on_phoneme_level
+# def init_app_transcribe_words_to_arpa_parser(parser: ArgumentParser):
+#   parser.add_argument("--folder_in", type=Path, required=True)
+#   parser.add_argument("--original_text_tier_name", type=str, required=True)
+#   parser.add_argument("--tier_name", type=str, required=True)
+#   parser.add_argument("--overwrite_existing_tier", action="store_true")
+#   parser.add_argument("--path_cache", type=Path, required=True)
+#   parser.add_argument("--folder_out", type=Path, required=True)
+#   parser.add_argument("--consider_annotations", action="store_true")
+#   parser.add_argument("--overwrite", action="store_true")
+#   return app_transcribe_words_to_arpa
 
 
 def _init_parser():
@@ -138,8 +126,8 @@ def _init_parser():
   _add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser)
   _add_parser_to(subparsers, "move-tier", init_files_move_tier_parser)
   _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
-  _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
-  _add_parser_to(subparsers, "mfa-words-to-arpa-on-phoneme-level",
+  # _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
+  _add_parser_to(subparsers, "transcribe-words-to-arpa-on-phoneme-level",
                  init_app_transcribe_words_to_arpa_on_phoneme_level_parser)
   _add_parser_to(subparsers, "split-grid",
                  init_files_split_grid_parser)
