@@ -7,19 +7,41 @@ from text_utils.symbol_format import SymbolFormat
 from text_utils.text import symbols_to_words
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.arpa import SIL
-from textgrid_tools.core.mfa.helper import interval_is_empty
+from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
+                                            get_first_tier, interval_is_empty,
+                                            tier_exists, tier_to_text)
 from textgrid_tools.utils import update_or_add_tier
 
 
-def add_layer_containing_original_text(original_text: str, grid: TextGrid, reference_tier_name: str, alignment_dict: PronunciationDict, new_tier_name: str, overwrite_existing_tier: bool) -> None:
+def can_map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str, alignment_dict: PronunciationDict, new_tier: str, overwrite_tier: bool) -> bool:
   logger = getLogger(__name__)
-  reference_tier: IntervalTier = grid.getFirst(reference_tier_name)
-  if reference_tier is None:
-    raise Exception("Reference-tier not found!")
-  new_tier = grid.getFirst(new_tier_name)
-  if new_tier is not None and not overwrite_existing_tier:
-    raise Exception("Tier already exists!")
 
+  if not check_is_valid_grid(grid):
+    logger.error("Grid is invalid!")
+    return False
+
+  if not tier_exists(grid, tier):
+    logger.error(f"Tier \"{tier}\" not found!")
+    return False
+
+  if not tier_exists(reference_grid, reference_tier):
+    logger.error(f"Tier \"{reference_tier}\" not found!")
+    return False
+
+  if tier_exists(grid, new_tier) and not overwrite_tier:
+    logger.error(f"Tier \"{new_tier}\" already exists!")
+    return False
+
+  # todo check alignment
+
+  return True
+
+
+def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str, alignment_dict: PronunciationDict, new_tier: str, overwrite_tier: bool) -> None:
+  logger = getLogger(__name__)
+  tier = get_first_tier(grid, tier)
+  reference_tier = get_first_tier(reference_grid, reference_tier)
+  original_text = tier_to_text(reference_tier, join_with=" ")
   symbols = text_to_symbols(
     lang=Language.ENG,
     text=original_text,
@@ -36,15 +58,9 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
   words = [word for word in words if alignment_dict[''.join(word).upper()][0] != (SIL,)]
   ignored_count = old_count - len(words)
   if ignored_count > 0:
-    logger.info(f"Ignored {ignored_count} \"sil\" annotations.")
+    logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
 
   intervals: List[Interval] = reference_tier.intervals
-  new_tier = IntervalTier(
-    minTime=reference_tier.minTime,
-    maxTime=reference_tier.maxTime,
-    name=new_tier_name,
-  )
-
   non_empty_intervals = [interval for interval in intervals if not interval_is_empty(interval)]
 
   if len(non_empty_intervals) != len(words):
@@ -55,7 +71,13 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
       logger.info(
         f"{'===>' if is_not_same else ''} {non_empty_intervals[i].mark} vs. {''.join(words[i])}")
     logger.info("...")
-    return
+    raise Exception()
+
+  res_tier = IntervalTier(
+    minTime=reference_tier.minTime,
+    maxTime=reference_tier.maxTime,
+    name=new_tier,
+  )
 
   for interval in intervals:
     new_word = ""
@@ -69,10 +91,9 @@ def add_layer_containing_original_text(original_text: str, grid: TextGrid, refer
       mark=new_word,
     )
 
-    new_tier.addInterval(new_interval)
+    res_tier.addInterval(new_interval)
 
-  if overwrite_existing_tier:
-    update_or_add_tier(grid, new_tier)
+  if overwrite_tier:
+    update_or_add_tier(grid, res_tier)
   else:
-    grid.append(new_tier)
-  return
+    grid.append(res_tier)

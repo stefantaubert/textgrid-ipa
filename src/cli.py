@@ -12,7 +12,7 @@ from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
 from textgrid_tools.app.grid_stats_generation import \
     init_files_print_stats_parser
 from textgrid_tools.app.mfa_utils import (
-    add_graphemes, add_original_texts_layer, app_transcribe_words_to_arpa,
+    add_graphemes, app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level,
     extract_sentences_text_files, files_extract_tier_to_text,
     normalize_text_files_in_folder)
@@ -34,6 +34,8 @@ from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
 from textgrid_tools.app.tier_renaming import init_files_rename_tier_parser
 from textgrid_tools.app.tier_symbol_removal import \
     init_remove_symbols_from_tiers_parser
+from textgrid_tools.app.tier_words_mapping import \
+    init_files_map_words_to_tier_parser
 
 BASE_DIR_VAR = "base_dir"
 # DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -78,18 +80,6 @@ def init_extract_sentences_text_files_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return extract_sentences_text_files
-
-
-def init_add_original_texts_layer_parser(parser: ArgumentParser):
-  parser.add_argument("--text_folder", type=Path, required=True)
-  parser.add_argument("--textgrid_folder_in", type=Path, required=True)
-  parser.add_argument("--reference_tier_name", type=str, required=True)
-  parser.add_argument("--new_tier_name", type=str, required=True)
-  parser.add_argument("--path_align_dict", type=Path, required=True)
-  parser.add_argument("--textgrid_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite_existing_tier", action="store_true")
-  parser.add_argument("--overwrite", action="store_true")
-  return add_original_texts_layer
 
 
 def init_add_graphemes_from_words_parser(parser: ArgumentParser):
@@ -139,7 +129,7 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
   _add_parser_to(subparsers, "join-tier-intervals",
                  init_files_join_intervals_parser)
-  _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
+  _add_parser_to(subparsers, "map-words-to-tier", init_files_map_words_to_tier_parser)
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser)
   _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
