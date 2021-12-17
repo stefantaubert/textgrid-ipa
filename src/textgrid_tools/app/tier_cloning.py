@@ -1,40 +1,32 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid
-from textgrid_tools.core.mfa.tier_symbol_removal import (can_remove_symbols,
-                                                         remove_symbols)
+from textgrid_tools.core.mfa.tier_cloning import can_clone_tier, clone_tier
 from tqdm import tqdm
 
+# clones the first tier with the name
 
-def init_remove_symbols_from_tiers_parser(parser: ArgumentParser):
+
+def init_files_clone_tier_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_in", type=Path, required=True)
-  parser.add_argument("--tiers", type=str, nargs='+', required=True)
-  parser.add_argument("--symbols", type=str, nargs='+', required=True)
+  parser.add_argument("--tier", type=str, required=True)
+  parser.add_argument("--new_tier", type=str, required=True)
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
+  # parser.add_argument("--overwrite_tier", action="store_true")
   parser.add_argument("--overwrite", action="store_true")
-  return remove_symbols_from_tiers
+  return files_clone_tier
 
 
-def remove_symbols_from_tiers(grid_folder_in: Path, tiers: List[str], symbols: List[str], n_digits: int, grid_folder_out: Path, overwrite: bool) -> None:
+def files_clone_tier(grid_folder_in: Path, tier: str, new_tier: str, n_digits: int, grid_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not grid_folder_in.exists():
     logger.error("Textgrid folder does not exist!")
-    return
-
-  tiers_set = set(tiers)
-  if len(tiers_set) == 0:
-    logger.error("Please specify at least one tier!")
-    return
-
-  symbols_set = set(symbols)
-  if len(symbols_set) == 0:
-    logger.error("Please specify at least one symbol!")
     return
 
   grid_files = get_grid_files(grid_folder_in)
@@ -54,15 +46,12 @@ def remove_symbols_from_tiers(grid_folder_in: Path, tiers: List[str], symbols: L
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    can_remove = can_remove_symbols(grid_in, tiers_set, symbols)
-    if not can_remove:
+    can_rename = can_clone_tier(grid_in, tier)
+    if not can_rename:
       logger.info("Skipped.")
       continue
 
-    changed_anything = remove_symbols(grid_in, tiers_set, symbols)
-
-    if not changed_anything:
-      logger.info("Nothing was changed.")
+    clone_tier(grid_in, tier, new_tier)
 
     logger.info("Saving...")
     grid_in.write(grid_file_out_abs)

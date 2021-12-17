@@ -11,14 +11,16 @@ from textgrid_tools.app.mfa_utils import (
     add_graphemes, add_marker, add_original_texts_layer,
     app_transcribe_words_to_arpa,
     app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
-    extract_sentences_text_files, files_clone_tier, files_extract_tier_to_text,
+    extract_sentences_text_files, files_extract_tier_to_text,
     files_fix_boundaries, files_map_arpa_to_ipa, files_move_tier,
-    files_print_stats, files_remove_intervals, files_remove_symbols,
-    files_remove_tiers, files_rename_tier, files_split_intervals,
-    files_sync_grids, merge_words_to_new_textgrid,
-    normalize_text_files_in_folder)
+    files_print_stats, files_remove_intervals, files_sync_grids,
+    merge_words_to_new_textgrid, normalize_text_files_in_folder)
+from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
 from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
+from textgrid_tools.app.tier_renaming import init_files_rename_tier_parser
+from textgrid_tools.app.tier_symbol_removal import \
+    init_remove_symbols_from_tiers_parser
 
 BASE_DIR_VAR = "base_dir"
 # DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -62,24 +64,6 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return normalize_text_files_in_folder
-
-
-def init_files_rename_tier_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_name", type=str, required=True)
-  parser.add_argument("--new_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_rename_tier
-
-
-def init_files_clone_tier_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_name", type=str, required=True)
-  parser.add_argument("--new_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_clone_tier
 
 
 def init_files_map_arpa_to_ipa_parser(parser: ArgumentParser):
@@ -130,7 +114,6 @@ def init_files_sync_grids_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_sync_grids
-
 
 
 def init_files_print_stats_parser(parser: ArgumentParser):
@@ -231,9 +214,9 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "mfa-arpa-to-ipa", init_files_map_arpa_to_ipa_parser)
   _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
-  _add_parser_to(subparsers, "mfa-remove-symbols", init_files_remove_symbols_parser)
-  _add_parser_to(subparsers, "mfa-rename-tier", init_files_rename_tier_parser)
-  _add_parser_to(subparsers, "mfa-clone-tier", init_files_clone_tier_parser)
+  _add_parser_to(subparsers, "remove-symbols-from-tiers", init_remove_symbols_from_tiers_parser)
+  _add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser)
+  _add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser)
   _add_parser_to(subparsers, "move-tier", init_files_move_tier_parser)
   _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-marker-tier", init_add_marker_parser)

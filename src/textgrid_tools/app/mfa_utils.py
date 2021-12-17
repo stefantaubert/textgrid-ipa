@@ -106,62 +106,6 @@ def get_files_dict(folder: Path, filetype: str) -> Dict[str, Path]:
   return resulting_files
 
 
-def files_rename_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
-
-  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in_rel: Path
-  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    if textgrid_file_out_abs.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    rename_tier(grid, tier_name, new_tier_name)
-    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out_abs)
-
-  logger.info(f"Done. Written output to: {folder_out}")
-  return
-
-
-def files_clone_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_name: str, folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
-
-  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  for file_path, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    if textgrid_file_out_abs.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    logger.info(f"Cloning tier \"{tier_name}\" in file \"{file_path}\"...")
-    clone_tier(grid, tier_name, new_tier_name)
-    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out_abs)
-
-  logger.info(f"Done. Written output to: {folder_out}")
-  return
-
-
 def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, remove_marks: Optional[List[str]], remove_empty: bool, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
