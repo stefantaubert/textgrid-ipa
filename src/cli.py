@@ -6,6 +6,7 @@ from pronunciation_dict_parser.default_parser import PublicDictType
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 
+from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
 from textgrid_tools.app.mfa_utils import (
     add_graphemes, add_marker, add_original_texts_layer,
     app_transcribe_words_to_arpa,
@@ -16,6 +17,8 @@ from textgrid_tools.app.mfa_utils import (
     files_remove_tiers, files_rename_tier, files_split_intervals,
     files_sync_grids, merge_words_to_new_textgrid,
     normalize_text_files_in_folder)
+from textgrid_tools.app.tier_moving import init_files_move_tier_parser
+from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
 
 BASE_DIR_VAR = "base_dir"
 # DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
@@ -61,14 +64,6 @@ def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
   return normalize_text_files_in_folder
 
 
-def init_files_remove_tiers_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_names", type=str, nargs='+', required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_remove_tiers
-
-
 def init_files_rename_tier_parser(parser: ArgumentParser):
   parser.add_argument("--folder_in", type=Path, required=True)
   parser.add_argument("--tier_name", type=str, required=True)
@@ -85,15 +80,6 @@ def init_files_clone_tier_parser(parser: ArgumentParser):
   parser.add_argument("--folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_clone_tier
-
-
-def init_files_move_tier_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--tier_name", type=str, required=True)
-  parser.add_argument("--position", type=int, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_move_tier
 
 
 def init_files_map_arpa_to_ipa_parser(parser: ArgumentParser):
@@ -153,17 +139,6 @@ def init_files_remove_symbols_parser(parser: ArgumentParser):
   parser.add_argument("--symbols", type=str, nargs='+', required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_symbols
-
-
-def init_files_split_intervals_parser(parser: ArgumentParser):
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--audio_folder_in", type=Path, required=True)
-  parser.add_argument("--reference_tier_name", type=str, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--split_marks", type=str, required=True)
-  parser.add_argument("--audio_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_split_intervals
 
 
 def init_files_print_stats_parser(parser: ArgumentParser):
@@ -263,18 +238,18 @@ def _init_parser():
   _add_parser_to(subparsers, "mfa-add-texts", init_add_original_texts_layer_parser)
   _add_parser_to(subparsers, "mfa-textgrid-to-txt", init_files_extract_tier_to_text_parser)
   _add_parser_to(subparsers, "mfa-arpa-to-ipa", init_files_map_arpa_to_ipa_parser)
-  _add_parser_to(subparsers, "mfa-remove-tiers", init_files_remove_tiers_parser)
+  _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
   _add_parser_to(subparsers, "mfa-remove-symbols", init_files_remove_symbols_parser)
   _add_parser_to(subparsers, "mfa-rename-tier", init_files_rename_tier_parser)
   _add_parser_to(subparsers, "mfa-clone-tier", init_files_clone_tier_parser)
-  _add_parser_to(subparsers, "mfa-move-tier", init_files_move_tier_parser)
+  _add_parser_to(subparsers, "move-tier", init_files_move_tier_parser)
   _add_parser_to(subparsers, "mfa-add-graphemes-from-words", init_add_graphemes_from_words_parser)
   _add_parser_to(subparsers, "mfa-add-marker-tier", init_add_marker_parser)
   _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
   _add_parser_to(subparsers, "mfa-words-to-arpa-on-phoneme-level",
                  init_app_transcribe_words_to_arpa_on_phoneme_level_parser)
-  _add_parser_to(subparsers, "mfa-split",
-                 init_files_split_intervals_parser)
+  _add_parser_to(subparsers, "split",
+                 init_files_split_grid_parser)
   _add_parser_to(subparsers, "mfa-remove-intervals",
                  init_files_remove_intervals_parser)
   _add_parser_to(subparsers, "mfa-fix-boundaries",

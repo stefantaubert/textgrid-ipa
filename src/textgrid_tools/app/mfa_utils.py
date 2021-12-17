@@ -100,39 +100,6 @@ def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: s
   return
 
 
-def files_remove_tiers(base_dir: Path, folder_in: Path, tier_names: List[str], folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
-
-  tier_names_set = set(tier_names)
-  if len(tier_names_set) == 0:
-    logger.error("Please specify at least one tier!")
-    return
-
-  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in_rel: Path
-  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    if textgrid_file_out_abs.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    remove_tiers(grid, tier_names_set)
-    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out_abs)
-
-  logger.info(f"Done. Written output to: {folder_out}")
-  return
-
-
 def files_remove_symbols(base_dir: Path, folder_in: Path, tier_names: List[str], symbols: List[str], folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
@@ -232,90 +199,6 @@ def files_clone_tier(base_dir: Path, folder_in: Path, tier_name: str, new_tier_n
 
   logger.info(f"Done. Written output to: {folder_out}")
   return
-
-
-def files_move_tier(base_dir: Path, folder_in: Path, tier_name: str, position: int, folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
-
-  textgrid_files = get_files_dict(folder_in, filetype=TEXTGRID_FILE_TYPE)
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  logger.info("Reading files...")
-  for _, textgrid_file_in_rel in cast(Iterable[Tuple[str, Path]], tqdm(textgrid_files.items())):
-    textgrid_file_out_abs = folder_out / textgrid_file_in_rel
-    if textgrid_file_out_abs.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in_rel.name}")
-      continue
-
-    grid = TextGrid()
-    grid.read(folder_in / textgrid_file_in_rel, round_digits=DEFAULT_TEXTGRID_PRECISION)
-    move_tier(grid, tier_name, position)
-    textgrid_file_out_abs.parent.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out_abs)
-
-  logger.info(f"Done. Written output to: {folder_out}")
-  return
-
-
-def files_split_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, split_marks: str, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  if not audio_folder_in.exists():
-    raise Exception("Audio folder does not exist!")
-
-  split_marks_set = set(split_marks.split(" "))
-  if len(split_marks_set) == 0:
-    return
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  all_audio_files = get_filepaths(audio_folder_in)
-  wav_files = {file.stem: file for file in all_audio_files if file.suffix.lower() == ".wav"}
-  logger.info(f"Found {len(wav_files)} .wav files.")
-
-  logger.info("Reading files...")
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    logger.info(f"Processing {textgrid_file_in.stem}...")
-    textgrid_files_out = folder_out / textgrid_file_in.stem
-    wav_files_out = audio_folder_out / f"{textgrid_file_in.stem}"
-    if (textgrid_files_out.exists() or wav_files_out.exists()) and not overwrite:
-      logger.info(f"Skipped already existing file (.TextGrid or .wav): {textgrid_file_in.name}")
-      continue
-
-    if textgrid_file_in.stem not in wav_files:
-      logger.error(f"For the .TextGrid file {textgrid_file_in} no .wav file was found. Skipping...")
-      continue
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    audio_path = wav_files[textgrid_file_in.stem]
-    sr, wav = read(audio_path)
-    success, grids_wavs = split_grid(
-      grid, wav, sr, reference_tier_name, split_marks_set, n_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    if success:
-      assert grids_wavs is not None
-      logger.info("Saving...")
-      textgrid_files_out.mkdir(parents=True, exist_ok=True)
-      wav_files_out.mkdir(parents=True, exist_ok=True)
-      for i, (new_grid, new_wav) in enumerate(tqdm(grids_wavs)):
-        grid_out_path = textgrid_files_out / f"{i}.TextGrid"
-        wav_out_path = wav_files_out / f"{i}.wav"
-        new_grid.write(grid_out_path)
-        write(wav_out_path, sr, new_wav)
-
-  logger.info(f"Done. Written output to: {folder_out}")
 
 
 def files_remove_intervals(base_dir: Path, folder_in: Path, audio_folder_in: Path, reference_tier_name: str, remove_marks: Optional[List[str]], remove_empty: bool, folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
