@@ -6,6 +6,7 @@ from pronunciation_dict_parser.default_parser import PublicDictType
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 
+from textgrid_tools.app.audio_grid_syncing import init_files_sync_grids_parser
 from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
 from textgrid_tools.app.mfa_utils import (
     add_graphemes, add_marker, add_original_texts_layer,
@@ -15,6 +16,8 @@ from textgrid_tools.app.mfa_utils import (
     files_fix_boundaries, files_print_stats, files_remove_intervals,
     files_sync_grids, merge_words_to_new_textgrid,
     normalize_text_files_in_folder)
+from textgrid_tools.app.text_to_grid_conversion import \
+    init_files_convert_text_to_grid_parser
 from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
     init_map_arpa_tier_to_ipa_parser
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
@@ -98,14 +101,6 @@ def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_intervals
-
-
-def init_files_sync_grids_parser(parser: ArgumentParser):
-  parser.add_argument("--folder", type=Path, required=True)
-  parser.add_argument("--audio_folder", type=Path, required=True)
-  parser.add_argument("--folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return files_sync_grids
 
 
 def init_files_print_stats_parser(parser: ArgumentParser):
@@ -197,6 +192,8 @@ def _init_parser():
   result = ArgumentParser()
   subparsers = result.add_subparsers(help="sub-command help")
 
+  _add_parser_to(subparsers, "convert-text-to-grid",
+                 init_files_convert_text_to_grid_parser)
   _add_parser_to(subparsers, "mfa-create-dict-from-texts", init_convert_texts_to_dicts_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
@@ -221,7 +218,7 @@ def _init_parser():
                  init_files_remove_intervals_parser)
   _add_parser_to(subparsers, "mfa-fix-boundaries",
                  init_files_fix_boundaries_parser)
-  _add_parser_to(subparsers, "mfa-sync-grid-to-audio",
+  _add_parser_to(subparsers, "sync-grid-to-audio",
                  init_files_sync_grids_parser)
   _add_parser_to(subparsers, "mfa-stats",
                  init_files_print_stats_parser)
