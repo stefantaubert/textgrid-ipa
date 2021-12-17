@@ -1,14 +1,10 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional, Set, Tuple, cast
+from typing import Dict
 
-from general_utils import load_obj, save_obj
 from general_utils.main import get_all_files_in_all_subfolders
-from pronunciation_dict_parser import export
-from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import parse_file
 from scipy.io.wavfile import read
-from sentence2pronunciation.lookup_cache import LookupCache
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
@@ -21,78 +17,6 @@ DEFAULT_TEXTGRID_PRECISION = 16
 
 TEXTGRID_FILE_TYPE = ".TextGrid"
 AUDIO_FILE_TYPE = ".wav"
-
-
-def convert_texts_to_arpa_dicts(base_dir: Path, folder_in: Path, trim_symbols: str, consider_annotations: bool, out_path_mfa_dict: Optional[Path], out_path_cache: Optional[Path], out_path_punctuation_dict: Optional[Path], dict_type: PublicDictType, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Folder does not exist!")
-
-  if out_path_mfa_dict is not None and out_path_mfa_dict.is_file() and not overwrite:
-    logger.info(f"{out_path_mfa_dict} already exists!")
-    return
-
-  if out_path_punctuation_dict is not None and out_path_punctuation_dict.is_file() and not overwrite:
-    logger.info(f"{out_path_punctuation_dict} already exists!")
-    return
-
-  trim_symbols_set = set(trim_symbols)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
-
-  all_files = get_filepaths(folder_in)
-  text_files = [file for file in all_files if file.suffix.lower() == ".txt"]
-  logger.info(f"Found {len(text_files)} .txt files.")
-
-  text_file_in: Path
-  text_contents: List[str] = []
-  for text_file_in in tqdm(text_files):
-    logger.info(f"Processing {text_file_in}...")
-    text = text_file_in.read_text()
-    text_contents.append(text)
-
-  logger.info("Producing dictionary...")
-
-  pronunciation_dict, pronunciation_dict_punctuation, cache = get_arpa_pronunciation_dicts_from_texts(
-    texts=text_contents,
-    trim_symbols=trim_symbols_set,
-    dict_type=dict_type,
-    consider_annotations=consider_annotations,
-    ignore_case=True,
-    n_jobs=15,
-    split_on_hyphen=True,
-  )
-
-  if out_path_mfa_dict is not None:
-    logger.info(f"Saving {out_path_mfa_dict}...")
-    export(
-      include_counter=True,
-      path=out_path_mfa_dict,
-      pronunciation_dict=pronunciation_dict,
-      symbol_sep=" ",
-      word_pronunciation_sep="  ",
-    )
-    logger.info(f"Written pronunciation dictionary for MFA alignment to: {out_path_mfa_dict}")
-
-  if out_path_punctuation_dict is not None:
-    logger.info(f"Saving {out_path_punctuation_dict}...")
-    export(
-      include_counter=True,
-      path=out_path_punctuation_dict,
-      pronunciation_dict=pronunciation_dict_punctuation,
-      symbol_sep=" ",
-      word_pronunciation_sep="  ",
-    )
-    logger.info(
-        f"Written pronunciation dictionary for adding punctuation phonemes to: {out_path_punctuation_dict}")
-
-  if out_path_cache is not None:
-    logger.info(f"Saving {out_path_cache}...")
-    save_obj(cache, out_path_cache)
-    logger.info(
-        f"Written cache to: {out_path_cache}")
-
-  return
 
 
 def get_files_dict(folder: Path, filetype: str) -> Dict[str, Path]:
@@ -308,97 +232,6 @@ def add_graphemes(base_dir: Path, folder_in: Path, original_text_tier_name: str,
       new_tier_name=new_tier_name,
       original_text_tier_name=original_text_tier_name,
       overwrite_existing_tier=overwrite_existing_tier,
-    )
-
-    folder_out.mkdir(parents=True, exist_ok=True)
-    grid.write(textgrid_file_out)
-
-  logger.info(f"Written output .TextGrid files to: {folder_out}")
-
-
-# def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
-#   logger = getLogger(__name__)
-
-#   if not folder_in.exists():
-#     raise Exception("Folder does not exist!")
-
-#   if not path_cache.exists():
-#     raise Exception("Cache not found!")
-
-#   cache = cast(LookupCache, load_obj(path_cache))
-
-#   all_files = get_filepaths(folder_in)
-#   textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
-#   logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-#   textgrid_file_in: Path
-#   for textgrid_file_in in tqdm(textgrid_files):
-#     textgrid_file_out = folder_out / textgrid_file_in.name
-#     if textgrid_file_out.exists() and not overwrite:
-#       logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-#       continue
-
-#     logger.debug(f"Processing {textgrid_file_in}...")
-
-#     grid = TextGrid()
-#     grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-#     transcribe_words_to_arpa(
-#       grid=grid,
-#       tier_name=tier_name,
-#       original_text_tier_name=original_text_tier_name,
-#       cache=cache,
-#       overwrite_existing_tier=overwrite_existing_tier,
-#       consider_annotations=consider_annotations,
-#       ignore_case=True,
-#     )
-
-#     folder_out.mkdir(parents=True, exist_ok=True)
-#     grid.write(textgrid_file_out)
-
-#   logger.info(f"Written output .TextGrid files to: {folder_out}")
-
-
-def app_transcribe_words_to_arpa_on_phoneme_level(base_dir: Path, folder_in: Path, words_tier_name: str, phoneme_tier_name: str, arpa_tier_name: str, consider_annotations: bool, overwrite_existing_tier: bool, path_cache: Path, trim_symbols: str, folder_out: Path, overwrite: bool):
-  logger = getLogger(__name__)
-
-  if not folder_in.exists():
-    raise Exception("Folder does not exist!")
-
-  if not path_cache.exists():
-    raise Exception("Cache not found!")
-
-  cache = load_obj(path_cache)
-
-  all_files = get_filepaths(folder_in)
-  textgrid_files = [file for file in all_files if str(file).endswith(".TextGrid")]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  trim_symbols_set = set(trim_symbols)
-  logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
-
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    textgrid_file_out = folder_out / textgrid_file_in.name
-    if textgrid_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
-
-    logger.debug(f"Processing {textgrid_file_in}...")
-
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    transcribe_words_to_arpa_on_phoneme_level(
-      grid=grid,
-      arpa_tier_name=arpa_tier_name,
-      phoneme_tier_name=phoneme_tier_name,
-      words_tier_name=words_tier_name,
-      cache=cache,
-      overwrite_existing_tier=overwrite_existing_tier,
-      trim_symbols=trim_symbols_set,
-      consider_annotations=consider_annotations,
-      ignore_case=True,
     )
 
     folder_out.mkdir(parents=True, exist_ok=True)
