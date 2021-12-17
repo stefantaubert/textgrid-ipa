@@ -2,7 +2,6 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 
-from pronunciation_dict_parser.default_parser import PublicDictType
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 
@@ -14,9 +13,9 @@ from textgrid_tools.app.grid_stats_generation import \
     init_files_print_stats_parser
 from textgrid_tools.app.mfa_utils import (
     add_graphemes, add_original_texts_layer, app_transcribe_words_to_arpa,
-    app_transcribe_words_to_arpa_on_phoneme_level, convert_texts_to_arpa_dicts,
+    app_transcribe_words_to_arpa_on_phoneme_level,
     extract_sentences_text_files, files_extract_tier_to_text,
-    merge_words_to_new_textgrid, normalize_text_files_in_folder)
+    normalize_text_files_in_folder)
 from textgrid_tools.app.text_to_grid_conversion import \
     init_files_convert_text_to_grid_parser
 from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
@@ -24,6 +23,8 @@ from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
 from textgrid_tools.app.tier_boundary_adjustment import \
     init_files_fix_boundaries_parser
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
+from textgrid_tools.app.tier_dictionary_creation import \
+    init_convert_texts_to_dicts_parser
 from textgrid_tools.app.tier_interval_joining import \
     init_files_join_intervals_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
@@ -50,25 +51,6 @@ def _add_parser_to(subparsers, name: str, init_method):
   parser.set_defaults(invoke_handler=invoke_method)
   # add_base_dir(parser)
   return parser
-
-
-def init_convert_texts_to_dicts_parser(parser: ArgumentParser):
-  arpa_dicts = [
-    PublicDictType.MFA_ARPA,
-    PublicDictType.CMU_ARPA,
-    PublicDictType.LIBRISPEECH_ARPA,
-    PublicDictType.PROSODYLAB_ARPA,
-  ]
-  parser.add_argument("--folder_in", type=Path, required=True)
-  parser.add_argument("--trim_symbols", type=str, required=True)
-  parser.add_argument("--consider_annotations", action="store_true")
-  parser.add_argument("--out_path_mfa_dict", type=Path, required=False)
-  parser.add_argument("--out_path_punctuation_dict", type=Path, required=False)
-  parser.add_argument("--out_path_cache", type=Path, required=False)
-  parser.add_argument("--dict_type", choices=arpa_dicts,
-                      type=PublicDictType.__getitem__, required=True)
-  parser.add_argument("--overwrite", action="store_true")
-  return convert_texts_to_arpa_dicts
 
 
 def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
@@ -152,7 +134,7 @@ def _init_parser():
 
   _add_parser_to(subparsers, "convert-text-to-grid",
                  init_files_convert_text_to_grid_parser)
-  _add_parser_to(subparsers, "mfa-create-dict-from-texts", init_convert_texts_to_dicts_parser)
+  _add_parser_to(subparsers, "create-dict-from-grids", init_convert_texts_to_dicts_parser)
   _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
   _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
   _add_parser_to(subparsers, "join-tier-intervals",

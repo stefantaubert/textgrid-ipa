@@ -13,14 +13,44 @@ from text_utils.symbol_format import SymbolFormat
 from text_utils.text import text_to_sentences
 from text_utils.types import Symbol
 from text_utils.utils import symbols_ignore
+from textgrid import TextGrid
 from textgrid_tools.core.mfa.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
+from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
+                                            get_first_tier, tier_exists,
+                                            tier_to_text)
 from tqdm import tqdm
 
 
-def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool) -> Tuple[PronunciationDict, PronunciationDict, LookupCache]:
+def can_get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str) -> bool:
+  logger = getLogger(__name__)
+  if len(grids) == 0:
+    logger.error("No grids found!")
+    return False
+
+  for grid in grids:
+    if not check_is_valid_grid(grid):
+      logger.error("Grid is invalid!")
+      return False
+
+    if not tier_exists(grid, tier):
+      logger.info("Tier does not exist.")
+      return False
+
+  return True
+
+
+def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, trim_symbols: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool) -> Tuple[PronunciationDict, PronunciationDict, LookupCache]:
+  assert can_get_arpa_pronunciation_dicts_from_texts(grids, tier)
   logger = getLogger(__name__)
   logger.info(f"Chosen dictionary type: {dict_type}")
+
   logger.info("Getting all sentences...")
+  texts = []
+  for grid in grids:
+    target_tier = get_first_tier(grid, tier)
+    text = tier_to_text(target_tier, join_with=" ")
+    texts.append(text)
+
   text_sentences = {
     text_to_symbols(
       lang=Language.ENG,
@@ -77,9 +107,9 @@ def get_arpa_pronunciation_dicts_from_texts(texts: List[str], trim_symbols: Set[
 
     arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
     if arpa_contains_only_punctuation:
-      logger.info(
-        f"The arpa of the word {''.join(unique_word)} contains only punctuation, therefore annotating \"{SIL}\".")
       arpa_symbols_no_punctuation = (SIL,)
+      logger.info(
+        f"The arpa of the word {''.join(unique_word)} contained only punctuation, therefore \"{SIL}\" was annotated.")
     assert word_str not in pronunciation_dict_no_punctuation
     pronunciation_dict_no_punctuation[word_str] = OrderedSet([arpa_symbols_no_punctuation])
   logger.info("Done.")
