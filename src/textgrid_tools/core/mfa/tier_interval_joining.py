@@ -67,8 +67,6 @@ def join_intervals(grid: TextGrid, tier: str, new_tier: str, min_pause_s: float,
   intervals = durations_to_intervals(durations, maxTime=grid.maxTime)
   new_tier.intervals.extend(intervals)
 
-  grid.append(new_tier)
-
   if overwrite_tier:
     update_or_add_tier(grid, new_tier)
   else:

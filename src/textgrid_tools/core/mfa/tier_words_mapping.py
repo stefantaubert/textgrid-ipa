@@ -20,6 +20,10 @@ def can_map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, r
     logger.error("Grid is invalid!")
     return False
 
+  if not check_is_valid_grid(reference_grid):
+    logger.error("Reference grid is invalid!")
+    return False
+
   if not tier_exists(grid, tier):
     logger.error(f"Tier \"{tier}\" not found!")
     return False
@@ -53,14 +57,14 @@ def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, refer
     # due to whitespace collapsing there should not be any empty words
     assert len(word) > 0
 
-  # remove words with silence annotations, that have no corresponding interval
-  old_count = len(words)
-  words = [word for word in words if alignment_dict[''.join(word).upper()][0] != (SIL,)]
-  ignored_count = old_count - len(words)
-  if ignored_count > 0:
-    logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
+  # if original was text then: remove words with silence annotations, that have no corresponding interval
+  # old_count = len(words)
+  # words = [word for word in words if alignment_dict[''.join(word).upper()][0] != (SIL,)]
+  # ignored_count = old_count - len(words)
+  # if ignored_count > 0:
+  #   logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
 
-  intervals: List[Interval] = reference_tier.intervals
+  intervals: List[Interval] = tier.intervals
   non_empty_intervals = [interval for interval in intervals if not interval_is_empty(interval)]
 
   if len(non_empty_intervals) != len(words):
@@ -74,8 +78,8 @@ def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, refer
     raise Exception()
 
   res_tier = IntervalTier(
-    minTime=reference_tier.minTime,
-    maxTime=reference_tier.maxTime,
+    minTime=tier.minTime,
+    maxTime=tier.maxTime,
     name=new_tier,
   )
 
@@ -90,7 +94,6 @@ def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, refer
       maxTime=interval.maxTime,
       mark=new_word,
     )
-
     res_tier.addInterval(new_interval)
 
   if overwrite_tier:

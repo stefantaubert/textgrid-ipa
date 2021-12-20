@@ -91,8 +91,7 @@ def is_tier_valid(tier: IntervalTier) -> bool:
 
 
 def check_interval_is_valid(interval: Interval) -> bool:
-  if not check_minTime_and_maxTime_are_valid(interval.minTime, interval.maxTime):
-    return False
+  return check_minTime_and_maxTime_are_valid(interval.minTime, interval.maxTime)
 
 
 def check_tier_intervals_are_consecutive(tier: IntervalTier) -> bool:

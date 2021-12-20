@@ -7,7 +7,7 @@ from general_utils import save_obj
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.export import export
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS
+from textgrid_tools.app.globals import DEFAULT_N_DIGITS, DEFAULT_N_JOBS
 from textgrid_tools.app.helper import get_grid_files, load_grid
 from textgrid_tools.core.mfa.tiers_dictionary_creation import (
     can_get_arpa_pronunciation_dicts_from_texts,
@@ -30,6 +30,7 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser):
   parser.add_argument("--out_path_mfa_dict", type=Path, required=False)
   parser.add_argument("--out_path_punctuation_dict", type=Path, required=False)
   parser.add_argument("--out_path_cache", type=Path, required=False)
+  parser.add_argument("--n_jobs", type=int, default=DEFAULT_N_JOBS)
   parser.add_argument("--dict_type", choices=arpa_dicts,
                       type=PublicDictType.__getitem__, required=True)
   parser.add_argument("--overwrite", action="store_true")

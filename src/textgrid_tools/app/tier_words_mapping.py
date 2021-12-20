@@ -85,7 +85,7 @@ def files_map_words_to_tier(grid_folder_in: Path, tier: str, reference_grid_fold
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    ref_grid_file_in_abs = grid_folder_in / ref_grid_files[file_stem]
+    ref_grid_file_in_abs = reference_grid_folder_in / ref_grid_files[file_stem]
     ref_grid_in = load_grid(ref_grid_file_in_abs, n_digits)
 
     can_map = can_map_words_to_tier(
@@ -96,7 +96,7 @@ def files_map_words_to_tier(grid_folder_in: Path, tier: str, reference_grid_fold
     try:
       map_words_to_tier(grid_in, tier, ref_grid_in, reference_tier,
                         alignment_dict, new_tier, overwrite_tier)
-    except Exception:
+    except Exception as ex:
       logger.info("Skipped.")
       continue
 

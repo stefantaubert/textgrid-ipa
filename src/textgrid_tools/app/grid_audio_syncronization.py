@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import Iterable, cast
 
 from scipy.io.wavfile import read
+from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_grid)
-from textgrid_tools.core.mfa.grid_audio_syncronization import (can_sync_grid_to_audio,
-                                                        sync_grid_to_audio)
+from textgrid_tools.core.mfa.grid_audio_syncronization import (
+    can_sync_grid_to_audio, sync_grid_to_audio)
 from tqdm import tqdm
 
 
 def init_files_sync_grids_parser(parser: ArgumentParser):
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--audio_folder_in", type=Path, required=True)
-  parser.add_argument("--n_digits", type=int, required=True)
+  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_sync_grids

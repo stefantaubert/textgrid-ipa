@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import numpy as np
 from audio_utils.audio import samples_to_s
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.mfa.helper import check_is_valid_grid
 from textgrid_tools.core.mfa.string_format import StringFormat, get_symbols
 
 
@@ -114,15 +115,16 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
     duration_s = 1
     logger.info("Adjusted grid duration to one second since it would be zero otherwise.")
 
-  duration_s = round(duration_s, n_digits)
-
   minTime = 0
-  maxTime = duration_s
+  maxTime = round(duration_s, n_digits)
+
+  minTime_text_interval = 0
+  maxTime_text_interval = duration_s
   if start is not None:
-    minTime = start
+    minTime_text_interval = round(start, n_digits)
     logger.info(f"Set start of grid to {start}.")
   if end is not None:
-    maxTime = end
+    maxTime_text_interval = round(end, n_digits)
     logger.info(f"Set end of grid to {end}.")
 
   grid = TextGrid(
@@ -138,13 +140,30 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
     maxTime=maxTime,
   )
 
+  if minTime < minTime_text_interval:
+    start_interval = Interval(
+      minTime=0,
+      maxTime=minTime_text_interval,
+      mark="",
+    )
+    tier.addInterval(start_interval)
+
   interval = Interval(
-    minTime=minTime,
-    maxTime=maxTime,
+    minTime=minTime_text_interval,
+    maxTime=maxTime_text_interval,
     mark=text,
   )
-
   tier.addInterval(interval)
-  grid.append(tier)
 
+  if maxTime_text_interval < maxTime:
+    start_interval = Interval(
+      minTime=maxTime_text_interval,
+      maxTime=maxTime,
+      mark="",
+    )
+    tier.addInterval(start_interval)
+
+  grid.append(tier)
+  
+  assert check_is_valid_grid(grid)
   return grid

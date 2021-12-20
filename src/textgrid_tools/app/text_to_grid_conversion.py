@@ -90,6 +90,9 @@ def files_convert_text_to_grid(text_folder_in: Path, audio_folder_in: Optional[P
 
     audio_in = None
     sample_rate = None
+    start = None
+    end = None
+
     if file_stem in audio_files:
       audio_file_in_abs = audio_folder_in / audio_files[file_stem]
       sample_rate, audio_in = read(audio_file_in_abs)
@@ -99,8 +102,6 @@ def files_convert_text_to_grid(text_folder_in: Path, audio_folder_in: Optional[P
       can_parse_meta = can_parse_meta_content(meta_content)
       if not can_parse_meta:
         logger.info("Meta couldn't be parsed!")
-        start = None
-        end = None
       else:
         start, end = parse_meta_content(meta_content)
         logger.info(f"Parsed meta [{start}, {end}].")
