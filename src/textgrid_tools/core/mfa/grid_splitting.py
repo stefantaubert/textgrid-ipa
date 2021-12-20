@@ -5,7 +5,8 @@ from typing import Iterable, List, Optional, Set, Tuple, cast
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import IntervalTier, TextGrid
-from textgrid_tools.core.mfa.audio_grid_syncing import set_end_to_audio_len
+from textgrid_tools.core.mfa.grid_audio_syncronization import (
+    can_set_end_to_audio_len, set_end_to_audio_len)
 from textgrid_tools.core.mfa.helper import (
     check_timepoints_exist_on_all_tiers_as_boundaries,
     find_intervals_with_mark, get_intervals_from_timespan)
@@ -93,10 +94,12 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     grid_audio = audio[audio_part]
 
     # set ending correct
-    success = set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
+    success = can_set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
     if not success:
       logger.error("Couldn't set grid maxTime to audio len!")
       return False, None
+
+    set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
 
     result.append((range_grid, grid_audio))
   durations = list(res_grid.maxTime for res_grid, _ in result)

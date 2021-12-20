@@ -2,8 +2,7 @@ from logging import getLogger
 from typing import Iterable, Set, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid, get_tiers,
-                                            tier_exists)
+from textgrid_tools.core.mfa.helper import check_is_valid_grid, tier_exists
 
 
 def can_remove_symbols(grid: TextGrid, tiers: Set[str], symbols: Set[str]) -> bool:
