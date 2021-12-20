@@ -99,16 +99,20 @@ def can_parse_meta_content(meta_content: str) -> bool:
 
 def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[int], grid_name_out: Optional[str], tier_out: str, characters_per_second: float, n_digits: int, start: Optional[float], end: Optional[float], string_format: StringFormat) -> TextGrid:
   assert can_convert_texts_to_grid(tier_out, characters_per_second)
+  logger = getLogger(__name__)
   duration_s: float = None
   if audio is not None:
     assert sr is not None
     duration_s = samples_to_s(audio.shape[0], sr)
+    logger.info(f"Total grid duration is {duration_s}.")
   else:
     total_characters = get_character_count(text, string_format)
     duration_s = total_characters / characters_per_second
+    logger.info(f"Estimated grid duration to {duration_s}.")
 
   if duration_s == 0:
     duration_s = 1
+    logger.info("Adjusted grid duration to one second since it would be zero otherwise.")
 
   duration_s = round(duration_s, n_digits)
 
@@ -116,8 +120,10 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
   maxTime = duration_s
   if start is not None:
     minTime = start
+    logger.info(f"Set start of grid to {start}.")
   if end is not None:
     maxTime = end
+    logger.info(f"Set end of grid to {end}.")
 
   grid = TextGrid(
     minTime=minTime,
