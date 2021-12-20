@@ -73,7 +73,7 @@ def files_remove_intervals(grid_folder_in: Path, audio_folder_in: Path, referenc
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    audio_file_in_abs = audio_folder_in / grid_files[file_stem]
+    audio_file_in_abs = audio_folder_in / audio_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
 
     can_remove = can_remove_intervals(grid_in, audio_in, sample_rate, reference_tier,

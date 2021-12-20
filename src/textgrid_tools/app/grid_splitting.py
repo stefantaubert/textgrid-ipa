@@ -3,7 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, List, cast
 
-from scipy.io.wavfile import read, write
+from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_audio, save_grid)
 from textgrid_tools.core.mfa.grid_splitting import split_grid
@@ -68,7 +68,7 @@ def files_split_grid(grid_folder_in: Path, audio_folder_in: Path, reference_tier
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    audio_file_in_abs = audio_folder_in / grid_files[file_stem]
+    audio_file_in_abs = audio_folder_in / audio_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
     success, grids_audios = split_grid(
       grid_in, audio_in, sample_rate, reference_tier, split_marks_set, n_digits=n_digits)

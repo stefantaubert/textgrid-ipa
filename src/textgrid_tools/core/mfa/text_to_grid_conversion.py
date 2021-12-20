@@ -1,11 +1,13 @@
 from logging import getLogger
-from typing import Optional
+from typing import Optional, Tuple
 
+import numpy as np
+from audio_utils.audio import samples_to_s
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.string_format import StringFormat, get_symbols
 
 
-def can_convert_text_to_grid(tier_out: str, characters_per_second: float) -> bool:
+def can_convert_texts_to_grid(tier_out: str, characters_per_second: float) -> bool:
   logger = getLogger(__name__)
   if len(tier_out) == 0:
     logger.error("Please specify an output name!")
@@ -14,6 +16,36 @@ def can_convert_text_to_grid(tier_out: str, characters_per_second: float) -> boo
   if characters_per_second <= 0:
     logger.error("characters_per_second need to be > 0!")
     return False
+  return True
+
+
+def can_convert_text_to_grid(audio: Optional[np.ndarray], sr: Optional[int], start: Optional[float], end: Optional[float]) -> bool:
+  logger = getLogger(__name__)
+
+  if start is not None:
+    if not start >= 0:
+      logger.error("Start needs to be >= 0!")
+      return False
+
+  if end is not None:
+    if not end > 0:
+      logger.error("End needs to be > 0!")
+      return False
+
+  if audio is not None:
+    assert sr is not None
+    duration_s = samples_to_s(audio.shape[0], sr)
+    if start is not None and not start < duration_s:
+      logger.error("Start needs to be smaller than audio duration!")
+      return False
+    if end is not None and not end <= duration_s:
+      logger.error("End needs to be smaller or equal than audio duration!")
+      return False
+    if start is not None and end is not None:
+      if not start < end:
+        logger.error("Start needs to be smaller than end!")
+        return False
+
   return True
 
 
@@ -31,32 +63,78 @@ def get_character_count(text: str, string_format: StringFormat) -> int:
   assert False
 
 
-def convert_text_to_grid(text: str, grid_name_out: Optional[str], tier_out: str, characters_per_second: float, string_format: StringFormat) -> TextGrid:
-  assert can_convert_text_to_grid(tier_out, characters_per_second)
+def can_parse_float(float_str: str) -> bool:
+  try:
+    float(float_str)
+    return True
+  except ValueError:
+    return False
+  assert False
 
-  total_characters = get_character_count(text, string_format)
 
-  if total_characters == 0:
-    duration = 1
+def parse_meta_content(meta_content: str) -> Tuple[Optional[float], Optional[float]]:
+  assert can_parse_meta_content(meta_content)
+  lines = meta_content.split("\n")
+  start = None
+  end = None
+  if len(lines) >= 1:
+    start = float(lines[0])
+  if len(lines) >= 2:
+    end = float(lines[1])
+  return start, end
+
+
+def can_parse_meta_content(meta_content: str) -> bool:
+  lines = meta_content.split("\n")
+  if len(lines) >= 1:
+    start_line = lines[0]
+    if not can_parse_float(start_line):
+      return False
+  if len(lines) >= 2:
+    end_line = lines[1]
+    if not can_parse_float(end_line):
+      return False
+  return True
+
+
+def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[int], grid_name_out: Optional[str], tier_out: str, characters_per_second: float, n_digits: int, start: Optional[float], end: Optional[float], string_format: StringFormat) -> TextGrid:
+  assert can_convert_texts_to_grid(tier_out, characters_per_second)
+  duration_s: float = None
+  if audio is not None:
+    assert sr is not None
+    duration_s = samples_to_s(audio.shape[0], sr)
   else:
-    duration = total_characters / characters_per_second
+    total_characters = get_character_count(text, string_format)
+    duration_s = total_characters / characters_per_second
+
+  if duration_s == 0:
+    duration_s = 1
+
+  duration_s = round(duration_s, n_digits)
+
+  minTime = 0
+  maxTime = duration_s
+  if start is not None:
+    minTime = start
+  if end is not None:
+    maxTime = end
 
   grid = TextGrid(
-    maxTime=duration,
-    minTime=0,
+    minTime=minTime,
+    maxTime=maxTime,
     name=grid_name_out,
     strict=True,
   )
 
   tier = IntervalTier(
     name=tier_out,
-    minTime=0,
-    maxTime=duration,
+    minTime=minTime,
+    maxTime=maxTime,
   )
 
   interval = Interval(
-    minTime=0,
-    maxTime=duration,
+    minTime=minTime,
+    maxTime=maxTime,
     mark=text,
   )
 

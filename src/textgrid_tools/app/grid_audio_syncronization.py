@@ -62,7 +62,7 @@ def files_sync_grids(grid_folder_in: Path, audio_folder_in: Path, n_digits: int,
     grid_file_in_abs = grid_folder_in / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    audio_file_in_abs = audio_folder_in / grid_files[file_stem]
+    audio_file_in_abs = audio_folder_in / audio_files[file_stem]
     sample_rate, audio_in = read(audio_file_in_abs)
 
     can_sync = can_sync_grid_to_audio(grid_in, audio_in, sample_rate, n_digits)
