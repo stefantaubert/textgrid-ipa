@@ -57,35 +57,6 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: 
   logger.info(f"Written normalized output to: {folder_out}")
 
 
-def files_extract_tier_to_text(base_dir: Path, textgrid_folder_in: Path, tier_name: str, txt_folder_out: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
-
-  if not textgrid_folder_in.exists():
-    raise Exception("Textgrid folder does not exist!")
-
-  all_files = get_filepaths(textgrid_folder_in)
-  textgrid_files = [file for file in all_files if file.suffix.lower() == ".textgrid"]
-  logger.info(f"Found {len(textgrid_files)} .TextGrid files.")
-
-  textgrid_file_in: Path
-  for textgrid_file_in in tqdm(textgrid_files):
-    text_file_out = txt_folder_out / f"{textgrid_file_in.stem}.txt"
-    if text_file_out.exists() and not overwrite:
-      logger.info(f"Skipped already existing file: {textgrid_file_in.name}")
-      continue
-
-    logger.info(f"Processing {textgrid_file_in}...")
-    grid = TextGrid()
-    grid.read(textgrid_file_in, round_digits=DEFAULT_TEXTGRID_PRECISION)
-
-    text = extract_tier_to_text(grid, tier_name=tier_name)
-
-    txt_folder_out.mkdir(parents=True, exist_ok=True)
-    text_file_out.write_text(text, encoding="UTF-8")
-
-  logger.info(f"Written text output to: {txt_folder_out}")
-
-
 def extract_sentences_text_files(base_dir: Path, text_folder_in: Path, audio_folder: Path, text_format: SymbolFormat, language: Language, time_factor: float, tier_name: str, folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 

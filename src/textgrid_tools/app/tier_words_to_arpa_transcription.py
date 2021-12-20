@@ -85,6 +85,17 @@ def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_ti
 
   logger.info(f"Done. Written output to: {grid_folder_out}")
 
+# def init_app_transcribe_words_to_arpa_parser(parser: ArgumentParser):
+#   parser.add_argument("--folder_in", type=Path, required=True)
+#   parser.add_argument("--original_text_tier_name", type=str, required=True)
+#   parser.add_argument("--tier_name", type=str, required=True)
+#   parser.add_argument("--overwrite_existing_tier", action="store_true")
+#   parser.add_argument("--path_cache", type=Path, required=True)
+#   parser.add_argument("--folder_out", type=Path, required=True)
+#   parser.add_argument("--consider_annotations", action="store_true")
+#   parser.add_argument("--overwrite", action="store_true")
+#   return app_transcribe_words_to_arpa
+
 
 # def app_transcribe_words_to_arpa(base_dir: Path, folder_in: Path, original_text_tier_name: str, consider_annotations: bool, tier_name: str, overwrite_existing_tier: bool, path_cache: Path, folder_out: Path, overwrite: bool):
 #   logger = getLogger(__name__)

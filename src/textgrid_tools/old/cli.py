@@ -87,6 +87,25 @@ def init_to_dataset_parser(parser: ArgumentParser):
   return to_dataset
 
 
+def init_normalize_text_files_in_folder_parser(parser: ArgumentParser):
+  parser.add_argument("--folder_in", type=Path, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return normalize_text_files_in_folder
+
+
+def init_extract_sentences_text_files_parser(parser: ArgumentParser):
+  parser.add_argument("--text_folder_in", type=Path, required=True)
+  parser.add_argument("--audio_folder", type=Path, required=True)
+  parser.add_argument("--text_format", choices=SymbolFormat,
+                      type=SymbolFormat.__getitem__, required=True)
+  parser.add_argument("--language", choices=Language, type=Language.__getitem__, required=True)
+  parser.add_argument("--tier_name", type=str, required=True)
+  parser.add_argument("--folder_out", type=Path, required=True)
+  parser.add_argument("--overwrite", action="store_true")
+  return extract_sentences_text_files
+
+
 
   _add_parser_to(subparsers, "add-rec", init_add_recording_parser)
   _add_parser_to(subparsers, "rec-clone", init_clone_parser)
@@ -95,3 +114,5 @@ def init_to_dataset_parser(parser: ArgumentParser):
   _add_parser_to(subparsers, "rec-add-ipa", init_convert_to_ipa_parser)
   _add_parser_to(subparsers, "rec-print-stats", init_log_stats_parser)
   _add_parser_to(subparsers, "rec-to-dataset", init_to_dataset_parser)
+  _add_parser_to(subparsers, "mfa-normalize-texts", init_normalize_text_files_in_folder_parser)
+  _add_parser_to(subparsers, "mfa-txt-to-textgrid", init_extract_sentences_text_files_parser)
