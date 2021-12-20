@@ -38,7 +38,7 @@ def can_transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: st
   return True
 
 
-def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, phoneme_tier: str, new_tier: str, consider_annotations: bool, ignore_case: bool, cache: LookupCache, overwrite_tier: bool, trim_symbols: Set[Symbol]):
+def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, phoneme_tier: str, new_tier: str, ignore_case: bool, cache: LookupCache, overwrite_tier: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
   word_tier = get_first_tier(grid, words_tier)
   phoneme_tier = get_first_tier(grid, phoneme_tier)
@@ -52,9 +52,9 @@ def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, p
   symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=cache,
     sentences={symbols},
-    annotation_split_symbol="/",
     chunksize=1,
-    consider_annotation=consider_annotations,
+    consider_annotation=False,
+    annotation_split_symbol=None,
     ignore_case=ignore_case,
     n_jobs=1,
   )[symbols]

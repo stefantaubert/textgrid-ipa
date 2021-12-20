@@ -67,6 +67,8 @@ def _init_parser():
   _add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser)
   _add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser)
   _add_parser_to(subparsers, "remove-symbols-from-tiers", init_remove_symbols_from_tiers_parser)
+  _add_parser_to(subparsers, "remove-intervals",
+                 init_files_remove_intervals_parser)
   _add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser)
   _add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser)
   _add_parser_to(subparsers, "move-tier", init_files_move_tier_parser)
@@ -77,8 +79,6 @@ def _init_parser():
                  init_files_split_grid_parser)
   _add_parser_to(subparsers, "convert-text-to-symbols",
                  init_files_convert_text_to_symbols_parser)
-  _add_parser_to(subparsers, "remove-intervals",
-                 init_files_remove_intervals_parser)
   _add_parser_to(subparsers, "fix-boundaries",
                  init_files_fix_boundaries_parser)
   _add_parser_to(subparsers, "sync-grid-to-audio",

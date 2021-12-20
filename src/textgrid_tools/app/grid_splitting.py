@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterable, List, cast
 
 from scipy.io.wavfile import read
+from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_audio, save_grid)
 from textgrid_tools.core.mfa.grid_splitting import split_grid
@@ -15,7 +16,7 @@ def init_files_split_grid_parser(parser: ArgumentParser):
   parser.add_argument("--audio_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)
   parser.add_argument("--split_marks", type=str, nargs='+', required=True)
-  parser.add_argument("--n_digits", type=int, required=True)
+  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")

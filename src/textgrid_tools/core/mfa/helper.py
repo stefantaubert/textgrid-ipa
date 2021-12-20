@@ -5,8 +5,12 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
 def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
+  return intervals_to_text(tier.intervals, join_with)
+
+
+def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ") -> str:
   words = []
-  for interval in tier.intervals:
+  for interval in intervals:
     if not interval_is_empty(interval):
       interval_text: str = interval.mark
       interval_text = interval_text.strip()

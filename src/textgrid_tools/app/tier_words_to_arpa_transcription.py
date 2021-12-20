@@ -17,7 +17,8 @@ def init_app_transcribe_words_to_arpa_on_phoneme_level_parser(parser: ArgumentPa
   parser.add_argument("--words_tier", type=str, required=True)
   parser.add_argument("--phoneme_tier", type=str, required=True)
   parser.add_argument("--new_tier", type=str, required=True)
-  parser.add_argument("--consider_annotations", action="store_true")
+  # would be already done in dict creation
+  #parser.add_argument("--consider_annotations", action="store_true")
   parser.add_argument("--path_cache", type=Path, required=True)
   parser.add_argument("--trim_symbols", type=str, nargs="*", required=True)
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
@@ -27,7 +28,7 @@ def init_app_transcribe_words_to_arpa_on_phoneme_level_parser(parser: ArgumentPa
   return app_transcribe_words_to_arpa_on_phoneme_level
 
 
-def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_tier: str, phoneme_tier: str, new_tier: str, consider_annotations: bool, path_cache: Path, trim_symbols: List[str], n_digits: int, overwrite_tier: bool, grid_folder_out: Path, overwrite: bool) -> None:
+def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_tier: str, phoneme_tier: str, new_tier: str, path_cache: Path, trim_symbols: List[str], n_digits: int, overwrite_tier: bool, grid_folder_out: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not grid_folder_in.exists():
@@ -75,7 +76,6 @@ def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_ti
       phoneme_tier=phoneme_tier,
       words_tier=words_tier,
       cache=cache,
-      consider_annotations=consider_annotations,
       ignore_case=True,
       trim_symbols=trim_symbols_set,
     )
