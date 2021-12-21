@@ -320,4 +320,4 @@ unzip textgrid-tools-linux.zip -d target_folder
 ```
 
 sudo apt-get install ffmpeg -y
- ffmpeg -i 04.mp3 -acodec pcm_s16le -ar 22050 04.wav
+ffmpeg -i 04.mp3 -acodec pcm_s16le -ar 22050 04.wav
