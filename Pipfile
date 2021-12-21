@@ -14,6 +14,7 @@ rope = "*"
 pytest = "*"
 pytest-xdist = "*"
 unittest2pytest = "*"
+cx-freeze = "*"
 
 [packages]
 scipy = "*"

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, Optional, cast
+from typing import Callable, Iterable, List, Optional, cast
 
 from general_utils import save_obj
 from pronunciation_dict_parser.default_parser import PublicDictType
@@ -15,7 +15,7 @@ from textgrid_tools.core.mfa.tiers_dictionary_creation import (
 from tqdm import tqdm
 
 
-def init_convert_texts_to_dicts_parser(parser: ArgumentParser):
+def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   arpa_dicts = [
     PublicDictType.MFA_ARPA,
     PublicDictType.CMU_ARPA,

@@ -285,3 +285,26 @@ pipenv run python -m cli mfa-txt-to-textgrid \
   --folder_out="$path_textgrid_dir" \
   --overwrite
 ```
+
+# Create executable
+
+```sh
+# install
+sudo apt-get install patchelf
+
+# needs to be called on all platforms
+pipenv run cxfreeze \
+  -O \
+  --compress \
+  --target-dir=dist \
+  --target-name="textgrid-tools" \
+  src/cli.py
+
+# check filesizes
+cd dist
+du -h | sort -rh
+
+# zip files
+cd dist
+zip textgrid-tools.zip ./ -r
+```
