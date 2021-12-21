@@ -72,7 +72,7 @@ def files_convert_text_to_grid(text_folder_in: Path, audio_folder_in: Optional[P
 
   meta_files = {}
   if meta_folder_in is not None:
-    meta_files = get_files_dict(audio_folder_in, filetypes={META_FILE_TYPE})
+    meta_files = get_files_dict(meta_folder_in, filetypes={META_FILE_TYPE})
     logger.info(f"Found {len(meta_files)} meta files.")
 
   common_files = set(text_files.keys()).intersection(audio_files.keys())

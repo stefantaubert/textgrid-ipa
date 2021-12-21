@@ -115,9 +115,6 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
     duration_s = 1
     logger.info("Adjusted grid duration to one second since it would be zero otherwise.")
 
-  minTime = 0
-  maxTime = round(duration_s, n_digits)
-
   minTime_text_interval = 0
   maxTime_text_interval = duration_s
   if start is not None:
@@ -126,6 +123,14 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
   if end is not None:
     maxTime_text_interval = round(end, n_digits)
     logger.info(f"Set end of grid to {end}.")
+
+  if maxTime_text_interval > duration_s:
+    logger.info(
+      f"End was longer than the audio, therefore adjusting it from {maxTime_text_interval} to {duration_s}.")
+    maxTime_text_interval = duration_s
+
+  minTime = 0
+  maxTime = duration_s
 
   grid = TextGrid(
     minTime=minTime,
@@ -164,6 +169,6 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
     tier.addInterval(start_interval)
 
   grid.append(tier)
-  
+
   assert check_is_valid_grid(grid)
   return grid

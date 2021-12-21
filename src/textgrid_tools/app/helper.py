@@ -64,6 +64,6 @@ def read_audio(path: Path) -> Tuple[int, np.ndarray]:
     #   y = np.frombuffer(x)
     #   audio_in = f
   else:
-    assert WAV_FILE_TYPE in path
+    assert WAV_FILE_TYPE in path.name
     sample_rate, audio_in = read(path)
     return sample_rate, audio_in
