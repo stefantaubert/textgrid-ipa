@@ -19,7 +19,7 @@ def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:
 
 
 def get_audio_files(folder: Path) -> OrderedDictType[str, Path]:
-  return get_files_dict(folder, filetypes={WAV_FILE_TYPE, MP3_FILE_TYPE})
+  return get_files_dict(folder, filetypes={WAV_FILE_TYPE})
 
 
 def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
