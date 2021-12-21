@@ -13,13 +13,16 @@ from tqdm import tqdm
 
 
 def init_files_remove_intervals_parser(parser: ArgumentParser):
+  parser.description = "Remove empty intervals and/or intervals containing specific marks. The corresponding audios were adjusted, too."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
+  # TODO make this optional!
   parser.add_argument("--audio_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)
-  parser.add_argument("--remove_marks", type=str, nargs='+', required=True)
+  parser.add_argument("--remove_marks", type=str, nargs='*', required=False)
   parser.add_argument("--remove_empty", action="store_true")
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
+  # TODO make this optional!
   parser.add_argument("--audio_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
   return files_remove_intervals

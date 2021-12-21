@@ -60,7 +60,7 @@ def init_main_parser(parser: ArgumentParser):
 
 def main_method():
   logger = getLogger(__name__)
-  logger.info("Please execute one of the sub-commands (see cli -h)!")
+  logger.info("Please execute one of the sub-commands (use -h for help)!")
 
 
 def _init_parser():

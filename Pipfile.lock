@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cace98fedeaaf13e89fd858ac088a59a8f2412ad7eef5cff8e21b9e7ac39976c"
+            "sha256": "b7919c6f969219464b121de44bad5053a09fa0760f8850d6e5384c7558e2ab2f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -27,10 +27,19 @@
             "editable": true,
             "path": "./../audio-utils"
         },
+        "audio2numpy": {
+            "hashes": [
+                "sha256:40e8e9364086879fa31561dc1948a5981a07c09486010dba2399b25a1bc6c844",
+                "sha256:e0cbe2679c312ea86508758614299fac16b318bcb812da3221253d78613d00bb"
+            ],
+            "index": "pypi",
+            "version": "==0.1.2"
+        },
         "audioread": {
             "hashes": [
                 "sha256:a3480e42056c8e80a8192a54f6729a280ef66d27782ee11cbd63e9d4d1523089"
             ],
+            "index": "pypi",
             "version": "==2.1.9"
         },
         "certifi": {
@@ -204,6 +213,12 @@
                 "sha256:28918c163dce9e736e09252a02073fce712bc4c7aa18f2a45d882cca84da2dbb"
             ],
             "version": "==0.3.4"
+        },
+        "ffmpeg": {
+            "hashes": [
+                "sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9"
+            ],
+            "version": "==1.4"
         },
         "fonttools": {
             "hashes": [
@@ -955,6 +970,13 @@
         }
     },
     "develop": {
+        "altgraph": {
+            "hashes": [
+                "sha256:743628f2ac6a7c26f5d9223c91ed8ecbba535f506f4b6f558885a8a56a105857",
+                "sha256:ebf2269361b47d97b3b88e696439f6e4cbc607c17c51feb1754f90fb79839158"
+            ],
+            "version": "==0.17.2"
+        },
         "appdirs": {
             "hashes": [
                 "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41",
@@ -1095,11 +1117,8 @@
             "version": "==4.10.0"
         },
         "iniconfig": {
-            "hashes": [
-                "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3",
-                "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"
-            ],
-            "version": "==1.1.1"
+            "editable": true,
+            "path": "."
         },
         "isort": {
             "hashes": [
@@ -1321,6 +1340,28 @@
             "index": "pypi",
             "version": "==2.8.0"
         },
+        "pyinstaller": {
+            "hashes": [
+                "sha256:03636feec822de1d23d9753054f0b1229fb23d58723ae796f41b1127fc54f572",
+                "sha256:0f488407108dd4e0531576552514889b2d5620367c81a177dfbe1eb628ad7a8c",
+                "sha256:2c7f4810dc5272ec1b388a7f1ff6b56d38653c1b0c9ac2d9dd54fa06b590e372",
+                "sha256:5a130e2cf694975787026db1839b53c833b8d4922d850703c7076a06774cb6af",
+                "sha256:7942ac8043e538422fe9c6733fe201e4d765d31ad13ff40bcc7b9bf4c2d0ad64",
+                "sha256:ba410e9aadae61aa9172d56180ca381b3ad7abd721a31495db21cc82ede4003b",
+                "sha256:c766e1d643f8820fe70d12c3690911bc43556ae97e12885e2925fa43bc1e7649",
+                "sha256:c8d3b4e64b0e6c1c837b5215077675796a7d95679245b40843343d647465fb69",
+                "sha256:fea70754a8cdca04763d0cdbbb9b8b07854355232c8f512bc7211e2c07361c06"
+            ],
+            "index": "pypi",
+            "version": "==4.7"
+        },
+        "pyinstaller-hooks-contrib": {
+            "hashes": [
+                "sha256:60a57e4057fa2183bbaa81f10401a27eb7dd701ef8a11b287bb6345b571f94e7",
+                "sha256:775b52200b39e12c95cc24f809eb050a97110fee819d178ebfde214f0f51e5f4"
+            ],
+            "version": "==2021.4"
+        },
         "pylint": {
             "hashes": [
                 "sha256:9d945a73640e1fec07ee34b42f5669b770c759acd536ec7b16d7e4b87a9c9ff9",
@@ -1535,10 +1576,6 @@
             "editable": true,
             "path": "."
         },
-        "textgrid-tools": {
-            "editable": true,
-            "path": "."
-        },
         "toml": {
             "hashes": [
                 "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b",
@@ -1560,7 +1597,7 @@
                 "sha256:29e84a855712dfe0e88a48f6d05c21118dbafb283bb2eed614d46f80deb8e9a1",
                 "sha256:b824e3466f1d475b2b5f1c392954c6cb7ea04d64354ff7300dc7c14257dc85db"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==0.8.0"
         },
         "tqdm": {

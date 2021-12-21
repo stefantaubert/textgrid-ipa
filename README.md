@@ -297,8 +297,15 @@ pipenv run cxfreeze \
   -O \
   --compress \
   --target-dir=dist \
+  --bin-includes="libffi.so" \
   --target-name="textgrid-tools" \
   src/cli.py
+
+# libffi.so is located at "/usr/lib/x86_64-linux-gnu/libffi.so.7"
+# if not included this error occurs:
+## ...
+## File "/usr/lib/python3.8/ctypes/__init__.py", line 7, in <module>
+## ImportError: libffi.so.7: cannot open shared object file: No such file or directory
 
 # check filesizes
 cd dist
@@ -306,5 +313,11 @@ du -h | sort -rh
 
 # zip files
 cd dist
-zip textgrid-tools.zip ./ -r
+zip textgrid-tools-linux.zip ./ -r
+
+# unzip
+unzip textgrid-tools-linux.zip -d target_folder
 ```
+
+sudo apt-get install ffmpeg -y
+

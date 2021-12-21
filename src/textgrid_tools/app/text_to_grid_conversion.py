@@ -3,10 +3,13 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
+import audioread
+import librosa
 from scipy.io.wavfile import read
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import (get_audio_files, get_files_dict,
-                                       get_text_files, save_grid)
+from textgrid_tools.app.helper import (MP3_FILE_TYPE, WAV_FILE_TYPE,
+                                       get_audio_files, get_files_dict,
+                                       get_text_files, read_audio, save_grid)
 from textgrid_tools.core.mfa.string_format import StringFormat
 from textgrid_tools.core.mfa.text_to_grid_conversion import (
     can_convert_texts_to_grid, can_parse_meta_content, convert_text_to_grid,
@@ -18,17 +21,25 @@ META_FILE_TYPE = ".meta"
 
 
 def init_files_convert_text_to_grid_parser(parser: ArgumentParser):
-  parser.add_argument("--text_folder_in", type=Path, required=True)
-  parser.add_argument("--audio_folder_in", type=Path, required=False)
-  parser.add_argument("--meta_folder_in", type=Path, required=False)
-  parser.add_argument("--grid_name_out", type=str, required=False)
-  parser.add_argument("--tier_out", type=str, required=True)
-  parser.add_argument("--characters_per_second", type=float, default=DEFAULT_CHARACTERS_PER_SECOND)
+  parser.description = f"Converting text files (.txt) into grids (.TextGrid). You can provide an audio folder to set the grid's endTime to the durations of the audios. Furthermore you can provide {META_FILE_TYPE} files to define start and end of an audio file."
+  parser.add_argument("--text_folder_in", type=Path, required=True,
+                      help="The folder containing text files (.txt), which should be converted to grids.")
+  parser.add_argument("--audio_folder_in", type=Path, required=False,
+                      help="The folder containing audio files (.wav) (optional).")
+  parser.add_argument("--meta_folder_in", type=Path, required=False,
+                      help=f"The folder containing {META_FILE_TYPE} files (optional).")
+  #parser.add_argument("--grid_name_out", type=str, required=False, help="The name of the generated grid.")
+  parser.add_argument("--tier_out", type=str, required=True,
+                      help="The name of the tier containing the text content.")
+  parser.add_argument("--characters_per_second", type=float, default=DEFAULT_CHARACTERS_PER_SECOND,
+                      help=f"The speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists. Defaults to: {DEFAULT_CHARACTERS_PER_SECOND}")
   parser.add_argument('--string_format', choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT)
-  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
-  parser.add_argument("--grid_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
+                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="The format of the text. Use TEXT (default) for normal text and SYMBOLS for symbols separated by space.")
+  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS,
+                      help=f"The precision of the grid files (count of numbers after the comma). Defaults to: {DEFAULT_N_DIGITS}")
+  parser.add_argument("--grid_folder_out", type=Path, required=True,
+                      help="The folder where to output the generated grid files.")
+  parser.add_argument("--overwrite", action="store_true", help="Overwrite existing grid files.")
   return files_convert_text_to_grid
 
 
@@ -95,7 +106,8 @@ def files_convert_text_to_grid(text_folder_in: Path, audio_folder_in: Optional[P
 
     if file_stem in audio_files:
       audio_file_in_abs = audio_folder_in / audio_files[file_stem]
-      sample_rate, audio_in = read(audio_file_in_abs)
+      sample_rate, audio_in = read_audio(audio_file_in_abs)
+
     if file_stem in meta_files:
       meta_file_in_abs = meta_folder_in / meta_files[file_stem]
       meta_content = meta_file_in_abs.read_text(encoding="UTF-8")

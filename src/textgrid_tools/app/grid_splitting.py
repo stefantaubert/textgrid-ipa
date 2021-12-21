@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import argparse
 from logging import getLogger
 from pathlib import Path
 from typing import Iterable, List, cast
@@ -12,6 +13,7 @@ from tqdm import tqdm
 
 
 def init_files_split_grid_parser(parser: ArgumentParser):
+  parser.description = "Split a grid."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--audio_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)

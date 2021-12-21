@@ -1,3 +1,4 @@
+import librosa
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
@@ -5,8 +6,9 @@ from typing import Iterable, cast
 
 from scipy.io.wavfile import read
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
-                                       load_grid, save_grid)
+from textgrid_tools.app.helper import (MP3_FILE_TYPE, WAV_FILE_TYPE,
+                                       get_audio_files, get_grid_files,
+                                       load_grid, read_audio, save_grid)
 from textgrid_tools.core.mfa.grid_audio_syncronization import (
     can_sync_grid_to_audio, sync_grid_to_audio)
 from tqdm import tqdm
@@ -64,7 +66,7 @@ def files_sync_grids(grid_folder_in: Path, audio_folder_in: Path, n_digits: int,
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
     audio_file_in_abs = audio_folder_in / audio_files[file_stem]
-    sample_rate, audio_in = read(audio_file_in_abs)
+    sample_rate, audio_in = read_audio(audio_file_in_abs)
 
     can_sync = can_sync_grid_to_audio(grid_in, audio_in, sample_rate, n_digits)
 
