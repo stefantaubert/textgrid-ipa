@@ -28,8 +28,6 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   parser.description = f"With this command you can create a pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA)."
   parser.add_argument("input_directory", type=Path, metavar="input-directory",
                       help="the directory containing the grid files")
-  parser.add_argument("output_file", type=Path, metavar="output-file",
-                      help="the file containing the generated pronunciation dictionary")
   parser.add_argument("tier", type=str, help="the tier that contains the words")
   parser.add_argument("--trim-symbols", type=str, metavar='', nargs='*',
                       help="Trim these symbols from the start and end of a word before looking it up in the reference pronunciation dictionary.")
@@ -47,15 +45,15 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   return convert_texts_to_arpa_dicts
 
 
-def convert_texts_to_arpa_dicts(input_directory: Path, tier: str, trim_symbols: List[str], consider_annotations: bool, n_jobs: int, output_file: Optional[Path], out_path_cache: Optional[Path], out_path_punctuation_dict: Optional[Path], dict_type: PublicDictType, n_digits: int, overwrite: bool) -> None:
+def convert_texts_to_arpa_dicts(input_directory: Path, tier: str, trim_symbols: List[str], consider_annotations: bool, n_jobs: int, out_path_mfa_dict: Optional[Path], out_path_cache: Optional[Path], out_path_punctuation_dict: Optional[Path], dict_type: PublicDictType, n_digits: int, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not input_directory.exists():
     logger.error("Textgrid folder does not exist!")
     return
 
-  if output_file is not None and output_file.is_file() and not overwrite:
-    logger.error(f"{output_file} already exists!")
+  if out_path_mfa_dict is not None and out_path_mfa_dict.is_file() and not overwrite:
+    logger.error(f"{out_path_mfa_dict} already exists!")
     return
 
   if out_path_punctuation_dict is not None and out_path_punctuation_dict.is_file() and not overwrite:
@@ -93,16 +91,16 @@ def convert_texts_to_arpa_dicts(input_directory: Path, tier: str, trim_symbols: 
     split_on_hyphen=True,
   )
 
-  if output_file is not None:
-    logger.info(f"Saving {output_file} ...")
+  if out_path_mfa_dict is not None:
+    logger.info(f"Saving {out_path_mfa_dict} ...")
     export(
       include_counter=True,
-      path=output_file,
+      path=out_path_mfa_dict,
       pronunciation_dict=pronunciation_dict,
       symbol_sep=" ",
       word_pronunciation_sep="  ",
     )
-    logger.info(f"Written pronunciation dictionary for MFA alignment to: {output_file}")
+    logger.info(f"Written pronunciation dictionary for MFA alignment to: {out_path_mfa_dict}")
 
   if out_path_punctuation_dict is not None:
     logger.info(f"Saving {out_path_punctuation_dict} ...")
