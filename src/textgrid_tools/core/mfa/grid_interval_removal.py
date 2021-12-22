@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Iterable, List, Set, cast
+from typing import Iterable, List, Optional, Set, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -15,7 +15,7 @@ from textgrid_tools.core.mfa.interval_boundary_adjustment import fix_timepoint
 from tqdm import tqdm
 
 
-def can_remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier: str, remove_marks: Set[str], remove_empty: bool) -> bool:
+def can_remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sr: Optional[int], reference_tier: str, remove_marks: Set[str], remove_empty: bool) -> bool:
   logger = getLogger(__name__)
 
   if not check_is_valid_grid(grid):
@@ -26,12 +26,14 @@ def can_remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_t
     logger.info("Marks and/or remove_empty needs to be set!")
     return False
 
-  if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
-    logger.error(
-      f"Audio length and grid length does not match ({audio.shape[0]} vs. {s_to_samples(grid.maxTime, sr)})")
-    return False
-    # audio_len = samples_to_s(audio.shape[0], sr)
-    # set_maxTime(grid, audio_len)
+  if audio is not None:
+    assert sr is not None
+    if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
+      logger.error(
+        f"Audio length and grid length does not match ({audio.shape[0]} vs. {s_to_samples(grid.maxTime, sr)})")
+      return False
+      # audio_len = samples_to_s(audio.shape[0], sr)
+      # set_maxTime(grid, audio_len)
 
   if not tier_exists(grid, reference_tier):
     logger.error(f"Tier \"{reference_tier}\" not found!")
@@ -50,7 +52,7 @@ def can_remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_t
   return True
 
 
-def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, remove_marks: Set[str], remove_empty: bool, n_digits: int) -> np.ndarray:
+def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sr: Optional[int], reference_tier_name: str, remove_marks: Set[str], remove_empty: bool, n_digits: int) -> Optional[np.ndarray]:
   assert can_remove_intervals(grid, audio, sr, reference_tier_name, remove_marks, remove_empty)
   logger = getLogger(__name__)
 
@@ -83,23 +85,25 @@ def remove_intervals(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_
   grid.maxTime = ref_tier.maxTime
   assert check_is_valid_grid(grid)
 
-  logger.info("Remove intervals from audio...")
-  remove_range = []
-  for ref_interval_to_remove in reversed(ref_intervals_to_remove):
-    start = s_to_samples(ref_interval_to_remove.minTime, sr)
-    end = s_to_samples(ref_interval_to_remove.maxTime, sr)
-    assert end <= audio.shape[0]
-    r = range(start, end)
-    remove_range.extend(r)
-  res_audio = np.delete(audio, remove_range, axis=0)
+  res_audio = None
+  if audio is not None:
+    logger.info("Remove intervals from audio...")
+    remove_range = []
+    for ref_interval_to_remove in reversed(ref_intervals_to_remove):
+      start = s_to_samples(ref_interval_to_remove.minTime, sr)
+      end = s_to_samples(ref_interval_to_remove.maxTime, sr)
+      assert end <= audio.shape[0]
+      r = range(start, end)
+      remove_range.extend(r)
+    res_audio = np.delete(audio, remove_range, axis=0)
 
-  # after multiple removals in audio some difference occurs
-  can_set = can_set_end_to_audio_len(grid, res_audio, sr, n_digits)
-  if not can_set:
-    logger.exception("Couldn't set grid maxTime to audio len!")
-    raise Exception()
+    # after multiple removals in audio some difference occurs
+    can_set = can_set_end_to_audio_len(grid, res_audio, sr, n_digits)
+    if not can_set:
+      logger.exception("Couldn't set grid maxTime to audio len!")
+      raise Exception()
 
-  set_end_to_audio_len(grid, res_audio, sr, n_digits)
+    set_end_to_audio_len(grid, res_audio, sr, n_digits)
 
   removed_duration = sum(interval.duration() for interval in ref_intervals_to_remove)
   logger.info(f"Removed {len(ref_intervals_to_remove)} intervals ({removed_duration:.2f}s).")

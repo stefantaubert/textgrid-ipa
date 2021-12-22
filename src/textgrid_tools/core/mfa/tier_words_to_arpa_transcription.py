@@ -1,6 +1,8 @@
 import re
 from logging import getLogger
 from typing import List, Set
+from pronunciation_dict_parser.default_parser import parse_public_dict
+from pronunciation_dict_parser.parser import parse_file
 
 from sentence2pronunciation import (LookupCache,
                                     sentences2pronunciations_from_cache_mp)

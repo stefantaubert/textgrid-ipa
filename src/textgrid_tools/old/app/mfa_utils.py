@@ -45,7 +45,7 @@ def normalize_text_files_in_folder(base_dir: Path, folder_in: Path, folder_out: 
 
     logger.info(f"Processing {text_file_in}...")
 
-    text = text_file_in.read_text()
+    text = text_file_in.read_text(encoding="UTF-8")
 
     new_text = normalize_text(
       original_text=text,

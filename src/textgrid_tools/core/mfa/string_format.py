@@ -25,6 +25,15 @@ class StringFormat(IntEnum):
     words = text.split(sep=self.get_word_separator())
     return words
 
+  def __str__(self) -> str:
+    if self == self.TEXT:
+      return "TEXT"
+
+    if self == self.SYMBOLS:
+      return "SYMBOLS"
+
+    assert False
+
 
 def get_symbols(text: str) -> Tuple[str, ...]:
   result = tuple(text.split(SYMBOLS_SEPARATOR))

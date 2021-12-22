@@ -300,6 +300,9 @@ pipenv run cxfreeze \
   --bin-includes="libffi.so" \
   --target-name="textgrid-tools" \
   src/cli.py
+cd dist
+zip textgrid-tools-linux.zip ./ -r
+cd ..
 
 # libffi.so is located at "/usr/lib/x86_64-linux-gnu/libffi.so.7"
 # if not included this error occurs:
@@ -319,5 +322,8 @@ zip textgrid-tools-linux.zip ./ -r
 unzip textgrid-tools-linux.zip -d target_folder
 ```
 
+```sh
+# Convert audio files to wav
 sudo apt-get install ffmpeg -y
-ffmpeg -i 04.mp3 -acodec pcm_s16le -ar 22050 04.wav
+ffmpeg -i *.mp3 -acodec pcm_s16le -ar 22050 *.wav
+```

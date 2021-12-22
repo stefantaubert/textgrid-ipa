@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 from typing import OrderedDict as OrderedDictType
@@ -7,11 +8,22 @@ import numpy as np
 from general_utils.main import get_all_files_in_all_subfolders
 from scipy.io.wavfile import read, write
 from textgrid.textgrid import TextGrid
+from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
 WAV_FILE_TYPE = ".wav"
 MP3_FILE_TYPE = ".mp3"
+
+
+def add_n_digits_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='',
+                      choices=range(17), help="the precision of the grid files (count of digits after the comma)")
+
+
+def add_overwrite_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-o", "--overwrite", action="store_true",
+                      help="overwrite existing files")
 
 
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:

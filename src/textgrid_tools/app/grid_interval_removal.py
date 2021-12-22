@@ -3,99 +3,128 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, List, Optional, cast
 
+from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
-                                       load_grid, save_audio, save_grid)
+from textgrid_tools.app.helper import (add_n_digits_argument,
+                                       add_overwrite_argument, get_audio_files,
+                                       get_grid_files, load_grid, save_audio,
+                                       save_grid)
 from textgrid_tools.core.mfa.grid_interval_removal import (
     can_remove_intervals, remove_intervals)
 from tqdm import tqdm
 
 
 def init_files_remove_intervals_parser(parser: ArgumentParser):
-  parser.description = "Remove empty intervals and/or intervals containing specific marks. The corresponding audios were adjusted, too."
-  parser.add_argument("--grid_folder_in", type=Path, required=True)
-  # TODO make this optional!
-  parser.add_argument("--audio_folder_in", type=Path, required=True)
-  parser.add_argument("--reference_tier", type=str, required=True)
-  parser.add_argument("--remove_marks", type=str, nargs='*', required=False)
-  parser.add_argument("--remove_empty", action="store_true")
-  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
-  parser.add_argument("--grid_folder_out", type=Path, required=True)
-  # TODO make this optional!
-  parser.add_argument("--audio_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
+  parser.description = "Remove empty intervals and/or intervals containing specific marks. The corresponding audios could be adjusted, too."
+  parser.add_argument("input_directory", type=Path, metavar="input-directory",
+                      help="the directory containing grid files, from which intervals should be removed")
+  parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")
+  parser.add_argument("--audio-directory", type=Path, metavar='',
+                      help="the directory containing audio files")
+  parser.add_argument("--marks", type=str, nargs='*',
+                      help="remove intervals containing these marks")
+  parser.add_argument("--empty", action="store_true",
+                      help="remove empty intervals")
+  add_n_digits_argument(parser)
+  parser.add_argument("--output-directory", metavar='', type=Path,
+                      help="the directory where to output the modified grid files if not to input-directory")
+  parser.add_argument("--output-audio-directory", metavar='', type=Path,
+                      help="the directory where to output the modified audio files if not to audio-directory.")
+  add_overwrite_argument(parser)
   return files_remove_intervals
 
 
-def files_remove_intervals(grid_folder_in: Path, audio_folder_in: Path, reference_tier: str, remove_marks: Optional[List[str]], remove_empty: bool, n_digits: int, grid_folder_out: Path, audio_folder_out: Path, overwrite: bool) -> None:
+def files_remove_intervals(input_directory: Path, audio_directory: Path, tier: str, marks: Optional[List[str]], empty: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
-  if not grid_folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
+  if not input_directory.exists():
+    logger.error("Input directory does not exist!")
     return
 
-  if not audio_folder_in.exists():
-    logger.error("Audio folder does not exist!")
+  if audio_directory is not None and not audio_directory.exists():
+    logger.error("Audio directory does not exist!")
     return
 
-  remove_marks_set = set(remove_marks) if remove_marks is not None else set()
+  remove_marks_set = set(marks) if marks is not None else set()
 
-  if len(remove_marks_set) == 0 and not remove_empty:
-    logger.info("Please set marks and/or remove_empty!")
+  if len(remove_marks_set) == 0 and not empty:
+    logger.info("Please set marks and/or remove empty!")
     return
 
-  logger.info(f"Marks: {remove_marks_set} and empty: {'yes' if remove_empty else 'no'}")
+  if output_directory is None:
+    output_directory = input_directory
 
-  grid_files = get_grid_files(grid_folder_in)
+  if output_audio_directory is None:
+    output_audio_directory = audio_directory
+
+  logger.info(f"Marks: {remove_marks_set} and empty: {'yes' if empty else 'no'}")
+
+  grid_files = get_grid_files(input_directory)
   logger.info(f"Found {len(grid_files)} grid files.")
+  print(grid_files)
 
-  audio_files = get_audio_files(audio_folder_in)
-  logger.info(f"Found {len(audio_files)} audio files.")
+  if audio_directory is not None:
+    audio_files = get_audio_files(audio_directory)
+    logger.info(f"Found {len(audio_files)} audio files.")
 
-  common_files = set(grid_files.keys()).intersection(audio_files.keys())
-  missing_grid_files = set(audio_files.keys()).difference(grid_files.keys())
-  missing_audio_files = set(grid_files.keys()).difference(audio_files.keys())
+    common_files = OrderedSet(grid_files.keys()).intersection(audio_files.keys())
+    missing_grid_files = set(audio_files.keys()).difference(grid_files.keys())
+    missing_audio_files = set(grid_files.keys()).difference(audio_files.keys())
 
-  logger.info(f"{len(missing_grid_files)} grid files missing.")
-  logger.info(f"{len(missing_audio_files)} audio files missing.")
+    logger.info(f"{len(missing_grid_files)} grid files missing.")
+    logger.info(f"{len(missing_audio_files)} audio files missing.")
 
-  logger.info(f"Found {len(common_files)} matching files.")
+    logger.info(f"Found {len(common_files)} matching files.")
+  else:
+    audio_files = {}
+    common_files = OrderedSet(grid_files.keys())
 
   logger.info("Reading files...")
   for file_stem in cast(Iterable[str], tqdm(common_files)):
     logger.info(f"Processing {file_stem} ...")
 
-    grid_file_out_abs = grid_folder_out / grid_files[file_stem]
-    audio_file_out_abs = audio_folder_out / audio_files[file_stem]
+    grid_file_out_abs = output_directory / grid_files[file_stem]
 
-    if (grid_file_out_abs.exists() or audio_file_out_abs.exists()) and not overwrite:
-      logger.info("Target grid/audio already exist.")
+    if grid_file_out_abs.exists() and not overwrite:
+      logger.info("Grid file already exists.")
       logger.info("Skipped.")
       continue
 
-    grid_file_in_abs = grid_folder_in / grid_files[file_stem]
+    grid_file_in_abs = input_directory / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    audio_file_in_abs = audio_folder_in / audio_files[file_stem]
-    sample_rate, audio_in = read(audio_file_in_abs)
+    sample_rate = None
+    audio_in = None
+    audio_provided = file_stem in audio_files
+    if audio_provided:
+      audio_file_out_abs = output_audio_directory / audio_files[file_stem]
+      if audio_file_out_abs.exists() and not overwrite:
+        logger.info("Audio file already exists.")
+        logger.info("Skipped.")
+        continue
 
-    can_remove = can_remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
-                                      remove_marks_set, remove_empty)
+      audio_file_in_abs = audio_directory / audio_files[file_stem]
+      sample_rate, audio_in = read(audio_file_in_abs)
+
+    can_remove = can_remove_intervals(grid_in, audio_in, sample_rate, tier,
+                                      remove_marks_set, empty)
     if not can_remove:
       logger.info("Skipped.")
       continue
 
     try:
-      new_audio = remove_intervals(grid_in, audio_in, sample_rate, reference_tier,
-                                   remove_marks_set, remove_empty, n_digits)
+      new_audio = remove_intervals(grid_in, audio_in, sample_rate, tier,
+                                   remove_marks_set, empty, n_digits)
     except Exception:
       logger.info("Skipped.")
       continue
 
-    assert new_audio is not None
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)
-    save_audio(audio_file_out_abs, new_audio, sample_rate)
 
-  logger.info(f"Done. Written output to: {grid_folder_out}")
+    if audio_provided:
+      assert new_audio is not None
+      save_audio(audio_file_out_abs, new_audio, sample_rate)
+
+  logger.info(f"Done.")
