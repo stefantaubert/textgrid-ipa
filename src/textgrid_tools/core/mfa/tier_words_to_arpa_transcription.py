@@ -1,9 +1,9 @@
 import re
 from logging import getLogger
 from typing import List, Set
-from pronunciation_dict_parser.default_parser import parse_public_dict
-from pronunciation_dict_parser.parser import parse_file
 
+from pronunciation_dict_parser.default_parser import parse_public_dict
+from pronunciation_dict_parser.parser import PronunciationDict, parse_file
 from sentence2pronunciation import (LookupCache,
                                     sentences2pronunciations_from_cache_mp)
 from text_utils import Language, text_to_symbols
@@ -40,7 +40,7 @@ def can_transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: st
   return True
 
 
-def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, phoneme_tier: str, new_tier: str, ignore_case: bool, cache: LookupCache, overwrite_tier: bool, trim_symbols: Set[Symbol]):
+def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, phoneme_tier: str, new_tier: str, ignore_case: bool, pronunciation_dictionary: PronunciationDict, overwrite_tier: bool, trim_symbols: Set[Symbol]):
   logger = getLogger(__name__)
   word_tier = get_first_tier(grid, words_tier)
   phoneme_tier = get_first_tier(grid, phoneme_tier)
@@ -50,6 +50,11 @@ def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, p
     text=original_text,
     text_format=SymbolFormat.GRAPHEMES,
   )
+
+  cache = {
+    tuple(word): pronunciation[0]
+    for word, pronunciation in pronunciation_dictionary.items()
+  }
 
   symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=cache,
@@ -62,7 +67,7 @@ def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, p
   )[symbols]
 
   words_arpa_with_punctuation = symbols_to_words(symbols_arpa)
-
+  # print(words_arpa_with_punctuation)
   replace_str = re.escape(''.join(trim_symbols))
   pattern = re.compile(rf"[{replace_str}]+")
   # remove words consisting only of punctuation since these were annotated as silence

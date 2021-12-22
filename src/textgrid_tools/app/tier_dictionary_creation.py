@@ -6,7 +6,7 @@ from typing import Callable, Iterable, List, cast
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.export import export
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFUALT_PUNCTUATION
+from textgrid_tools.app.globals import DEFAULT_PUNCTUATION
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_overwrite_argument, get_grid_files,
@@ -30,7 +30,7 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   parser.add_argument("tier", type=str, help="the tier that contains the words")
   parser.add_argument("output_file", type=Path, metavar="output-file",
                       help="the file containing the generated pronunciation dictionary")
-  parser.add_argument("--punctuation", type=str, metavar='SYMBOL', nargs='*', default=DEFUALT_PUNCTUATION,
+  parser.add_argument("--punctuation", type=str, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
                       help="Trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary.")
   add_n_digits_argument(parser)
   parser.add_argument("--consider-annotations", action="store_true",

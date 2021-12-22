@@ -27,6 +27,11 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
                       help="overwrite existing files")
 
 
+def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-ot", "--overwrite-tier", action="store_true",
+                      help="overwrite existing tiers")
+
+
 def add_n_jobs_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-j", "--n-jobs", metavar='N', type=int,
                       choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="the amount of parallel cpu jobs")

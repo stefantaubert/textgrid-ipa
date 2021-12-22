@@ -1,11 +1,14 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, cast
+from typing import Iterable, List, Optional, cast
 
-from general_utils.main import load_obj
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS
-from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
+from pronunciation_dict_parser.parser import parse_file
+from textgrid_tools.app.globals import DEFAULT_PUNCTUATION
+from textgrid_tools.app.helper import (add_n_digits_argument,
+                                       add_overwrite_argument,
+                                       add_overwrite_tier_argument,
+                                       get_grid_files, load_grid, save_grid)
 from textgrid_tools.core.mfa.tier_words_to_arpa_transcription import (
     can_transcribe_words_to_arpa_on_phoneme_level,
     transcribe_words_to_arpa_on_phoneme_level)
@@ -13,32 +16,45 @@ from tqdm import tqdm
 
 
 def init_app_transcribe_words_to_arpa_on_phoneme_level_parser(parser: ArgumentParser):
-  parser.add_argument("--grid_folder_in", type=Path, required=True)
-  parser.add_argument("--words_tier", type=str, required=True)
-  parser.add_argument("--phoneme_tier", type=str, required=True)
-  parser.add_argument("--new_tier", type=str, required=True)
-  # would be already done in dict creation
-  #parser.add_argument("--consider_annotations", action="store_true")
-  parser.add_argument("--path_cache", type=Path, required=True)
-  parser.add_argument("--trim_symbols", type=str, nargs="*", required=True)
-  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
-  parser.add_argument("--overwrite_tier", action="store_true")
-  parser.add_argument("--grid_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
+  parser.description = "This command transcribes words to ARPA on phoneme level."
+  parser.add_argument("input_directory", type=Path, metavar="input-directory",
+                      help="the directory containing the grid files")
+  parser.add_argument("words_tier", metavar="words-tier", type=str,
+                      help="the tier containing the words")
+  parser.add_argument("phoneme_tier", metavar="phoneme-tier", type=str,
+                      help="the tier containing the phonemes")
+  parser.add_argument("new_tier", metavar="new-tier", type=str,
+                      help="the name of the tier to which the transcription should be written")
+  parser.add_argument("dictionary_file", metavar="dictionary-file", type=Path,
+                      help="the path to the pronunciation dictionary")
+  parser.add_argument("--trim-symbols", metavar="SYMBOL", type=str,
+                      nargs="*", default=DEFAULT_PUNCTUATION, help="symbols which should be merged to the corresponding ARPA characters.")
+  add_n_digits_argument(parser)
+  parser.add_argument("--output-directory", metavar="PATH", type=Path,
+                      help="the directory where to output the modified grid files if not to input-directory")
+  add_overwrite_tier_argument(parser)
+  add_overwrite_argument(parser)
   return app_transcribe_words_to_arpa_on_phoneme_level
 
 
-def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_tier: str, phoneme_tier: str, new_tier: str, path_cache: Path, trim_symbols: List[str], n_digits: int, overwrite_tier: bool, grid_folder_out: Path, overwrite: bool) -> None:
+def app_transcribe_words_to_arpa_on_phoneme_level(input_directory: Path, words_tier: str, phoneme_tier: str, new_tier: str, dictionary_file: Path, trim_symbols: List[str], n_digits: int, overwrite_tier: bool, output_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
-  if not grid_folder_in.exists():
-    logger.error("Textgrid folder does not exist!")
+  if not input_directory.exists():
+    logger.error("Input directory does not exist!")
     return
 
-  grid_files = get_grid_files(grid_folder_in)
+  if not dictionary_file.exists():
+    logger.error("Pronunciation dictionary was not found!")
+    return
+
+  if output_directory is None:
+    output_directory = input_directory
+
+  grid_files = get_grid_files(input_directory)
   logger.info(f"Found {len(grid_files)} grid files.")
 
-  cache = load_obj(path_cache)
+  pronunciation_dictionary = parse_file(dictionary_file, encoding="UTF-8")
 
   trim_symbols_set = set(trim_symbols)
   logger.info(f"Trim symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
@@ -47,17 +63,17 @@ def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_ti
   for file_stem in cast(Iterable[str], tqdm(grid_files)):
     logger.info(f"Processing {file_stem} ...")
 
-    grid_file_out_abs = grid_folder_out / grid_files[file_stem]
+    grid_file_out_abs = output_directory / grid_files[file_stem]
 
     if grid_file_out_abs.exists() and not overwrite:
-      logger.info("Target grid already exists.")
+      logger.info("Grid already exists.")
       logger.info("Skipped.")
       continue
 
-    grid_file_in_abs = grid_folder_in / grid_files[file_stem]
+    grid_file_in_abs = input_directory / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    can_map = can_transcribe_words_to_arpa_on_phoneme_level(
+    can_transcribe = can_transcribe_words_to_arpa_on_phoneme_level(
       grid=grid_in,
       new_tier=new_tier,
       overwrite_tier=overwrite_tier,
@@ -65,7 +81,7 @@ def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_ti
       words_tier=words_tier,
     )
 
-    if not can_map:
+    if not can_transcribe:
       logger.info("Skipped.")
       continue
 
@@ -75,15 +91,15 @@ def app_transcribe_words_to_arpa_on_phoneme_level(grid_folder_in: Path, words_ti
       overwrite_tier=overwrite_tier,
       phoneme_tier=phoneme_tier,
       words_tier=words_tier,
-      cache=cache,
       ignore_case=True,
+      pronunciation_dictionary=pronunciation_dictionary,
       trim_symbols=trim_symbols_set,
     )
 
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)
 
-  logger.info(f"Done. Written output to: {grid_folder_out}")
+  logger.info(f"Done. Written output to: {output_directory}")
 
 # def init_app_transcribe_words_to_arpa_parser(parser: ArgumentParser):
 #   parser.add_argument("--folder_in", type=Path, required=True)
