@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from collections import OrderedDict
+from os import cpu_count
 from pathlib import Path
 from typing import OrderedDict as OrderedDictType
 from typing import Set, Tuple
@@ -8,7 +9,7 @@ import numpy as np
 from general_utils.main import get_all_files_in_all_subfolders
 from scipy.io.wavfile import read, write
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS
+from textgrid_tools.app.globals import DEFAULT_N_DIGITS, DEFAULT_N_JOBS
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
@@ -17,13 +18,18 @@ MP3_FILE_TYPE = ".mp3"
 
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='',
-                      choices=range(17), help="the precision of the grid files (count of digits after the comma)")
+  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='N',
+                      choices=range(17), help="the precision of the grid files (max count of digits after the comma)")
 
 
 def add_overwrite_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-o", "--overwrite", action="store_true",
                       help="overwrite existing files")
+
+
+def add_n_jobs_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-j", "--n-jobs", metavar='N', type=int,
+                      choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="the amount of parallel cpu jobs")
 
 
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:

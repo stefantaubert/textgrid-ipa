@@ -61,7 +61,7 @@ def init_main_parser(parser: ArgumentParser):
 
 
 def formatter(prog):
-  return argparse.ArgumentDefaultsHelpFormatter(prog, max_help_position=32)
+  return argparse.ArgumentDefaultsHelpFormatter(prog, max_help_position=40)
 
 
 def _init_parser():

@@ -5,7 +5,6 @@ from typing import Iterable, List, Optional, cast
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_grid_files, load_grid, save_audio,
