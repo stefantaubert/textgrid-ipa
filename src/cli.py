@@ -1,7 +1,5 @@
 import argparse
 from argparse import ArgumentParser, _SubParsersAction
-from functools import partial
-from logging import getLogger
 from typing import Callable
 
 from textgrid_tools.app.grid_audio_synchronization import \
@@ -39,8 +37,6 @@ from textgrid_tools.app.tier_words_to_arpa_transcription import \
     init_app_transcribe_words_to_arpa_on_phoneme_level_parser
 
 INVOKE_HANDLER_VAR = "invoke_handler"
-
-# # DEFAULT_MFA_IGNORE_PUNCTUATION = "、。।，@<>”(),.:;¿?¡!\\&%#*~【】，…‥「」『』〝〟″⟨⟩♪・‹›«»～′$+="  # missing: “”"
 
 
 def __add_parser_to(subparsers: _SubParsersAction, name: str, init_method: Callable[[ArgumentParser], Callable], help_msg: str):
