@@ -4,7 +4,7 @@ from typing import Iterable, List, Optional, Set, cast
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.grid_audio_syncronization import (
+from textgrid_tools.core.mfa.grid_audio_synchronization import (
     can_set_end_to_audio_len, set_end_to_audio_len)
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,

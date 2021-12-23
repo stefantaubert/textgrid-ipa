@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
-  parser.add_argument("input_directory", type=Path, metavar="input-directory",
+  parser.add_argument("directory", type=Path, metavar="directory",
                       help="the directory containing grid files, from which intervals should be removed")
   parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")
   parser.add_argument("--audio-directory", type=Path, metavar='',
@@ -34,15 +34,15 @@ def init_files_remove_intervals_parser(parser: ArgumentParser):
   return files_remove_intervals
 
 
-def files_remove_intervals(input_directory: Path, audio_directory: Path, tier: str, marks: Optional[List[str]], empty: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
+def files_remove_intervals(directory: Path, audio_directory: Path, tier: str, marks: Optional[List[str]], empty: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
-  if not input_directory.exists():
-    logger.error("Input directory does not exist!")
+  if not directory.exists():
+    logger.error(f"Directory \"{directory}\" does not exist!")
     return
 
   if audio_directory is not None and not audio_directory.exists():
-    logger.error("Audio directory does not exist!")
+    logger.error(f"Directory \"{audio_directory}\" does not exist!")
     return
 
   remove_marks_set = set(marks) if marks is not None else set()
@@ -52,14 +52,14 @@ def files_remove_intervals(input_directory: Path, audio_directory: Path, tier: s
     return
 
   if output_directory is None:
-    output_directory = input_directory
+    output_directory = directory
 
   if output_audio_directory is None:
     output_audio_directory = audio_directory
 
   logger.info(f"Marks: {remove_marks_set} and empty: {'yes' if empty else 'no'}")
 
-  grid_files = get_grid_files(input_directory)
+  grid_files = get_grid_files(directory)
   logger.info(f"Found {len(grid_files)} grid files.")
   print(grid_files)
 
@@ -90,7 +90,7 @@ def files_remove_intervals(input_directory: Path, audio_directory: Path, tier: s
       logger.info("Skipped.")
       continue
 
-    grid_file_in_abs = input_directory / grid_files[file_stem]
+    grid_file_in_abs = directory / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
     sample_rate = None
