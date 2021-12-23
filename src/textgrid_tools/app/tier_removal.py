@@ -30,6 +30,9 @@ def files_remove_tiers(directory: Path, tiers: List[str], n_digits: int, output_
     logger.error("Textgrid folder does not exist!")
     return
 
+  if output_directory is None:
+    output_directory = directory
+
   tiers_set = set(tiers)
   if len(tiers_set) == 0:
     logger.error("Please specify at least one tier!")

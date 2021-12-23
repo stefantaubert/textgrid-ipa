@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 
 def init_files_fix_boundaries_parser(parser: ArgumentParser):
+  parser.description = "This command set the closest boundaries of tiers to those of a reference tier."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--reference_tier", type=str, required=True)
   parser.add_argument("--difference_threshold", type=float, required=False)

@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 
 def init_files_remove_intervals_parser(parser: ArgumentParser):
-  parser.description = "Remove empty intervals and/or intervals containing specific marks. The corresponding audios could be adjusted, too."
+  parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
   parser.add_argument("input_directory", type=Path, metavar="input-directory",
                       help="the directory containing grid files, from which intervals should be removed")
   parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")

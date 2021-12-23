@@ -24,7 +24,7 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
     PublicDictType.LIBRISPEECH_ARPA,
     PublicDictType.PROSODYLAB_ARPA,
   ]
-  parser.description = "With this command you can create an ARPA pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
+  parser.description = "This command creates an ARPA pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
   parser.add_argument("input_directory", type=Path, metavar="input-directory",
                       help="the directory containing the grid files")
   parser.add_argument("tier", type=str, help="the tier that contains the words")

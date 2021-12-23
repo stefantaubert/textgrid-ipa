@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 
 def init_files_clone_tier_parser(parser: ArgumentParser):
+  parser.description = "This command clones a tier."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tier", type=str, required=True)
   parser.add_argument("--new_tier", type=str, required=True)

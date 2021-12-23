@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 
 def init_files_print_stats_parser(parser: ArgumentParser):
+  parser.description = "This command generate statistics about the grid files."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--duration_threshold", type=float, default=0.002)
   parser.add_argument("--print_symbols_tiers", type=str, nargs='*', default="")

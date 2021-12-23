@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 
 def init_remove_symbols_from_tiers_parser(parser: ArgumentParser):
+  parser.description = "This command removes symbols from tiers."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tiers", type=str, nargs='+', required=True)
   parser.add_argument("--symbols", type=str, nargs='+', required=True)

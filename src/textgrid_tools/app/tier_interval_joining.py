@@ -27,7 +27,7 @@ def init_files_join_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--boundary-tier", type=str, metavar="TIER",
                       help="the tier from which the boundaries should be considered (only in mode BOUNDARY)")
   parser.add_argument("--min-pause", metavar="MIN_PAUSE", type=float,
-                      help="the duration an empty interval needs to have at least for it not to be joined together (only in mode PAUSE)")
+                      help="the duration (seconds) an empty interval needs to have at least for it not to be joined together (only in mode PAUSE)")
   parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
                       help="the tier on which the mapped content should be written to if not to tier.")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
@@ -37,7 +37,7 @@ def init_files_join_intervals_parser(parser: ArgumentParser):
   return files_join_intervals
 
 
-def files_join_intervals(directory: Path, tier: str, tier_string_format: StringFormat, mode: JoinMode, output_tier: Optional[str], min_pause_s: Optional[float], boundary_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, mode: JoinMode, output_tier: Optional[str], min_pause: Optional[float], boundary_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -67,14 +67,14 @@ def files_join_intervals(directory: Path, tier: str, tier_string_format: StringF
     grid_file_in_abs = directory / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    can_join = can_join_intervals(grid_in, tier, output_tier, min_pause_s,
+    can_join = can_join_intervals(grid_in, tier, output_tier, min_pause,
                                   boundary_tier, mode, overwrite_tier)
     if not can_join:
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, tier_string_format, output_tier,
-                   min_pause_s, boundary_tier, mode, overwrite_tier)
+    join_intervals(grid_in, tier, tier_format, output_tier,
+                   min_pause, boundary_tier, mode, overwrite_tier)
 
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)

@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 
 def init_files_move_tier_parser(parser: ArgumentParser):
+  parser.description = "This commands moves a tier to another position in the grid."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tier", type=str, required=True)
   parser.add_argument("--position", type=int, required=True)
@@ -48,10 +49,10 @@ def files_move_tier(grid_folder_in: Path, tier: str, position: int, n_digits: in
       continue
 
     changed_anything = move_tier(grid_in, tier, position)
-    
+
     if not changed_anything:
       logger.info("Didn't changed anything.")
-      
+
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)
 

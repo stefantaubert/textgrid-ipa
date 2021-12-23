@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 
 def init_files_convert_text_to_symbols_parser(parser: ArgumentParser):
+  parser.description = "This command converts text in TEXT format to the SYMBOL format."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tier", type=str, required=True)
   parser.add_argument("--new_tier", type=str, required=True)

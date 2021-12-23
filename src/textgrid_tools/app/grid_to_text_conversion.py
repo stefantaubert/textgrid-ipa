@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 
 def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
+  parser.description = "This command writes the content of a tier into a text file."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tier", type=str, required=True)
   parser.add_argument('--string_format', choices=StringFormat,

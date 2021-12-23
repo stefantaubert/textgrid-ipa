@@ -31,7 +31,7 @@ def init_files_map_words_to_tier_parser(parser: ArgumentParser):
   return files_map_words_to_tier
 
 
-def files_map_words_to_tier(input_directory: Path, tier: str, reference_input_directory: Path, reference_tier: str, new_tier: str, n_digits: int, output_directory: Optional[Path], overwrite_tier: bool, overwrite: bool) -> None:
+def files_map_words_to_tier(input_directory: Path, tier: str, reference_input_directory: Path, reference_tier: str, output_tier: str, n_digits: int, output_directory: Optional[Path], overwrite_tier: bool, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not input_directory.exists():
@@ -44,6 +44,9 @@ def files_map_words_to_tier(input_directory: Path, tier: str, reference_input_di
 
   if output_directory is None:
     output_directory = input_directory
+
+  if output_tier is None:
+    output_tier = tier
 
   grid_files = get_grid_files(input_directory)
   logger.info(f"Found {len(grid_files)} grid files.")
@@ -98,13 +101,13 @@ def files_map_words_to_tier(input_directory: Path, tier: str, reference_input_di
     ref_grid_in = load_grid(ref_grid_file_in_abs, n_digits)
 
     can_map = can_map_words_to_tier(
-      grid_in, tier, ref_grid_in, reference_tier, new_tier, overwrite_tier)
+      grid_in, tier, ref_grid_in, reference_tier, output_tier, overwrite_tier)
     if not can_map:
       logger.info("Skipped.")
       continue
     try:
       map_words_to_tier(grid_in, tier, ref_grid_in, reference_tier,
-                        new_tier, overwrite_tier)
+                        output_tier, overwrite_tier)
     except Exception as ex:
       logger.info("Skipped.")
       continue

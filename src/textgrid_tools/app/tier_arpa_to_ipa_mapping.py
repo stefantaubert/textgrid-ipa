@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 
 def init_map_arpa_tier_to_ipa_parser(parser: ArgumentParser):
+  parser.description = "This command maps ARPA transcriptions to IPA."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--arpa_tier_in", type=str, required=True)
   parser.add_argument("--ipa_tier_out", type=str, required=True)

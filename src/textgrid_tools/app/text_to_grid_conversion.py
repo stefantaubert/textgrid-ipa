@@ -18,7 +18,7 @@ META_FILE_TYPE = ".meta"
 
 
 def init_files_convert_text_to_grid_parser(parser: ArgumentParser):
-  parser.description = f"Converting text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
+  parser.description = f"This command converts text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
   parser.add_argument("input_directory", type=Path, metavar="input-directory",
                       help="the directory containing text files, which should be converted to grids")
   parser.add_argument("--audio-directory", type=Path, metavar='',
