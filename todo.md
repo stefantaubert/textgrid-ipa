@@ -11,6 +11,7 @@ textgrid-tools intervals {join}
 ```
 
 - refactor all sub-command parsers
+- provide windows and mac version
 - use local dictionary for create-dict-from-grids
 - make map on phoneme level word based!
   - by creating single commands like 1. words to ARPA with space separated (do not merge symbols here because one space always between symbols) 2. separate words on space considering merge symbols 3. map tier to other tier, by ignoring empty intervals (like original text addition)
