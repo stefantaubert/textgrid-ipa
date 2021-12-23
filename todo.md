@@ -11,6 +11,8 @@ textgrid-tools intervals {join}
 ```
 
 - refactor all sub-command parsers
+- improve logging
+- check that custom output parameters are set to default if not defined per cli e.g. output-directory is set to input-directory
 - provide windows and mac version
 - use local dictionary for create-dict-from-grids
 - make map on phoneme level word based!
