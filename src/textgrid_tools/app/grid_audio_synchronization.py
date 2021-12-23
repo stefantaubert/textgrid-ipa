@@ -7,7 +7,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_grid_files, load_grid, read_audio,
                                        save_grid)
-from textgrid_tools.core.mfa.grid_audio_syncronization import (
+from textgrid_tools.core.mfa.grid_audio_synchronization import (
     can_sync_grid_to_audio, sync_grid_to_audio)
 from tqdm import tqdm
 

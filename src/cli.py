@@ -4,7 +4,7 @@ from functools import partial
 from logging import getLogger
 from typing import Callable
 
-from textgrid_tools.app.grid_audio_syncronization import \
+from textgrid_tools.app.grid_audio_synchronization import \
     init_files_sync_grids_parser
 from textgrid_tools.app.grid_interval_removal import \
     init_files_remove_intervals_parser
