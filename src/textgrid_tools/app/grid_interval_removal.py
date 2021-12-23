@@ -26,9 +26,9 @@ def init_files_remove_intervals_parser(parser: ArgumentParser):
   parser.add_argument("--empty", action="store_true",
                       help="remove empty intervals")
   add_n_digits_argument(parser)
-  parser.add_argument("--output-directory", metavar='', type=Path,
+  parser.add_argument("--output-directory", metavar='PATH', type=Path,
                       help="the directory where to output the modified grid files if not to input-directory")
-  parser.add_argument("--output-audio-directory", metavar='', type=Path,
+  parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
                       help="the directory where to output the modified audio files if not to audio-directory.")
   add_overwrite_argument(parser)
   return files_remove_intervals

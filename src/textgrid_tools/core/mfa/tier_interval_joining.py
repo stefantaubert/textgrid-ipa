@@ -17,6 +17,18 @@ class JoinMode(IntEnum):
   BOUNDARY = 1
   PAUSE = 2
 
+  def __str__(self) -> str:
+    if self == self.TIER:
+      return "TIER"
+
+    if self == self.BOUNDARY:
+      return "BOUNDARY"
+
+    if self == self.PAUSE:
+      return "PAUSE"
+
+    assert False
+
 
 def can_join_intervals(grid: TextGrid, tier: str, new_tier: str, min_pause_s: Optional[float], boundary_tier: Optional[str], mode: JoinMode, overwrite_tier: bool) -> None:
   logger = getLogger(__name__)

@@ -13,7 +13,7 @@ from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
 from textgrid_tools.utils import update_or_add_tier
 
 
-def can_map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str, alignment_dict: PronunciationDict, new_tier: str, overwrite_tier: bool) -> bool:
+def can_map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str, new_tier: str, overwrite_tier: bool) -> bool:
   logger = getLogger(__name__)
 
   if not check_is_valid_grid(grid):
@@ -41,7 +41,7 @@ def can_map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, r
   return True
 
 
-def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str, alignment_dict: PronunciationDict, new_tier: str, overwrite_tier: bool) -> None:
+def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, reference_tier: str,  new_tier: str, overwrite_tier: bool) -> None:
   logger = getLogger(__name__)
   tier = get_first_tier(grid, tier)
   reference_tier = get_first_tier(reference_grid, reference_tier)
