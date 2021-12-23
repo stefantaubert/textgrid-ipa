@@ -25,5 +25,5 @@ textgrid-tools intervals {join}
 - copy textgrid directory
 - add validation methods, e.g.,
   - tier contains custom symbols
-  - tier contains only ARPbet symbols
+  - tier contains only ARPAbet symbols
   - tier contains non-dictionary words
