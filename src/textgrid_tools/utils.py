@@ -120,6 +120,7 @@ def update_or_add_tier(grid: TextGrid, tier: IntervalTier) -> None:
     grid.append(tier)
 
 
+
 def update_tier(grid: TextGrid, tier: IntervalTier) -> None:
   assert grid_contains_tier(grid, tier.name)
   existing_tier = grid.getFirst(tier.name)

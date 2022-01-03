@@ -3,7 +3,7 @@ from typing import List
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, interval_is_None_or_empty,
+                                            get_first_tier, interval_is_None_or_whitespace,
                                             tier_exists)
 from textgrid_tools.core.mfa.string_format import transform_text_to_symbols
 
@@ -34,7 +34,7 @@ def convert_text_to_symbols(grid: TextGrid, tier: str, new_tier: str) -> None:
   for interval in original_text_tier_intervals:
     symbols_str = ""
 
-    if not interval_is_None_or_empty(interval):
+    if not interval_is_None_or_whitespace(interval):
       symbols_str = transform_text_to_symbols(str(interval.mark))
 
     symbols_interval = Interval(

@@ -19,7 +19,7 @@ MP3_FILE_TYPE = ".mp3"
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
   parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='N',
-                      choices=range(17), help="the precision of the grid files (max count of digits after the comma)")
+                      choices=range(17), help="precision of the grid files (max count of digits after the comma)")
 
 
 def add_overwrite_argument(parser: ArgumentParser) -> None:
@@ -34,7 +34,7 @@ def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
 
 def add_n_jobs_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-j", "--n-jobs", metavar='N', type=int,
-                      choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="the amount of parallel cpu jobs")
+                      choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="amount of parallel cpu jobs")
 
 
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:

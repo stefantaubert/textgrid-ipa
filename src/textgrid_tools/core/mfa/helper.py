@@ -142,6 +142,14 @@ def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: flo
       yield interval
 
 
+def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interval]:
+  result = list(get_intervals_from_timespan(tier, interval.minTime, interval.maxTime))
+  assert len(result) > 0
+  assert result[0].minTime == interval.minTime
+  assert result[-1].maxTime == interval.maxTime
+  return result
+
+
 def get_intervals_part_of_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Generator[Interval, None, None]:
   # intervals where interval.maxTime = minTime were not considered
   # intervals where interval.minTime = maxTime were not considered
@@ -171,6 +179,21 @@ def tier_exists(grid: TextGrid, tier: str) -> bool:
   return False
 
 
+def overwrite_or_add_tier(grid: TextGrid, existing_tier: IntervalTier, new_tier: IntervalTier, overwrite: bool) -> None:
+  if overwrite:
+    replace_tier(existing_tier, new_tier)
+  else:
+    grid.append(new_tier)
+
+
+def replace_tier(tier: IntervalTier, new_tier: IntervalTier) -> None:
+  tier.intervals.clear()
+  tier.intervals.extend(new_tier.intervals)
+  tier.minTime = new_tier.minTime
+  tier.maxTime = new_tier.maxTime
+  tier.name = new_tier.name
+
+
 def get_tiers(grid: TextGrid, tiers: Set[str]) -> Generator[IntervalTier, None, None]:
   for tier in cast(Iterable[IntervalTier], grid.tiers):
     if tier.name in tiers:
@@ -198,13 +221,16 @@ def get_boundary_timepoints_from_intervals(intervals: List[Interval]) -> Ordered
 
 def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
-    match = (interval.mark in marks) or (include_empty and interval_is_None_or_empty(interval))
+    match = (interval.mark in marks) or (include_empty and interval_is_None_or_whitespace(interval))
     if match:
       yield interval
 
 
-def interval_is_None_or_empty(interval: Interval) -> bool:
+def interval_is_None_or_whitespace(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark.strip()) == 0
+
+def interval_is_None_or_empty(interval: Interval) -> bool:
+  return interval.mark is None or len(interval.mark) == 0
 
 # def check_interval_boundaries_exist_on_all_tiers(intervals: Interval, tiers: List[IntervalTier]):
 #   result = True

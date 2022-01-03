@@ -8,7 +8,7 @@ from text_utils.text import symbols_to_words
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.arpa import SIL
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, interval_is_None_or_empty,
+                                            get_first_tier, interval_is_None_or_whitespace,
                                             tier_exists, tier_to_text)
 from textgrid_tools.utils import update_or_add_tier
 
@@ -65,7 +65,7 @@ def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, refer
   #   logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
 
   intervals: List[Interval] = tier.intervals
-  non_empty_intervals = [interval for interval in intervals if not interval_is_None_or_empty(interval)]
+  non_empty_intervals = [interval for interval in intervals if not interval_is_None_or_whitespace(interval)]
 
   if len(non_empty_intervals) != len(words):
     logger.error(f"Couldn't align words -> {len(non_empty_intervals)} vs. {len(words)}!")
@@ -85,7 +85,7 @@ def map_words_to_tier(grid: TextGrid, tier: str, reference_grid: TextGrid, refer
 
   for interval in intervals:
     new_word = ""
-    if not interval_is_None_or_empty(interval):
+    if not interval_is_None_or_whitespace(interval):
       new_word_tuple = words.pop(0)
       new_word = ''.join(new_word_tuple)
 

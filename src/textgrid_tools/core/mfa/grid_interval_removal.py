@@ -10,7 +10,7 @@ from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     find_intervals_with_mark, get_boundary_timepoints_from_intervals,
     get_boundary_timepoints_from_tier, get_first_tier,
-    get_intervals_from_timespan, set_precision_interval, tier_exists)
+    get_intervals_from_timespan, get_intervals_on_tier, set_precision_interval, tier_exists)
 from textgrid_tools.core.mfa.interval_boundary_adjustment import fix_timepoint
 from tqdm import tqdm
 
@@ -110,13 +110,6 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sr: Optional[i
 
   return res_audio
 
-
-def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interval]:
-  result = list(get_intervals_from_timespan(tier, interval.minTime, interval.maxTime))
-  assert len(result) > 0
-  assert result[0].minTime == interval.minTime
-  assert result[-1].maxTime == interval.maxTime
-  return result
 
 
 def set_times_consecutively_tier(tier: IntervalTier, n_digits: int):
