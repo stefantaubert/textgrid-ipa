@@ -108,6 +108,9 @@ def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, 
   elif mode == JoinMode.BOUNDARY:
     b_tier = get_first_tier(grid, boundary_tier)
     interval_iterator = join_via_boundary(tier_instance, tier_string_format, b_tier)
+  elif mode == JoinMode.SENTENCE:
+    interval_iterator = join_via_sentences(
+      tier_instance, tier_string_format, IntervalFormat.WORD, {}, {})
   else:
     assert False
 
@@ -126,7 +129,7 @@ def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, 
     grid.append(new_tier)
 
 
-def join_via_sentences_v2(tier: IntervalTier, tier_string_format: StringFormat, interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[Interval, None, None]:
+def join_via_sentences(tier: IntervalTier, tier_string_format: StringFormat, interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[Interval, None, None]:
   assert interval_format in {IntervalFormat.WORDS, IntervalFormat.WORD}
   current_sentence = []
   all_sentences = []
@@ -174,48 +177,6 @@ def symbols_endswith(symbols: Tuple[str, ...], endswith: Set[str]) -> bool:
   last_symbol = symbols[-1]
   result = last_symbol in endswith
   return result
-
-
-def join_via_sentences(tier: IntervalTier, tier_string_format: StringFormat, symbol_format: SymbolFormat, language: Language) -> Generator[Interval, None, None]:
-  interval_tuples = intervals_to_tuples(tier.intervals, tier_string_format)
-  text = tuples_intervals_to_text(interval_tuples)
-  sentences = text_to_sentences(text, symbol_format, language)
-  intervals = iter(tier.intervals)
-
-  sentences_intervals = []
-  sentence_intervals = []
-  current_sentence = ""
-  for sentence in sentences:
-    assert len(sentence) > 0
-    while True:
-      try:
-        current_interval = next(intervals)
-      except StopIteration:
-        if len(sentence_intervals) > 0:
-          sentences_intervals.append(sentence_intervals)
-          sentence_intervals.clear()
-        break
-
-      current_interval_tuple = interval_to_tuple(current_interval, tier_string_format)
-
-      interval_content = symbols_strip(current_interval_tuple, strip={" ", ""})
-      interval_content_text = ''.join(interval_content)
-      if sentence.startswith(current_sentence + " " + interval_content_text):
-        sentence_intervals.append(current_interval)
-        current_sentence += interval_content_text
-        if sentence == current_sentence:
-          sentences_intervals.append(sentence_intervals)
-          sentence_intervals.clear()
-          current_sentence = ""
-      else:
-        raise Exception()
-        # sentences_intervals.append(sentence_intervals)
-        #sentence_intervals = [current_interval]
-        # break
-
-  for sentence_intervals in sentences_intervals:
-
-    pass
 
 
 def tuples_intervals_to_text(intervals: Iterable[Tuple[str, ...]]) -> str:
