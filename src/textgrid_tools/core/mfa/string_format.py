@@ -14,7 +14,7 @@ class StringFormat(IntEnum):
 
   def get_word_separator(self) -> str:
     if self == StringFormat.TEXT:
-      return " "
+      return TEXT_WORD_SEPARATOR
     if self == StringFormat.SYMBOLS:
       return SYMBOLS_WORD_SEPARATOR
     assert False

@@ -34,7 +34,7 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
                       help="Trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary.")
   add_n_digits_argument(parser)
   parser.add_argument("--consider-annotations", action="store_true",
-                      help="consider /.../-style annotations")
+                      help="consider /.../-styled annotations")
   parser.add_argument("--include-punctuation-in-pronunciations", action="store_true",
                       help="include punctuation in the ARPA pronunciation")
   parser.add_argument("--include-punctuation-in-words", action="store_true",
@@ -42,7 +42,7 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   parser.add_argument("--split-on-hyphen", action="store_true",
                       help="split words on hyphen symbol before lookup")
   parser.add_argument("--dictionary", metavar='PATH', choices=arpa_dicts,
-                      type=PublicDictType.__getitem__, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur than its pronunciation will be estimated)")
+                      type=PublicDictType.__getitem__, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur then its pronunciation will be estimated)")
   add_n_jobs_argument(parser)
   add_overwrite_argument(parser)
   return convert_texts_to_arpa_dicts

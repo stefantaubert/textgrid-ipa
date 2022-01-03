@@ -8,13 +8,17 @@ def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
   return intervals_to_text(tier.intervals, join_with)
 
 
-def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ") -> str:
+def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ", strip: bool = True) -> str:
   words = []
   for interval in intervals:
-    if not interval_is_empty(interval):
-      interval_text: str = interval.mark
+    if interval is None:
+      continue
+    interval_text: str = interval.mark
+    if strip:
       interval_text = interval_text.strip()
-      words.append(interval_text)
+    if len(interval_text) == 0:
+      continue
+    words.append(interval_text)
   text = join_with.join(words)
   return text
 
@@ -194,12 +198,12 @@ def get_boundary_timepoints_from_intervals(intervals: List[Interval]) -> Ordered
 
 def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
-    match = (interval.mark in marks) or (include_empty and interval_is_empty(interval))
+    match = (interval.mark in marks) or (include_empty and interval_is_None_or_empty(interval))
     if match:
       yield interval
 
 
-def interval_is_empty(interval: Interval) -> bool:
+def interval_is_None_or_empty(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark.strip()) == 0
 
 # def check_interval_boundaries_exist_on_all_tiers(intervals: Interval, tiers: List[IntervalTier]):

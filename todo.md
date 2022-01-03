@@ -3,13 +3,14 @@
 Maybe refactor commands like so:
 
 ```txt
-textgrid-tools grid {create,synchronize-to-audio,split,print-stats}
 textgrid-tools grids {create-dictionary}
-textgrid-tools tier {clone,move,rename,transcribe-words-to-arpa}
+textgrid-tools grid {create,synchronize-to-audio,split,print-stats}
 textgrid-tools tiers {remove,normalize,remove-symbols,fix-boundaries,convert-to-symbols}
+textgrid-tools tier {clone,move,rename,transcribe-words-to-arpa}
 textgrid-tools intervals {join}
 ```
 
+- join on sentences
 - refactor all sub-command parsers
 - improve logging
 - check that custom output parameters are set to default if not defined per cli e.g. output-directory is set to input-directory

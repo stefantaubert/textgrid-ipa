@@ -13,7 +13,7 @@ from text_utils.text import symbols_to_words, words_to_symbols
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, interval_is_empty,
+                                            get_first_tier, interval_is_None_or_empty,
                                             tier_exists, tier_to_text)
 from textgrid_tools.utils import update_or_add_tier
 
@@ -105,7 +105,7 @@ def transcribe_words_to_arpa_on_phoneme_level(grid: TextGrid, words_tier: str, p
   for interval in reference_tier_intervals:
     new_arpa_symbol = ""
 
-    if not interval_is_empty(interval):
+    if not interval_is_None_or_empty(interval):
       new_arpa_symbol = final_arpa_symbols.pop(0)
       logger.debug(f"Assigned \"{new_arpa_symbol}\" to \"{interval.mark}\".")
 
