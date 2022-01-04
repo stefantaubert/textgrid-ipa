@@ -13,8 +13,8 @@ from textgrid_tools.core.mfa.helper import (
     get_intervals_part_of_timespan, interval_is_None_or_whitespace,
     intervals_to_text, tier_exists, tier_to_text)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.mfa.string_format import (SYMBOLS_SEPARATOR,
-                                                   StringFormat)
+from text_utils import (SYMBOLS_SEPARATOR,
+                        StringFormat)
 from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
 
 

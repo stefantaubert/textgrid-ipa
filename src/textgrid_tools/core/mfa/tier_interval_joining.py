@@ -3,7 +3,9 @@ from logging import getLogger
 from typing import (Generator, Iterable, Iterator, List, Optional, Set, Tuple,
                     cast)
 
-from text_utils import Language, text_to_sentences
+from text_utils import (SYMBOLS_SEPARATOR, Language, StringFormat,
+                        text_to_sentences)
+from text_utils.string_format import join_strings, string_to_str
 from text_utils.symbol_format import SymbolFormat
 from text_utils.utils import symbols_strip
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -13,8 +15,6 @@ from textgrid_tools.core.mfa.helper import (
     get_intervals_part_of_timespan, interval_is_None_or_whitespace,
     intervals_to_text, tier_exists, tier_to_text)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.mfa.string_format import (SYMBOLS_SEPARATOR,
-                                                   StringFormat)
 from textgrid_tools.utils import durations_to_intervals, update_or_add_tier
 
 
@@ -93,7 +93,7 @@ def can_join_intervals(grid: TextGrid, tier: str, new_tier: str, min_pause_s: Op
   return True
 
 
-def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, new_tier: str, min_pause_s: Optional[float], boundary_tier: Optional[str], mode: JoinMode, overwrite_tier: bool) -> None:
+def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, new_tier: str, min_pause_s: Optional[float], boundary_tier: Optional[str], mode: JoinMode, overwrite_tier: bool) -> None:
   assert can_join_intervals(grid, tier, new_tier,
                             min_pause_s, boundary_tier, mode, overwrite_tier)
 
@@ -107,7 +107,8 @@ def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, 
     interval_iterator = join_whole_tier(tier_instance, tier_string_format)
   elif mode == JoinMode.BOUNDARY:
     b_tier = get_first_tier(grid, boundary_tier)
-    interval_iterator = join_via_boundary(tier_instance, tier_string_format, b_tier)
+    interval_iterator = join_via_boundary(
+      tier_instance, tier_string_format, tier_interval_format, b_tier)
   elif mode == JoinMode.SENTENCE:
     interval_iterator = join_via_sentences(
       tier_instance, tier_string_format, IntervalFormat.WORD, {}, {})
@@ -126,7 +127,7 @@ def join_intervals(grid: TextGrid, tier: str, tier_string_format: StringFormat, 
   if overwrite_tier:
     update_or_add_tier(grid, new_tier_instance)
   else:
-    grid.append(new_tier)
+    grid.append(new_tier_instance)
 
 
 def join_via_sentences(tier: IntervalTier, tier_string_format: StringFormat, interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[Interval, None, None]:
@@ -229,21 +230,55 @@ def join_whole_tier(tier: IntervalTier, tier_string_format: StringFormat) -> Gen
   yield interval
 
 
-def join_via_boundary(tier: IntervalTier, tier_string_format: StringFormat, boundary_tier: IntervalTier) -> Generator[Interval, None, None]:
+def join_via_boundary(tier: IntervalTier, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, boundary_tier: IntervalTier) -> Generator[Interval, None, None]:
   synchronize_timepoints = get_boundary_timepoints_from_tier(boundary_tier)
+  # tier_interval_format is also the target string_format
+  if tier_string_format == StringFormat.SYMBOLS:
+    if tier_interval_format in {IntervalFormat.WORD, IntervalFormat.WORDS}:
+      sep = tier_string_format.get_word_separator()
+    elif tier_interval_format == IntervalFormat.SYMBOL:
+      sep = SYMBOLS_SEPARATOR
+    else:
+      assert False
+  elif tier_string_format == StringFormat.TEXT:
+    if tier_interval_format in {IntervalFormat.WORD, IntervalFormat.WORDS}:
+      sep = " "
+    elif tier_interval_format == IntervalFormat.SYMBOL:
+      sep = ""
+    else:
+      assert False
+  else:
+    assert False
+
+  strip = True
 
   for i in range(1, len(synchronize_timepoints)):
     last_timepoint = synchronize_timepoints[i - 1]
     current_timepoint = synchronize_timepoints[i]
     tier_intervals_in_range = list(get_intervals_part_of_timespan(
       tier, last_timepoint, current_timepoint))
-    sep = tier_string_format.get_word_separator()
-    # TODO join right!
-    content = intervals_to_text(tier_intervals_in_range, join_with=sep)
+    entrys = []
+    for interval in tier_intervals_in_range:
+
+      if interval is None:
+        continue
+      interval_text: str = interval.mark
+      if strip:
+        interval_text = interval_text.strip()
+      if len(interval_text) == 0:
+        continue
+      if not tier_string_format.can_parse_string(interval_text):
+        raise Exception()
+      string = tier_string_format.parse_string(interval_text)
+      entrys.append(string)
+
+    content = join_strings(entrys, sep)
+    mark = string_to_str(content)
+    #content = intervals_to_text(tier_intervals_in_range, join_with=sep)
     new_interval = Interval(
       minTime=last_timepoint,
       maxTime=current_timepoint,
-      mark=content,
+      mark=mark,
     )
     yield new_interval
 

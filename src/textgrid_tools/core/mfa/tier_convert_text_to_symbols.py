@@ -1,11 +1,12 @@
 from logging import getLogger
 from typing import List
 
+from text_utils import transform_text_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, interval_is_None_or_whitespace,
+                                            get_first_tier,
+                                            interval_is_None_or_whitespace,
                                             tier_exists)
-from textgrid_tools.core.mfa.string_format import transform_text_to_symbols
 
 
 def can_convert_text_to_symbols(grid: TextGrid, tier: str) -> bool:

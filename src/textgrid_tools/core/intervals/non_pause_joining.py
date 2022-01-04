@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Generator, Iterable, Iterator, List, Optional
 
+from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier,
@@ -8,7 +9,6 @@ from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             intervals_to_text, replace_tier,
                                             tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.mfa.string_format import StringFormat
 
 
 def can_join_intervals(grid: TextGrid, tier_name: str, output_tier_name: Optional[str], overwrite_tier: bool) -> None:

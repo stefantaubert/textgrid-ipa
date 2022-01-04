@@ -10,7 +10,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
 from textgrid_tools.core.intervals.non_pause_joining import (
     can_join_intervals, join_intervals)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.mfa.string_format import StringFormat
+from text_utils import StringFormat
 from tqdm import tqdm
 
 

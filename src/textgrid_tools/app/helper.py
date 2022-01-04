@@ -6,7 +6,7 @@ from typing import OrderedDict as OrderedDictType
 from typing import Set, Tuple
 
 import numpy as np
-from general_utils.main import get_all_files_in_all_subfolders
+from general_utils.main import get_files_dict
 from scipy.io.wavfile import read, write
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS, DEFAULT_N_JOBS
@@ -47,17 +47,6 @@ def get_audio_files(folder: Path) -> OrderedDictType[str, Path]:
 
 def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
   return get_files_dict(folder, filetypes={TXT_FILE_TYPE})
-
-
-def get_files_dict(folder: Path, filetypes: Set[str]) -> OrderedDictType[str, Path]:
-  filetypes_lower = {ft.lower() for ft in filetypes}
-  all_files = get_all_files_in_all_subfolders(folder)
-  resulting_files = (
-    (str(file.relative_to(folder).parent / file.stem), file.relative_to(folder))
-      for file in all_files if file.suffix.lower() in filetypes_lower
-  )
-  result = OrderedDict(resulting_files)
-  return result
 
 
 def load_grid(path: Path, n_digits: int) -> TextGrid:

@@ -7,7 +7,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_files_dict, get_text_files,
                                        read_audio, save_grid)
-from textgrid_tools.core.mfa.string_format import StringFormat
+from text_utils import StringFormat
 from textgrid_tools.core.mfa.text_to_grid_conversion import (
     can_convert_texts_to_grid, can_parse_meta_content, convert_text_to_grid,
     parse_meta_content)

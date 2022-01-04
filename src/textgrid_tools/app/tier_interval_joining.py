@@ -3,11 +3,12 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
+from text_utils import StringFormat
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.mfa.string_format import StringFormat
+from textgrid_tools.core.mfa.interval_format import IntervalFormat
 from textgrid_tools.core.mfa.tier_interval_joining import (JoinMode,
                                                            can_join_intervals,
                                                            join_intervals)
@@ -24,6 +25,8 @@ def init_files_join_intervals_parser(parser: ArgumentParser):
                       type=JoinMode.__getitem__, default=JoinMode.TIER, help="the mode which should be used for joining (TIER for joining all intervals on a tier together; BOUNDARY for joining intervals according to the interval boundaries of another tier; PAUSE for joining all intervals which are not separated by at least one empty interval that have a duration of at least 'pause')")
   parser.add_argument('--tier-format', choices=StringFormat,
                       type=StringFormat.__getitem__, default=StringFormat.TEXT, help="the text format of tier")
+  parser.add_argument('--tier-interval-format', choices=IntervalFormat,
+                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="the interval format of tier")
   parser.add_argument("--boundary-tier", type=str, metavar="TIER",
                       help="the tier from which the boundaries should be considered (only in mode BOUNDARY)")
   parser.add_argument("--pause", metavar="PAUSE", type=float,
@@ -37,7 +40,7 @@ def init_files_join_intervals_parser(parser: ArgumentParser):
   return files_join_intervals
 
 
-def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, mode: JoinMode, output_tier: Optional[str], pause: Optional[float], boundary_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, tier_interval_format: IntervalFormat, mode: JoinMode, output_tier: Optional[str], pause: Optional[float], boundary_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -73,7 +76,7 @@ def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, 
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, tier_format, output_tier,
+    join_intervals(grid_in, tier, tier_format, tier_interval_format, output_tier,
                    pause, boundary_tier, mode, overwrite_tier)
 
     logger.info("Saving...")
