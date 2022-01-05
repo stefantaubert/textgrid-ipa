@@ -15,6 +15,8 @@ from textgrid_tools.app.grid_stats_generation import \
     init_files_print_stats_parser
 from textgrid_tools.app.grid_to_text_conversion import \
     init_files_convert_grid_to_text_parser
+from textgrid_tools.app.intervals.boundary_joining import \
+    init_files_join_intervals_on_boundaries_parser
 from textgrid_tools.app.intervals.pause_joining import \
     init_files_join_intervals_on_pauses_parser
 from textgrid_tools.app.intervals.sentence_joining import \
@@ -28,10 +30,9 @@ from textgrid_tools.app.tier_boundary_adjustment import \
 from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
 from textgrid_tools.app.tier_convert_text_to_symbols import \
     init_files_convert_text_to_symbols_parser
+from textgrid_tools.app.tier_copying import init_files_copy_tier_to_grid_parser
 from textgrid_tools.app.tier_dictionary_creation import \
     init_convert_texts_to_dicts_parser
-from textgrid_tools.app.tier_interval_joining import \
-    init_files_join_intervals_parser
 from textgrid_tools.app.tier_moving import init_files_move_tier_parser
 from textgrid_tools.app.tier_normalization import \
     init_files_normalize_tiers_parser
@@ -82,12 +83,12 @@ def _init_parser():
                   init_files_convert_grid_to_text_parser, "convert grid files to text files")
   __add_parser_to(subparsers, "create-dict-from-grids", init_convert_texts_to_dicts_parser,
                   "create pronunciation dictionary from multiple grid files")
-  __add_parser_to(subparsers, "join-tier-intervals",
-                  init_files_join_intervals_parser, "join tier intervals")
   __add_parser_to(subparsers, "join-tier-intervals-on-sentences",
                   init_files_join_intervals_on_sentences_parser, "join tier intervals sentence-wise")
   __add_parser_to(subparsers, "join-tier-intervals-on-pauses",
                   init_files_join_intervals_on_pauses_parser, "join tier intervals on pauses")
+  __add_parser_to(subparsers, "join-tier-intervals-on-boundaries",
+                  init_files_join_intervals_on_boundaries_parser, "join tier intervals on boundaries")
   __add_parser_to(subparsers, "map-words-to-tier", init_files_map_words_to_tier_parser,
                   "map words from one grid file to a tier in another grid file")
   __add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser,
@@ -99,6 +100,8 @@ def _init_parser():
                   init_files_remove_intervals_parser, "remove intervals on all tiers")
   __add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser, "rename a tier")
   __add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser, "clone a tier")
+  __add_parser_to(subparsers, "copy-tier",
+                  init_files_copy_tier_to_grid_parser, "copy tier from one grid to another")
   __add_parser_to(subparsers, "move-tier", init_files_move_tier_parser,
                   "move a tier to another position in the grid")
   # _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)

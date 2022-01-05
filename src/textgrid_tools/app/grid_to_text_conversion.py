@@ -10,6 +10,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        load_grid)
 from textgrid_tools.core.mfa.grid_to_text_conversion import (
     can_convert_tier_to_text, convert_tier_to_text)
+from textgrid_tools.core.mfa.interval_format import IntervalFormat
 from tqdm import tqdm
 
 
@@ -21,6 +22,8 @@ def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
   parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")
   parser.add_argument('--string-format', choices=StringFormat,
                       type=StringFormat.__getitem__, default=StringFormat.TEXT)
+  parser.add_argument('--interval-format', choices=IntervalFormat,
+                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD)
   parser.add_argument("--output-directory", type=Path, default=None,
                       help="custom directory where to write the text files if not to directory")
   add_n_digits_argument(parser)
@@ -28,7 +31,7 @@ def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
   return files_convert_grid_to_text
 
 
-def files_convert_grid_to_text(directory: Path, tier: str, string_format: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> None:
+def files_convert_grid_to_text(directory: Path, tier: str, string_format: StringFormat, interval_format: IntervalFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -60,7 +63,7 @@ def files_convert_grid_to_text(directory: Path, tier: str, string_format: String
       logger.info("Skipped.")
       continue
 
-    text = convert_tier_to_text(grid_in, tier, string_format)
+    text = convert_tier_to_text(grid_in, tier, string_format, interval_format)
 
     logger.info("Saving...")
     text_file_out_abs.parent.mkdir(parents=True, exist_ok=True)

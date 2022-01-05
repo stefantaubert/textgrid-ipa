@@ -10,6 +10,8 @@ textgrid-tools tier {clone,move,rename,transcribe-words-to-arpa}
 textgrid-tools intervals {join}
 ```
 
+- add insert tiers from other grids
+- add map one tier to another while ignoring spaces
 - join on sentences
 - refactor all sub-command parsers
 - improve logging

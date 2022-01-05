@@ -26,7 +26,7 @@ def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
   parser.add_argument('--mark-type', choices=IntervalFormat,
                       type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="type of marks in tier")
   parser.add_argument('--join-pause', type=float, metavar="SECONDS",
-                      help="until duration (in seconds) of adjacent pauses that should be merged", default=inf)
+                      help="until duration (in seconds) of adjacent pauses that should be merged, i.e., value \'0\' means only adjacent non-pause intervals are joined and \'inf\' means all intervals are joined", default=inf)
   parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
                       help="tier on which the mapped content should be written to if not to tier")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
@@ -36,7 +36,7 @@ def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
   return files_join_intervals_on_pauses
 
 
-def files_join_intervals_on_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals_on_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -63,12 +63,12 @@ def files_join_intervals_on_pauses(directory: Path, tier: str, mark_format: Stri
     grid_file_in_abs = directory / grid_files[file_stem]
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    can_join = can_join_intervals(grid_in, tier, output_tier, overwrite_tier)
+    can_join = can_join_intervals(grid_in, tier, join_pause, output_tier, overwrite_tier)
     if not can_join:
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, mark_format, mark_type,
+    join_intervals(grid_in, tier, mark_format, mark_type, join_pause,
                    output_tier, overwrite_tier)
 
     logger.info("Saving...")

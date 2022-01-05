@@ -1,7 +1,46 @@
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Collection, Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
+from text_utils import StringFormat
+from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.mfa.interval_format import IntervalFormat
+
+
+def get_non_pause_symbols(intervals: Iterable[Interval], string_format: StringFormat) -> Iterable[Symbols]:
+  for interval in intervals:
+    if interval_is_None_or_whitespace(interval):
+      continue
+    symbols = string_format.convert_string_to_symbols(interval.mark)
+    yield symbols
+
+
+def merge_intervals(intervals: Collection[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> Interval:
+  assert len(intervals) > 0
+  first_interval = intervals[0]
+  last_interval = intervals[-1]
+
+  mark = merge_marks(intervals, intervals_string_format, intervals_format)
+
+  interval = Interval(
+    minTime=first_interval.minTime,
+    maxTime=last_interval.maxTime,
+    mark=mark,
+  )
+
+  return interval
+
+
+def merge_symbols(intervals: Iterable[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> Symbols:
+  non_pause_symbols = get_non_pause_symbols(intervals, intervals_string_format)
+  joined_symbols = intervals_format.join_symbols(list(non_pause_symbols))
+  return joined_symbols
+
+
+def merge_marks(intervals: Iterable[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> str:
+  joined_symbols = merge_symbols(intervals, intervals_string_format, intervals_format)
+  mark = intervals_string_format.convert_symbols_to_string(joined_symbols)
+  return mark
 
 
 def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
@@ -21,6 +60,12 @@ def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ", strip
     words.append(interval_text)
   text = join_with.join(words)
   return text
+
+
+def get_intervals_duration(intervals: Iterable[Interval]) -> float:
+  durations = (interval.duration() for interval in intervals)
+  result = sum(durations)
+  return result
 
 
 def set_precision_grid(grid: TextGrid, n_digits: int) -> None:

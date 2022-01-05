@@ -6,7 +6,6 @@ from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import Pronunciation
-from sentence2pronunciation import LookupCache
 from sentence2pronunciation.multiprocessing import prepare_cache_mp
 from text_utils import Language, text_to_symbols
 from text_utils.pronunciation.main import get_eng_to_arpa_lookup_method

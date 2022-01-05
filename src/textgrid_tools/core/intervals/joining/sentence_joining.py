@@ -3,11 +3,11 @@ from typing import Generator, Iterable, List, Optional, Set
 
 from text_utils import StringFormat, symbols_endswith, symbols_strip
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier,
                                             interval_is_None_or_whitespace,
-                                            replace_tier, tier_exists)
+                                            merge_intervals, replace_tier,
+                                            tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
@@ -46,11 +46,11 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     maxTime=grid.maxTime,
   )
 
-  all_sentences = get_sentence_intervals(
+  chunked_intervals = chunk_intervals(
     tier.intervals, tier_string_format, strip_symbols, punctuation_symbols)
 
-  for sentence_intervals in all_sentences:
-    interval = merge_intervals(sentence_intervals, tier_string_format, tier_interval_format)
+  for chunk in chunked_intervals:
+    interval = merge_intervals(chunk, tier_string_format, tier_interval_format)
     new_tier.addInterval(interval)
 
   if overwrite_tier and tier.name == new_tier.name:
@@ -62,7 +62,7 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     grid.append(new_tier)
 
 
-def get_sentence_intervals(intervals: Iterable[Interval], intervals_string_format: StringFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[List[Interval], None, None]:
+def chunk_intervals(intervals: Iterable[Interval], intervals_string_format: StringFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[List[Interval], None, None]:
   current_sentence = []
   for interval in intervals:
     interval_is_pause_between_sentences = len(

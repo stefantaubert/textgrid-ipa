@@ -3,14 +3,14 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
+from text_utils import StringFormat
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_files_dict, get_text_files,
                                        read_audio, save_grid)
-from text_utils import StringFormat
 from textgrid_tools.core.mfa.text_to_grid_conversion import (
-    can_convert_texts_to_grid, can_parse_meta_content, convert_text_to_grid,
-    parse_meta_content)
+    can_convert_text_to_grid, can_convert_texts_to_grid,
+    can_parse_meta_content, convert_text_to_grid, parse_meta_content)
 from tqdm import tqdm
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
@@ -120,6 +120,11 @@ def files_convert_text_to_grid(input_directory: Path, audio_directory: Optional[
       else:
         start, end = parse_meta_content(meta_content)
         logger.info(f"Parsed meta file content: [{start}, {end}].")
+
+    can_convert = can_convert_text_to_grid(text, text_format, audio_in, sample_rate, start, end)
+    if not can_convert:
+      logger.info("Skipping.")
+      continue
 
     grid_out = convert_text_to_grid(text, audio_in, sample_rate, grid_name, tier,
                                     speech_rate, n_digits, start, end, text_format)

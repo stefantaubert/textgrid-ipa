@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import numpy as np
 from audio_utils.audio import samples_to_s
 from text_utils import StringFormat
+from text_utils.string_format import can_convert_symbols_string_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import check_is_valid_grid
 
@@ -20,7 +21,7 @@ def can_convert_texts_to_grid(tier_out: str, characters_per_second: float) -> bo
   return True
 
 
-def can_convert_text_to_grid(audio: Optional[np.ndarray], sr: Optional[int], start: Optional[float], end: Optional[float]) -> bool:
+def can_convert_text_to_grid(text: str, string_format: StringFormat, audio: Optional[np.ndarray], sample_rate: Optional[int], start: Optional[float], end: Optional[float]) -> bool:
   logger = getLogger(__name__)
 
   if start is not None:
@@ -34,8 +35,8 @@ def can_convert_text_to_grid(audio: Optional[np.ndarray], sr: Optional[int], sta
       return False
 
   if audio is not None:
-    assert sr is not None
-    duration_s = samples_to_s(audio.shape[0], sr)
+    assert sample_rate is not None
+    duration_s = samples_to_s(audio.shape[0], sample_rate)
     if start is not None and not start < duration_s:
       logger.error("Start needs to be smaller than audio duration!")
       return False
@@ -47,30 +48,12 @@ def can_convert_text_to_grid(audio: Optional[np.ndarray], sr: Optional[int], sta
         logger.error("Start needs to be smaller than end!")
         return False
 
+  if string_format == StringFormat.SYMBOLS and not can_convert_symbols_string_to_symbols(text):
+    logger.error("Text could not be parsed as SYMBOLS!")
+    return False
+
   return True
 
-
-def get_character_count(text: str, string_format: StringFormat) -> int:
-  if string_format == StringFormat.TEXT:
-    total_characters = len(text)
-    return total_characters
-
-  if string_format == StringFormat.SYMBOLS:
-    words = string_format.get_words(text)
-    words_symbols = (get_symbols(word) for word in words)
-    count_space = max(0, len(words) - 1)
-    total_characters = sum(1 for word in words_symbols for symbol in word) + count_space
-    return total_characters
-  assert False
-
-
-def can_parse_float(float_str: str) -> bool:
-  try:
-    float(float_str)
-    return True
-  except ValueError:
-    return False
-  assert False
 
 
 def parse_meta_content(meta_content: str) -> Tuple[Optional[float], Optional[float]]:
@@ -98,17 +81,26 @@ def can_parse_meta_content(meta_content: str) -> bool:
   return True
 
 
-def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[int], grid_name_out: Optional[str], tier_out: str, characters_per_second: float, n_digits: int, start: Optional[float], end: Optional[float], string_format: StringFormat) -> TextGrid:
+def can_parse_float(float_str: str) -> bool:
+  try:
+    float(float_str)
+    return True
+  except ValueError:
+    return False
+
+def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name_out: Optional[str], tier_out: str, characters_per_second: float, n_digits: int, start: Optional[float], end: Optional[float], string_format: StringFormat) -> TextGrid:
   assert can_convert_texts_to_grid(tier_out, characters_per_second)
+  assert can_convert_text_to_grid(text, string_format, audio, sample_rate, start, end)
+
   logger = getLogger(__name__)
+  text_symbols = string_format.convert_string_to_symbols(text)
   duration_s: float = None
   if audio is not None:
-    assert sr is not None
-    duration_s = samples_to_s(audio.shape[0], sr)
+    assert sample_rate is not None
+    duration_s = samples_to_s(audio.shape[0], sample_rate)
     logger.info(f"Total grid duration is {duration_s}.")
   else:
-    total_characters = get_character_count(text, string_format)
-    duration_s = total_characters / characters_per_second
+    duration_s = len(text_symbols) / characters_per_second
     logger.info(f"Estimated grid duration to {duration_s}.")
 
   if duration_s == 0:
@@ -153,10 +145,11 @@ def convert_text_to_grid(text: str, audio: Optional[np.ndarray], sr: Optional[in
     )
     tier.addInterval(start_interval)
 
+  text_str = string_format.convert_symbols_to_string(text_symbols)
   interval = Interval(
     minTime=minTime_text_interval,
     maxTime=maxTime_text_interval,
-    mark=text,
+    mark=text_str,
   )
   tier.addInterval(interval)
 

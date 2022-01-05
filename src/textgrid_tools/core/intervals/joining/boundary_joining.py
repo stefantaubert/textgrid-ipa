@@ -3,11 +3,10 @@ from typing import Generator, List, Optional
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_tier, get_first_tier,
-    get_intervals_part_of_timespan, replace_tier, tier_exists)
+    get_intervals_part_of_timespan, merge_intervals, replace_tier, tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
@@ -61,10 +60,10 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     maxTime=grid.maxTime,
   )
 
-  all_merge_intervals = get_merge_intervals(tier, boundary_tier)
+  chunked_intervals = chunk_intervals(tier, boundary_tier)
 
-  for intervals in all_merge_intervals:
-    interval = merge_intervals(intervals, tier_string_format, tier_interval_format)
+  for chunk in chunked_intervals:
+    interval = merge_intervals(chunk, tier_string_format, tier_interval_format)
     new_tier.addInterval(interval)
 
   if overwrite_tier and tier.name == new_tier.name:
@@ -76,7 +75,7 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     grid.append(new_tier)
 
 
-def get_merge_intervals(tier: IntervalTier, boundary_tier: IntervalTier) -> Generator[List[Interval], None, None]:
+def chunk_intervals(tier: IntervalTier, boundary_tier: IntervalTier) -> Generator[List[Interval], None, None]:
   synchronize_timepoints = get_boundary_timepoints_from_tier(boundary_tier)
 
   for i in range(1, len(synchronize_timepoints)):
