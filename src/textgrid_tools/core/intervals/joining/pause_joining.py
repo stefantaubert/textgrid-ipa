@@ -1,4 +1,4 @@
-""" from logging import getLogger
+from logging import getLogger
 from typing import Generator, Iterable, List, Optional
 
 from text_utils import StringFormat
@@ -11,7 +11,7 @@ from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
-def can_join_intervals(grid: TextGrid, tier_name: str, output_tier_name: Optional[str], overwrite_tier: bool) -> None:
+def can_join_intervals(grid: TextGrid, tier_name: str, join_pauses_under_duration: float, output_tier_name: Optional[str], overwrite_tier: bool) -> None:
   logger = getLogger(__name__)
 
   if not check_is_valid_grid(grid):
@@ -25,6 +25,10 @@ def can_join_intervals(grid: TextGrid, tier_name: str, output_tier_name: Optiona
   if output_tier_name is None:
     output_tier_name = tier_name
 
+  if not join_pauses_under_duration >= 0:
+    logger.error("Minimum pause needs to be >= 0!")
+    return False
+
   if tier_exists(grid, output_tier_name) and not overwrite_tier:
     logger.error(f"Tier \"{output_tier_name}\" already exists!")
     return False
@@ -32,8 +36,9 @@ def can_join_intervals(grid: TextGrid, tier_name: str, output_tier_name: Optiona
   return True
 
 
-def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> None:
-  assert can_join_intervals(grid, tier_name, output_tier_name, overwrite_tier)
+def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, join_pauses_under_duration: float, output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> None:
+  assert can_join_intervals(grid, tier_name, join_pauses_under_duration,
+                            output_tier_name, overwrite_tier)
 
   if output_tier_name is None:
     output_tier_name = tier_name
@@ -46,7 +51,7 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     maxTime=grid.maxTime,
   )
 
-  chunks = get_chunks(tier.intervals)
+  chunks = get_chunks(tier.intervals, join_pauses_under_duration)
 
   for chunk in chunks:
     interval = merge_intervals(chunk, tier_string_format, tier_interval_format)
@@ -61,17 +66,21 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     grid.append(new_tier)
 
 
-def get_chunks(intervals: Iterable[Interval]) -> Generator[List[Interval], None, None]:
-  current_content = []
+def get_chunks(intervals: Iterable[Interval], min_pause_s: float) -> Generator[List[Interval], None, None]:
+  chunk = []
+  chunk_is_only_pause = False
   for interval in intervals:
-    if interval_is_None_or_whitespace(interval):
-      if len(current_content) > 0:
-        yield current_content
-        current_content = []
-      yield [interval]
+    is_empty = interval_is_None_or_whitespace(interval)
+    if is_empty:
+      if interval.duration() < min_pause_s:
+        chunk.append(interval)
+      else:
+        if len(chunk) > 0:
+          yield chunk
+          chunk = []
+        yield [interval]
     else:
-      current_content.append(interval)
+      chunk.append(interval)
 
-  if len(current_content) > 0:
-    yield current_content
- """
+  if len(chunk) > 0:
+    yield chunk

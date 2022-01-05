@@ -15,8 +15,8 @@ from textgrid_tools.app.grid_stats_generation import \
     init_files_print_stats_parser
 from textgrid_tools.app.grid_to_text_conversion import \
     init_files_convert_grid_to_text_parser
-from textgrid_tools.app.intervals.non_pause_joining import \
-    init_files_join_intervals_on_non_pauses_parser
+from textgrid_tools.app.intervals.pause_joining import \
+    init_files_join_intervals_on_pauses_parser
 from textgrid_tools.app.intervals.sentence_joining import \
     init_files_join_intervals_on_sentences_parser
 from textgrid_tools.app.text_to_grid_conversion import \
@@ -86,8 +86,8 @@ def _init_parser():
                   init_files_join_intervals_parser, "join tier intervals")
   __add_parser_to(subparsers, "join-tier-intervals-on-sentences",
                   init_files_join_intervals_on_sentences_parser, "join tier intervals sentence-wise")
-  __add_parser_to(subparsers, "join-tier-intervals-on-non-pauses",
-                  init_files_join_intervals_on_non_pauses_parser, "join tier intervals on non-pauses")
+  __add_parser_to(subparsers, "join-tier-intervals-on-pauses",
+                  init_files_join_intervals_on_pauses_parser, "join tier intervals on pauses")
   __add_parser_to(subparsers, "map-words-to-tier", init_files_map_words_to_tier_parser,
                   "map words from one grid file to a tier in another grid file")
   __add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser,

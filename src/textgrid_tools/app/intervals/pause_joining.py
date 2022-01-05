@@ -1,5 +1,6 @@
-""" from argparse import ArgumentParser
+from argparse import ArgumentParser
 from logging import getLogger
+from math import inf
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
@@ -8,13 +9,13 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.intervals.joining.non_pause_joining import (
+from textgrid_tools.core.intervals.joining.pause_joining import (
     can_join_intervals, join_intervals)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 from tqdm import tqdm
 
 
-def init_files_join_intervals_on_non_pauses_parser(parser: ArgumentParser):
+def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing the grid files")
@@ -24,16 +25,18 @@ def init_files_join_intervals_on_non_pauses_parser(parser: ArgumentParser):
                       type=StringFormat.__getitem__, default=StringFormat.TEXT, help="format of marks in tier")
   parser.add_argument('--mark-type', choices=IntervalFormat,
                       type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="type of marks in tier")
+  parser.add_argument('--join-pause', type=float, metavar="SECONDS",
+                      help="until duration (in seconds) of adjacent pauses that should be merged", default=inf)
   parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
                       help="tier on which the mapped content should be written to if not to tier")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the modified grid files if not to directory")
   add_overwrite_tier_argument(parser)
   add_overwrite_argument(parser)
-  return files_join_intervals_on_non_pauses
+  return files_join_intervals_on_pauses
 
 
-def files_join_intervals_on_non_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals_on_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -72,4 +75,3 @@ def files_join_intervals_on_non_pauses(directory: Path, tier: str, mark_format: 
     save_grid(grid_file_out_abs, grid_in)
 
   logger.info(f"Done. Written output to: {output_directory}")
- """

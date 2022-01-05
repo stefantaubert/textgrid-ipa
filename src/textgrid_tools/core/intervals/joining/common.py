@@ -24,15 +24,10 @@ def merge_intervals(intervals: Iterable[Interval], intervals_string_format: Stri
   joined_symbols = intervals_format.join_symbols(list(non_pause_symbols))
   mark = intervals_string_format.convert_symbols_to_string(joined_symbols)
 
-  # is_pause = len(intervals) == 1 and interval_is_None_or_whitespace(intervals[0])
-  # if is_pause:
-  #   mark = intervals[0].mark
-  # else:
-  #   mark = intervals_to_text(
-  #     intervals, tier_string_format.get_word_separator(), strip=False)
   interval = Interval(
     minTime=first_interval.minTime,
     maxTime=last_interval.maxTime,
     mark=mark,
   )
+
   return interval

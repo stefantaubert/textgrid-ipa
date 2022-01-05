@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Generator, Iterable, Iterator, List, Optional, Set
+from typing import Generator, Iterable, List, Optional, Set
 
 from text_utils import StringFormat, symbols_endswith, symbols_strip
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -40,18 +40,17 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
 
   tier = get_first_tier(grid, tier_name)
 
-  interval_iterator: Iterator[Interval] = None
-
   new_tier = IntervalTier(
     name=output_tier_name,
     minTime=grid.minTime,
     maxTime=grid.maxTime,
   )
 
-  interval_iterator = join_via_sentences(
-    tier, tier_string_format, tier_interval_format, strip_symbols, punctuation_symbols)
+  all_sentences = get_sentence_intervals(
+    tier.intervals, tier_string_format, strip_symbols, punctuation_symbols)
 
-  for interval in interval_iterator:
+  for sentence_intervals in all_sentences:
+    interval = merge_intervals(sentence_intervals, tier_string_format, tier_interval_format)
     new_tier.addInterval(interval)
 
   if overwrite_tier and tier.name == new_tier.name:
@@ -85,27 +84,3 @@ def get_sentence_intervals(intervals: Iterable[Interval], intervals_string_forma
     if was_ending:
       yield current_sentence
       current_sentence = []
-
-
-def join_via_sentences(tier: IntervalTier, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[Interval, None, None]:
-  all_sentences = get_sentence_intervals(
-    tier.intervals, tier_string_format, strip_symbols, punctuation_symbols)
-
-  for sentence_intervals in all_sentences:
-    yield merge_intervals(sentence_intervals, tier_string_format, tier_interval_format)
-
-
-# def interval_to_tuple(interval: Interval, string_format: StringFormat) -> Tuple[str, ...]:
-#   if interval is None:
-#     return tuple()
-
-#   interval_text: str = interval.mark
-
-#   if string_format == StringFormat.SYMBOLS:
-#     result = tuple(interval_text.split(SYMBOLS_SEPARATOR))
-#   elif string_format == StringFormat.TEXT:
-#     result = tuple(interval_text)
-#   else:
-#     assert False
-
-#   return result

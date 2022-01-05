@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Iterable
+from typing import Collection
 
 from text_utils.types import Symbols
 from text_utils.utils import symbols_join
@@ -26,11 +26,11 @@ class IntervalFormat(IntEnum):
 
     assert False
 
-  def join_symbols(self, symbols: Iterable[Symbols]) -> Symbols:
+  def join_symbols(self, symbols: Collection[Symbols]) -> Symbols:
     return join_symbols(symbols, self)
 
 
-def join_symbols(symbols: Iterable[Symbols], symbols_format: IntervalFormat) -> Symbols:
+def join_symbols(symbols: Collection[Symbols], symbols_format: IntervalFormat) -> Symbols:
   if symbols_format in (IntervalFormat.WORD, IntervalFormat.WORDS):
     join_symbol = " "
   elif symbols_format in (IntervalFormat.SYMBOL, IntervalFormat.SYMBOLS):
