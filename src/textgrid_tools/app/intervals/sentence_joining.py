@@ -1,16 +1,16 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, cast
+from typing import Iterable, List, Optional, cast
 
+from text_utils import StringFormat
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.intervals.sentence_joining import (can_join_intervals,
-                                                            join_intervals)
+from textgrid_tools.core.intervals.joining.sentence_joining import (
+    can_join_intervals, join_intervals)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from text_utils import StringFormat
 from tqdm import tqdm
 
 
@@ -20,8 +20,10 @@ def init_files_join_intervals_on_sentences_parser(parser: ArgumentParser):
                       help="directory containing the grid files")
   parser.add_argument("tier", type=str, help="the tier on which the intervals should be joined")
   add_n_digits_argument(parser)
-  parser.add_argument('--tier-format', choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="text format of tier")
+  parser.add_argument('--mark-format', choices=StringFormat,
+                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="format of marks in tier")
+  parser.add_argument('--mark-type', choices=IntervalFormat,
+                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="type of marks in tier")
   parser.add_argument("--strip-symbols", metavar="SYMBOL", type=str, nargs='*',
                       default=list(sorted(("\"", "'", "″", ",⟩", "›", "»", "′", "“", "”"))), help="symbols which should be temporary removed on word endings for sentence detection")
   parser.add_argument("--punctuation-symbols", metavar="SYMBOL", type=str, nargs='*',
@@ -35,7 +37,7 @@ def init_files_join_intervals_on_sentences_parser(parser: ArgumentParser):
   return files_join_intervals
 
 
-def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, output_tier: Optional[str], strip_symbols: List[str], punctuation_symbols: List[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, output_tier: Optional[str], strip_symbols: List[str], punctuation_symbols: List[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -67,7 +69,7 @@ def files_join_intervals(directory: Path, tier: str, tier_format: StringFormat, 
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, tier_format, IntervalFormat.WORD,
+    join_intervals(grid_in, tier, mark_format, mark_type,
                    set(strip_symbols), set(punctuation_symbols), output_tier, overwrite_tier)
 
     logger.info("Saving...")

@@ -3,10 +3,7 @@ from logging import getLogger
 from typing import (Generator, Iterable, Iterator, List, Optional, Set, Tuple,
                     cast)
 
-from text_utils import (SYMBOLS_SEPARATOR, Language, StringFormat,
-                        text_to_sentences)
-from text_utils.string_format import join_strings, string_to_str
-from text_utils.symbol_format import SymbolFormat
+from text_utils import Language, StringFormat, SymbolFormat, text_to_sentences
 from text_utils.utils import symbols_strip
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (

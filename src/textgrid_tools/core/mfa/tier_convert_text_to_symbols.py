@@ -1,7 +1,6 @@
 from logging import getLogger
 from typing import List
 
-from text_utils import transform_text_to_symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier,

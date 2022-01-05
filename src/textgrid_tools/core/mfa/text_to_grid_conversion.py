@@ -3,9 +3,9 @@ from typing import Optional, Tuple
 
 import numpy as np
 from audio_utils.audio import samples_to_s
+from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import check_is_valid_grid
-from text_utils import StringFormat, get_symbols
 
 
 def can_convert_texts_to_grid(tier_out: str, characters_per_second: float) -> bool:

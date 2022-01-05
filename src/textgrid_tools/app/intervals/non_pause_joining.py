@@ -3,14 +3,14 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable, Optional, cast
 
+from text_utils import StringFormat
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.intervals.non_pause_joining import (
+from textgrid_tools.core.intervals.joining.non_pause_joining import (
     can_join_intervals, join_intervals)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from text_utils import StringFormat
 from tqdm import tqdm
 
 
@@ -20,8 +20,10 @@ def init_files_join_intervals_on_non_pauses_parser(parser: ArgumentParser):
                       help="directory containing the grid files")
   parser.add_argument("tier", type=str, help="the tier on which the intervals should be joined")
   add_n_digits_argument(parser)
-  parser.add_argument('--tier-format', choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="text format of tier")
+  parser.add_argument('--mark-format', choices=StringFormat,
+                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="format of marks in tier")
+  parser.add_argument('--mark-type', choices=IntervalFormat,
+                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="type of marks in tier")
   parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
                       help="tier on which the mapped content should be written to if not to tier")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
@@ -31,7 +33,7 @@ def init_files_join_intervals_on_non_pauses_parser(parser: ArgumentParser):
   return files_join_intervals_on_non_pauses
 
 
-def files_join_intervals_on_non_pauses(directory: Path, tier: str, tier_format: StringFormat, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
+def files_join_intervals_on_non_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if not directory.exists():
@@ -63,7 +65,7 @@ def files_join_intervals_on_non_pauses(directory: Path, tier: str, tier_format: 
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, tier_format, IntervalFormat.WORD,
+    join_intervals(grid_in, tier, mark_format, mark_type,
                    output_tier, overwrite_tier)
 
     logger.info("Saving...")

@@ -3,11 +3,11 @@ from typing import Generator, Iterable, Iterator, List, Optional
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier,
                                             interval_is_None_or_whitespace,
-                                            intervals_to_text, replace_tier,
-                                            tier_exists)
+                                            replace_tier, tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
@@ -63,40 +63,24 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
     grid.append(new_tier)
 
 
-def join_via_non_pauses(tier: IntervalTier, tier_string_format: StringFormat, interval_format: IntervalFormat) -> Generator[Interval, None, None]:
-  assert interval_format in {IntervalFormat.WORDS, IntervalFormat.WORD}
+def join_via_non_pauses(tier: IntervalTier, tier_string_format: StringFormat, tier_interval_format: IntervalFormat) -> Generator[Interval, None, None]:
+  chunks = get_chunks(tier.intervals)
+
+  for chunk in chunks:
+    yield merge_intervals(chunk, tier_string_format, tier_interval_format)
+
+
+def get_chunks(intervals: Iterable[Interval]) -> Generator[List[Interval], None, None]:
   current_content = []
-  chunks: List[List[Interval]] = []
-  for interval in tier.intervals:
+  for interval in intervals:
     if interval_is_None_or_whitespace(interval):
       if len(current_content) > 0:
-        chunks.append(current_content)
+        yield current_content
         current_content = []
-      chunks.append([interval])
+      yield [interval]
     else:
       current_content.append(interval)
 
   if len(current_content) > 0:
-    chunks.append(current_content)
+    yield current_content
     current_content = []
-
-  for chunk in chunks:
-    yield merge_intervals(chunk, tier_string_format)
-
-
-def merge_intervals(intervals: Iterable[Interval], tier_string_format: StringFormat) -> Interval:
-  assert len(intervals) > 0
-  first_interval = intervals[0]
-  last_interval = intervals[-1]
-  is_pause = len(intervals) == 1 and interval_is_None_or_whitespace(intervals[0])
-  if is_pause:
-    mark = intervals[0].mark
-  else:
-    mark = intervals_to_text(
-      intervals, tier_string_format.get_word_separator(), strip=False)
-  interval = Interval(
-    minTime=first_interval.minTime,
-    maxTime=last_interval.maxTime,
-    mark=mark,
-  )
-  return interval

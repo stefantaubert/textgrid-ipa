@@ -23,23 +23,23 @@ def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ", strip
   return text
 
 
-def set_precision_grid(grid: TextGrid, ndigits: int) -> None:
-  grid.minTime = round(grid.minTime, ndigits)
-  grid.maxTime = round(grid.maxTime, ndigits)
+def set_precision_grid(grid: TextGrid, n_digits: int) -> None:
+  grid.minTime = round(grid.minTime, n_digits)
+  grid.maxTime = round(grid.maxTime, n_digits)
   for tier in grid.tiers:
-    set_precision_tier(tier, ndigits)
+    set_precision_tier(tier, n_digits)
 
 
-def set_precision_tier(tier: IntervalTier, ndigits: int) -> None:
-  tier.minTime = round(tier.minTime, ndigits)
-  tier.maxTime = round(tier.maxTime, ndigits)
+def set_precision_tier(tier: IntervalTier, n_digits: int) -> None:
+  tier.minTime = round(tier.minTime, n_digits)
+  tier.maxTime = round(tier.maxTime, n_digits)
   for interval in tier.intervals:
-    set_precision_interval(interval, ndigits)
+    set_precision_interval(interval, n_digits)
 
 
-def set_precision_interval(interval: Interval, ndigits: int) -> None:
-  interval.minTime = round(interval.minTime, ndigits)
-  interval.maxTime = round(interval.maxTime, ndigits)
+def set_precision_interval(interval: Interval, n_digits: int) -> None:
+  interval.minTime = round(interval.minTime, n_digits)
+  interval.maxTime = round(interval.maxTime, n_digits)
 
 
 def check_is_valid_grid(grid: TextGrid) -> bool:
@@ -228,6 +228,7 @@ def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty:
 
 def interval_is_None_or_whitespace(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark.strip()) == 0
+
 
 def interval_is_None_or_empty(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark) == 0
