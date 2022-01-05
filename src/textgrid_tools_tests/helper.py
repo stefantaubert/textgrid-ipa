@@ -1,16 +1,13 @@
-from typing import Collection, Iterable
+from typing import Collection
 
 from textgrid import Interval
+from textgrid_tools.core.comparison import (check_interval_is_equal,
+                                            check_intervals_are_equal)
 
 
 def assert_interval_is_equal(interval1: Interval, interval2: Interval):
-  result = interval1 == interval2
-  result &= interval1.mark == interval2.mark
-  assert result
+  assert check_interval_is_equal(interval1, interval2)
 
 
 def assert_intervals_are_equal(intervals1: Collection[Interval], intervals2: Collection[Interval]) -> None:
-  if len(intervals1) != len(intervals2):
-    assert False
-  for interval1, interval2 in zip(intervals1, intervals2):
-    assert_interval_is_equal(interval1, interval2)
+  assert check_intervals_are_equal(intervals1, intervals2)

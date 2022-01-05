@@ -41,7 +41,7 @@ from textgrid_tools.app.tier_renaming import init_files_rename_tier_parser
 from textgrid_tools.app.tier_symbol_removal import \
     init_remove_symbols_from_tiers_parser
 from textgrid_tools.app.tier_words_mapping import \
-    init_files_map_words_to_tier_parser
+    init_files_map_tier_to_other_tier_parser
 from textgrid_tools.app.tier_words_to_arpa_transcription import \
     init_app_transcribe_words_to_arpa_on_phoneme_level_parser
 
@@ -89,8 +89,8 @@ def _init_parser():
                   init_files_join_intervals_on_pauses_parser, "join tier intervals on pauses")
   __add_parser_to(subparsers, "join-tier-intervals-on-boundaries",
                   init_files_join_intervals_on_boundaries_parser, "join tier intervals on boundaries")
-  __add_parser_to(subparsers, "map-words-to-tier", init_files_map_words_to_tier_parser,
-                  "map words from one grid file to a tier in another grid file")
+  __add_parser_to(subparsers, "map-tier", init_files_map_tier_to_other_tier_parser,
+                  "map content of one tier to another tier")
   __add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser,
                   "map a tier with ARPA transcriptions to IPA")
   __add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser, "remove tiers")
