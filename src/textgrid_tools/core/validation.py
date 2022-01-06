@@ -1,30 +1,59 @@
-from logging import getLogger
-
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.mfa.helper import check_is_valid_grid, tier_exists
 
-Success = bool
+
+class ValidationError():
+  # pylint: disable=no-self-use
+  @property
+  def default_message(self) -> str:
+    return ""
 
 
-def validation_tier_exists_but_no_overwrite_fails(grid: TextGrid, tier_name: str, overwrite: bool) -> None:
-  if tier_exists(grid, tier_name) and not overwrite:
-    logger = getLogger(__name__)
-    logger.error(f"Tier \"{tier_name}\" already exists!")
-    return True
-  return False
+class NotExistingTierError(ValidationError):
+  def __init__(self, grid: TextGrid, tier_name: str) -> None:
+    super().__init__()
+    self.grid = grid
+    self.tier_name = tier_name
+
+  @classmethod
+  def validate(cls, grid: TextGrid, tier_name: str):
+    if not tier_exists(grid, tier_name):
+      return cls(grid, tier_name)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"Tier \"{self.tier_name}\" does not exist!"
 
 
-def validation_grid_is_valid_fails(grid: TextGrid) -> bool:
-  if not check_is_valid_grid(grid):
-    logger = getLogger(__name__)
-    logger.error("Grid is not valid!")
-    return True
-  return False
+class ExistingTierError(ValidationError):
+  def __init__(self, grid: TextGrid, tier_name: str) -> None:
+    super().__init__()
+    self.grid = grid
+    self.tier_name = tier_name
+
+  @classmethod
+  def validate(cls, grid: TextGrid, tier_name: str):
+    if tier_exists(grid, tier_name):
+      return cls(grid, tier_name)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"Tier \"{self.tier_name}\" already exists!"
 
 
-def validation_tier_exists_fails(grid: TextGrid, tier_name: str) -> bool:
-  if not tier_exists(grid, tier_name):
-    logger = getLogger(__name__)
-    logger.error(f"Tier \"{tier_name}\" does not exist!")
-    return True
-  return False
+class InvalidGridError(ValidationError):
+  def __init__(self, grid: TextGrid) -> None:
+    super().__init__()
+    self.grid = grid
+
+  @classmethod
+  def validate(cls, grid: TextGrid):
+    if not check_is_valid_grid(grid):
+      return cls(grid)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return "Grid is not valid!"

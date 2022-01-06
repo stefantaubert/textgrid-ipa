@@ -1,4 +1,3 @@
-from logging import getLogger
 from typing import Iterable, List, Optional, cast
 
 from text_utils.string_format import StringFormat
@@ -13,56 +12,72 @@ from textgrid_tools.core.mfa.helper import (get_first_tier,
                                             merge_symbols, replace_tier,
                                             tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.validation import (
-    Success, validation_grid_is_valid_fails,
-    validation_tier_exists_but_no_overwrite_fails,
-    validation_tier_exists_fails)
-from textgrid_tools.utils import update_or_add_tier
+from textgrid_tools.core.validation import (ExistingTierError,
+                                            InvalidGridError,
+                                            NotExistingTierError,
+                                            ValidationError)
 
 
-def validate_tier_names_are_different_fails(tier_name1: str, tier_name2: str) -> bool:
-  if tier_name1 == tier_name2:
-    logger = getLogger(__name__)
-    logger.error("Tiers are not distinct!")
-    return True
-  return False
+class NonDistinctTiersError(ValidationError):
+  def __init__(self, tier_name: str) -> None:
+    super().__init__()
+    self.tier_name = tier_name
+
+  @classmethod
+  def validate(cls, tier_name1: str, tier_name2: str):
+    if tier_name1 == tier_name2:
+      return cls(tier_name1)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"Tiers \"{self.tier_name}\" are not distinct!"
 
 
-def validate_content_words_count_are_equal_fails(tier_words: List[Symbols], target_tier_words: List[Symbols]) -> bool:
-  if len(tier_words) != len(target_tier_words):
-    logger = getLogger(__name__)
-    logger.error(
-      f"Amount of non-pause intervals is different: {len(tier_words)} vs. {len(target_tier_words)} (target)!")
-    min_len = min(len(target_tier_words), len(tier_words))
+class UnequalIntervalAmountError(ValidationError):
+  def __init__(self, tier_words: List[Symbols], target_tier_words: List[Symbols]) -> None:
+    super().__init__()
+    self.tier_words = tier_words
+    self.target_tier_words = target_tier_words
+
+  @classmethod
+  def validate(cls, tier_words: List[Symbols], target_tier_words: List[Symbols]):
+    if len(tier_words) != len(target_tier_words):
+      return cls(tier_words, target_tier_words)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    msg = f"Amount of non-pause intervals is different: {len(self.tier_words)} vs. {len(self.target_tier_words)} (target)!\n\n"
+    min_len = min(len(self.target_tier_words), len(self.tier_words))
     for i in range(min_len):
-      is_not_same = symbols_to_lower(target_tier_words[i]) != symbols_to_lower(tier_words[i])
+      is_not_same = symbols_to_lower(
+        self.target_tier_words[i]) != symbols_to_lower(self.tier_words[i])
 
-      logger.info(
-        f"{'===>' if is_not_same else ''} {''.join(tier_words[i])} vs. {''.join(target_tier_words[i])}")
-    logger.info("...")
-    return True
-  return False
+      msg += f"{'===>' if is_not_same else ''} {''.join(self.tier_words[i])} vs. {''.join(self.target_tier_words[i])}\n"
+    msg += "..."
+    return msg
 
 
 def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tiers_interval_format: IntervalFormat, target_tier_name: str, target_tier_string_format: StringFormat, custom_target_tier: Optional[str], overwrite_tier: bool) -> ExecutionResult:
-  if validation_grid_is_valid_fails(grid):
-    return False, False
+  if error := InvalidGridError.validate(grid):
+    return error, False
 
-  if validation_tier_exists_fails(grid, target_tier_name):
-    return False, False
+  if error := NonDistinctTiersError.validate(tier_name, target_tier_name):
+    return error, False
 
-  if validation_tier_exists_fails(grid, tier_name):
-    return False, False
+  if error := NotExistingTierError.validate(grid, target_tier_name):
+    return error, False
+
+  if error := NotExistingTierError.validate(grid, tier_name):
+    return error, False
 
   output_tier = target_tier_name
   if custom_target_tier is not None:
     output_tier = custom_target_tier
 
-  if validation_tier_exists_but_no_overwrite_fails(grid, output_tier, overwrite_tier):
-    return False, False
-
-  if validate_tier_names_are_different_fails(tier_name, target_tier_name):
-    return False, False
+  if not overwrite_tier and (error := ExistingTierError.validate(grid, output_tier)):
+    return error, False
 
   tier = get_first_tier(grid, tier_name)
   tier_symbols = merge_symbols(tier.intervals,
@@ -85,8 +100,8 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
                                       tiers_interval_format)
   target_tier_words = symbols_to_words(target_tier_symbols)
 
-  if validate_content_words_count_are_equal_fails(tier_words, target_tier_words):
-    return False
+  if error := UnequalIntervalAmountError.validate(tier_words, target_tier_words):
+    return error, False
 
   res_tier = IntervalTier(
     minTime=target_tier.minTime,
@@ -121,4 +136,4 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
     grid.append(res_tier)
     changed_anything = True
 
-  return True, changed_anything
+  return None, changed_anything

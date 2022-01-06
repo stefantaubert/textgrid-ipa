@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
 from collections import OrderedDict
+from logging import getLogger
 from os import cpu_count
 from pathlib import Path
+from shutil import copy
 from typing import OrderedDict as OrderedDictType
 from typing import Set, Tuple
 
@@ -56,8 +58,17 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
 
 
 def save_grid(path: Path, grid: TextGrid) -> None:
+  logger = getLogger(__name__)
+  logger.info("Saving grid...")
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)
+
+
+def copy_grid(grid_in: Path, grid_out: Path) -> None:
+  logger = getLogger(__name__)
+  logger.info("Copying grid...")
+  grid_out.parent.mkdir(exist_ok=True, parents=True)
+  copy(grid_in, grid_out)
 
 
 def save_audio(path: Path, audio: np.ndarray, sampling_rate: int) -> None:

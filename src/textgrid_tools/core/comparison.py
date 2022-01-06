@@ -4,10 +4,14 @@ from textgrid import Interval
 from textgrid.textgrid import IntervalTier
 
 
-def check_interval_is_equal(interval1: Interval, interval2: Interval) -> bool:
-  result = interval1 == interval2
-  result &= interval1.mark == interval2.mark
-  return result
+def check_tiers_are_equal(tier1: IntervalTier, tier2: IntervalTier) -> bool:
+  if tier1.name != tier2.name:
+    return False
+  if tier1.minTime != tier2.minTime:
+    return False
+  if tier1.maxTime != tier2.maxTime:
+    return False
+  return check_intervals_are_equal(tier1.intervals, tier2.intervals):
 
 
 def check_intervals_are_equal(intervals1: Collection[Interval], intervals2: Collection[Interval]) -> bool:
@@ -21,9 +25,20 @@ def check_intervals_are_equal(intervals1: Collection[Interval], intervals2: Coll
   return True
 
 
-def check_tiers_are_equal(tier1: IntervalTier, tier2: IntervalTier) -> bool:
-  if tier1.name != tier2.name:
+def check_interval_is_equal(interval1: Interval, interval2: Interval) -> bool:
+  # Note: __eq__ is not a good implemented
+  # result = interval1 == interval2
+
+  if interval1.mark != interval2.mark:
     return False
-  # TODO
-  return False
+
+  if interval1.minTime != interval2.minTime:
+    return False
+
+  if interval1.maxTime != interval2.maxTime:
+    return False
+
+  if interval1.strict != interval2.strict:
+    return False
+
   return True

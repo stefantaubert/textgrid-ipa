@@ -237,6 +237,7 @@ def replace_tier(tier: IntervalTier, new_tier: IntervalTier) -> None:
   tier.minTime = new_tier.minTime
   tier.maxTime = new_tier.maxTime
   tier.name = new_tier.name
+  tier.strict = new_tier.strict
 
 
 def get_tiers(grid: TextGrid, tiers: Set[str]) -> Generator[IntervalTier, None, None]:

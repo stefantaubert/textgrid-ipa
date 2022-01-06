@@ -1,7 +1,7 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
-from textgrid_tools.core.validation import Success
+from textgrid_tools.core.validation import ValidationError
 
 ChangedAnything = bool
 
-ExecutionResult = Tuple[Success, ChangedAnything]
+ExecutionResult = Tuple[Optional[ValidationError], ChangedAnything]
