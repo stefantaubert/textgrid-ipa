@@ -14,7 +14,7 @@ from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier, interval_is_None_or_whitespace,
-                                            tier_exists, tier_to_text)
+                                            tier_exists)
 from textgrid_tools.utils import update_or_add_tier
 
 

@@ -3,9 +3,19 @@ from typing import Iterable, List, Set, cast
 
 from numpy.core.fromnumeric import mean
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            NotExistingTierError)
 
 
-def print_stats(grid: TextGrid, duration_threshold: float, print_symbols_tier_names: Set[str]) -> None:
+def print_stats(grid: TextGrid, duration_threshold: float, print_symbols_tier_names: Set[str]) -> ExecutionResult:
+  if error := InvalidGridError.validate(grid):
+    return error, False
+
+  for tier_name in print_symbols_tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
+      return error, False
+
   logger = getLogger(__name__)
   logger.info(f"Start: {grid.minTime}")
   logger.info(f"End: {grid.maxTime}")
@@ -15,6 +25,7 @@ def print_stats(grid: TextGrid, duration_threshold: float, print_symbols_tier_na
     print_symbols = tier.name in print_symbols_tier_names
     logger.info(f"== Tier {nr} ==")
     print_stats_tier(tier, duration_threshold, print_symbols)
+  return None, False
 
 
 def print_stats_tier(tier: IntervalTier, duration_threshold: float, print_symbols: bool) -> None:

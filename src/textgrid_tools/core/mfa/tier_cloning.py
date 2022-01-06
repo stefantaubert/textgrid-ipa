@@ -1,35 +1,41 @@
 from logging import getLogger
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid, get_tiers,
-                                            tier_exists)
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.mfa.helper import add_or_update_tier, get_tiers
+from textgrid_tools.core.validation import (ExistingTierError,
+                                            InvalidGridError,
+                                            NonDistinctTiersError,
+                                            NotExistingTierError)
 
 
-def can_clone_tier(grid: TextGrid, tier: str) -> bool:
+def clone_tier(grid: TextGrid, tier_name: str, output_tier_name: str, ignore_marks: bool, overwrite_tier: bool) -> ExecutionResult:
+  # TODO allow multiple output tier names
+  if error := InvalidGridError.validate(grid):
+    return error, False
+
+  if error := NotExistingTierError.validate(grid, tier_name):
+    return error, False
+
+  if error := NonDistinctTiersError.validate(tier_name, output_tier_name):
+    return error, False
+
+  # TODO maybe check also if multiple of that name exist
+  if not overwrite_tier and (error := ExistingTierError.validate(grid, output_tier_name)):
+    return error, False
+
   logger = getLogger(__name__)
-
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
-
-  if not tier_exists(grid, tier):
-    logger.error(f"Tier \"{tier}\" not found!")
-    return False
-
-  return True
-
-
-def clone_tier(grid: TextGrid, tier: str, new_name: str, ignore_marks: bool) -> None:
-  logger = getLogger(__name__)
-  tiers = list(get_tiers(grid, {tier}))
+  tiers = list(get_tiers(grid, {tier_name}))
   if len(tiers) > 1:
     logger.warning(
-      f"Found multiple tiers with name \"{tier}\", therefore cloning only the first one.")
+      f"Found multiple tiers with name \"{tier_name}\", therefore cloning only the first one.")
 
   first_tier = tiers[0]
   new_tier = copy_tier(first_tier, ignore_marks)
-  new_tier.name = new_name
-  grid.append(new_tier)
+  new_tier.name = output_tier_name
+
+  changed_anything = add_or_update_tier(grid, None, new_tier, overwrite_tier)
+  return None, changed_anything
 
 
 def copy_tier(tier: IntervalTier, ignore_marks: bool) -> IntervalTier:

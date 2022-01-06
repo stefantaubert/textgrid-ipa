@@ -4,13 +4,19 @@ from typing import Generator, Iterable, List, Optional, Union
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.intervals.joining.common import merge_intervals
+from textgrid_tools.core.mfa.helper import (add_or_update_tier,
+                                            check_is_valid_grid,
                                             get_first_tier,
                                             get_intervals_duration,
                                             interval_is_None_or_whitespace,
-                                            merge_intervals, replace_tier,
                                             tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.validation import (ExistingTierError,
+                                            InvalidGridError,
+                                            NotExistingTierError,
+                                            NotMatchingIntervalFormatError)
 
 
 def can_join_intervals(grid: TextGrid, tier_name: str, join_pauses_under_duration: float, output_tier_name: Optional[str], overwrite_tier: bool) -> None:
@@ -38,34 +44,41 @@ def can_join_intervals(grid: TextGrid, tier_name: str, join_pauses_under_duratio
   return True
 
 
-def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, join_pauses_under_duration: float = inf, output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> None:
-  assert can_join_intervals(grid, tier_name, join_pauses_under_duration,
-                            output_tier_name, overwrite_tier)
+def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, join_pauses_under_duration: float = inf, custom_output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> ExecutionResult:
+  if error := InvalidGridError.validate(grid):
+    return error, False
 
-  if output_tier_name is None:
-    output_tier_name = tier_name
+  if error := NotExistingTierError.validate(grid, tier_name):
+    return error, False
+
+  output_tier_name = tier_name
+  if custom_output_tier_name is not None:
+    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
+      return error, False
+    output_tier_name = custom_output_tier_name
 
   tier = get_first_tier(grid, tier_name)
 
-  new_tier = IntervalTier(
-    name=output_tier_name,
-    minTime=grid.minTime,
-    maxTime=grid.maxTime,
+  if error := NotMatchingIntervalFormatError.validate(tier, tier_interval_format, tier_string_format):
+    return error, False
+
+  target_intervals = (
+    merge_intervals(chunk, tier_string_format, tier_interval_format)
+    for chunked_interval in chunk_intervals(tier.intervals, join_pauses_under_duration)
+    for chunk in chunked_interval
   )
 
-  chunked_intervals = chunk_intervals(tier.intervals, join_pauses_under_duration)
+  output_tier = IntervalTier(
+    name=output_tier_name,
+    minTime=tier.minTime,
+    maxTime=tier.maxTime,
+  )
 
-  for chunk in chunked_intervals:
-    interval = merge_intervals(chunk, tier_string_format, tier_interval_format)
-    new_tier.addInterval(interval)
+  output_tier.intervals.extend(target_intervals)
 
-  if overwrite_tier and tier.name == new_tier.name:
-    replace_tier(tier, new_tier)
-  elif overwrite_tier and tier_exists(grid, new_tier.name):
-    existing_tier = get_first_tier(grid, new_tier.name)
-    replace_tier(existing_tier, new_tier)
-  else:
-    grid.append(new_tier)
+  changed_anything = add_or_update_tier(grid, tier, output_tier, overwrite_tier)
+
+  return None, changed_anything
 
 
 def chunk_intervals(intervals: Iterable[Interval], min_pause_s: float) -> Generator[List[Interval], None, None]:

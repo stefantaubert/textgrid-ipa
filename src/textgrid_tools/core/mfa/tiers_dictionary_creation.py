@@ -9,15 +9,17 @@ from pronunciation_dict_parser.parser import Pronunciation
 from sentence2pronunciation.multiprocessing import prepare_cache_mp
 from text_utils import Language, text_to_symbols
 from text_utils.pronunciation.main import get_eng_to_arpa_lookup_method
+from text_utils.string_format import StringFormat
 from text_utils.symbol_format import SymbolFormat
 from text_utils.text import text_to_sentences
 from text_utils.types import Symbol
 from text_utils.utils import symbols_ignore
 from textgrid import TextGrid
+from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, tier_exists,
-                                            tier_to_text)
+                                            get_first_tier, tier_exists)
+from textgrid_tools.core.mfa.interval_format import IntervalFormat
 from tqdm import tqdm
 
 
@@ -55,7 +57,8 @@ def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, pu
   texts = []
   for grid in grids:
     target_tier = get_first_tier(grid, tier)
-    text = tier_to_text(target_tier, join_with=" ")
+    # TODO
+    text = merge_intervals(target_tier, StringFormat.TEXT, IntervalFormat.WORDS)
     texts.append(text)
 
   text_sentences = {
@@ -124,10 +127,10 @@ def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, pu
         logger.info(
           f"The ARPA of the word {''.join(unique_word)} contained only punctuation, therefore \"{SIL}\" was annotated.")
       final_word_symbols = arpa_symbols_no_punctuation
-      
+
     assert word_str not in result
     result[word_str] = OrderedSet([final_word_symbols])
-    
+
   logger.info("Done.")
 
   return result

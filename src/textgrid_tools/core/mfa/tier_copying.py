@@ -1,7 +1,8 @@
 from logging import getLogger
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
+from textgrid_tools.core.mfa.helper import (add_or_update_tier,
+                                            check_is_valid_grid,
                                             get_first_tier, tier_exists)
 from textgrid_tools.utils import update_or_add_tier
 
@@ -36,7 +37,6 @@ def copy_tier_to_grid(grid: TextGrid, reference_grid: TextGrid, reference_tier_n
   assert can_copy(grid, reference_grid, reference_tier_name, new_tier, overwrite_tier)
   reference_tier = get_first_tier(reference_grid, reference_tier_name)
 
-  if overwrite_tier:
-    update_or_add_tier(grid, reference_tier)
-  else:
-    grid.append(reference_tier)
+  reference_tier.name = new_tier
+
+  add_or_update_tier(grid, None, reference_tier, overwrite_tier)

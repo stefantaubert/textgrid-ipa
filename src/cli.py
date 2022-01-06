@@ -17,6 +17,8 @@ from textgrid_tools.app.grid_to_text_conversion import \
     init_files_convert_grid_to_text_parser
 from textgrid_tools.app.intervals.boundary_joining import \
     init_files_join_intervals_on_boundaries_parser
+from textgrid_tools.app.intervals.interval_splitting import \
+    init_files_split_intervals_parser
 from textgrid_tools.app.intervals.pause_joining import \
     init_files_join_intervals_on_pauses_parser
 from textgrid_tools.app.intervals.sentence_joining import \
@@ -107,6 +109,8 @@ def _init_parser():
   # _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
   __add_parser_to(subparsers, "transcribe-words-to-arpa",
                   init_app_transcribe_words_to_arpa_on_phoneme_level_parser, "transcribe a tier containing words with help of a pronunciation dictionary to ARPA")
+  __add_parser_to(subparsers, "split-intervals",
+                  init_files_split_intervals_parser, "split intervals")
   __add_parser_to(subparsers, "split-grid",
                   init_files_split_grid_parser, "split a grid file on intervals into multiple grid files (incl. audio files)")
   __add_parser_to(subparsers, "split-grid-on-intervals",

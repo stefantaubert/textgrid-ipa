@@ -11,7 +11,7 @@ def check_tiers_are_equal(tier1: IntervalTier, tier2: IntervalTier) -> bool:
     return False
   if tier1.maxTime != tier2.maxTime:
     return False
-  return check_intervals_are_equal(tier1.intervals, tier2.intervals):
+  return check_intervals_are_equal(tier1.intervals, tier2.intervals)
 
 
 def check_intervals_are_equal(intervals1: Collection[Interval], intervals2: Collection[Interval]) -> bool:

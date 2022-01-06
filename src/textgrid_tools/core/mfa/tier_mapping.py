@@ -5,34 +5,15 @@ from text_utils.text import symbols_to_words
 from text_utils.types import Symbols
 from text_utils.utils import symbols_to_lower
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.comparison import check_tiers_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import (get_first_tier,
-                                            interval_is_None_or_whitespace,
-                                            merge_symbols, replace_tier,
-                                            tier_exists)
+from textgrid_tools.core.intervals.joining.common import merge_intervals
+from textgrid_tools.core.mfa.helper import (add_or_update_tier, get_first_tier,
+                                            interval_is_None_or_whitespace)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 from textgrid_tools.core.validation import (ExistingTierError,
-                                            InvalidGridError,
+                                            InvalidGridError, NonDistinctTiersError,
                                             NotExistingTierError,
                                             ValidationError)
-
-
-class NonDistinctTiersError(ValidationError):
-  def __init__(self, tier_name: str) -> None:
-    super().__init__()
-    self.tier_name = tier_name
-
-  @classmethod
-  def validate(cls, tier_name1: str, tier_name2: str):
-    if tier_name1 == tier_name2:
-      return cls(tier_name1)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"Tiers \"{self.tier_name}\" are not distinct!"
-
 
 class UnequalIntervalAmountError(ValidationError):
   def __init__(self, tier_words: List[Symbols], target_tier_words: List[Symbols]) -> None:
@@ -59,7 +40,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tiers_interval_format: IntervalFormat, target_tier_name: str, target_tier_string_format: StringFormat, custom_target_tier: Optional[str], overwrite_tier: bool) -> ExecutionResult:
+def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tiers_interval_format: IntervalFormat, target_tier_name: str, target_tier_string_format: StringFormat, custom_target_tier_name: Optional[str], overwrite_tier: bool) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 
@@ -72,16 +53,14 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
   if error := NotExistingTierError.validate(grid, tier_name):
     return error, False
 
-  output_tier = target_tier_name
-  if custom_target_tier is not None:
-    output_tier = custom_target_tier
-
-  if not overwrite_tier and (error := ExistingTierError.validate(grid, output_tier)):
-    return error, False
+  output_tier_name = target_tier_name
+  if custom_target_tier_name is not None:
+    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_target_tier_name)):
+      return error, False
+    output_tier_name = custom_target_tier_name
 
   tier = get_first_tier(grid, tier_name)
-  tier_symbols = merge_symbols(tier.intervals,
-                               tier_string_format, tiers_interval_format)
+  tier_symbols = merge_intervals(tier.intervals, tier_string_format, tiers_interval_format)
   target_tier = get_first_tier(grid, target_tier_name)
 
   tier_words = symbols_to_words(tier_symbols)
@@ -96,8 +75,8 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
   # if ignored_count > 0:
   #   logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
 
-  target_tier_symbols = merge_symbols(target_tier.intervals, target_tier_string_format,
-                                      tiers_interval_format)
+  target_tier_symbols = merge_intervals(
+    target_tier.intervals, target_tier_string_format, tiers_interval_format)
   target_tier_words = symbols_to_words(target_tier_symbols)
 
   if error := UnequalIntervalAmountError.validate(tier_words, target_tier_words):
@@ -106,7 +85,7 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
   res_tier = IntervalTier(
     minTime=target_tier.minTime,
     maxTime=target_tier.maxTime,
-    name=output_tier,
+    name=output_tier_name,
   )
 
   for target_interval in cast(Iterable[Interval], target_tier.intervals):
@@ -122,18 +101,6 @@ def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: S
     )
     res_tier.addInterval(new_interval)
 
-  changed_anything = False
-  if overwrite_tier and target_tier.name == res_tier.name:
-    if not check_tiers_are_equal(target_tier, res_tier):
-      replace_tier(target_tier, res_tier)
-      changed_anything = True
-  elif overwrite_tier and tier_exists(grid, res_tier.name):
-    existing_tier = get_first_tier(grid, res_tier.name)
-    if not check_tiers_are_equal(existing_tier, res_tier):
-      replace_tier(existing_tier, res_tier)
-      changed_anything = True
-  else:
-    grid.append(res_tier)
-    changed_anything = True
+  changed_anything = add_or_update_tier(grid, target_tier, res_tier, overwrite_tier)
 
   return None, changed_anything

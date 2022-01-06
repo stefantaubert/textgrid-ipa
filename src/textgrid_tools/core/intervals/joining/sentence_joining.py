@@ -3,10 +3,11 @@ from typing import Generator, Iterable, List, Optional, Set
 
 from text_utils import StringFormat, symbols_endswith, symbols_strip
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_first_tier,
                                             interval_is_None_or_whitespace,
-                                            merge_intervals, replace_tier,
+                                            replace_tier,
                                             tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 

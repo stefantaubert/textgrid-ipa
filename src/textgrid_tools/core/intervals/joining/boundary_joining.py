@@ -3,10 +3,11 @@ from typing import Generator, List, Optional
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.intervals.joining.common import merge_intervals
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_tier, get_first_tier,
-    get_intervals_part_of_timespan, merge_intervals, replace_tier, tier_exists)
+    get_intervals_part_of_timespan, replace_tier, tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 

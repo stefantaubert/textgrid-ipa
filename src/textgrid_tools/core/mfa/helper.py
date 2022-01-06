@@ -1,65 +1,10 @@
-from typing import Collection, Generator, Iterable, List, Optional, Set, cast
+from typing import Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
-from text_utils import StringFormat
+from text_utils import StringFormat, symbols_ignore
 from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
-
-
-def get_non_pause_symbols(intervals: Iterable[Interval], string_format: StringFormat) -> Iterable[Symbols]:
-  for interval in intervals:
-    if interval_is_None_or_whitespace(interval):
-      continue
-    symbols = string_format.convert_string_to_symbols(interval.mark)
-    yield symbols
-
-
-def merge_intervals(intervals: Collection[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> Interval:
-  assert len(intervals) > 0
-  first_interval = intervals[0]
-  last_interval = intervals[-1]
-
-  mark = merge_marks(intervals, intervals_string_format, intervals_format)
-
-  interval = Interval(
-    minTime=first_interval.minTime,
-    maxTime=last_interval.maxTime,
-    mark=mark,
-  )
-
-  return interval
-
-
-def merge_symbols(intervals: Iterable[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> Symbols:
-  non_pause_symbols = get_non_pause_symbols(intervals, intervals_string_format)
-  joined_symbols = intervals_format.join_symbols(list(non_pause_symbols))
-  return joined_symbols
-
-
-def merge_marks(intervals: Iterable[Interval], intervals_string_format: StringFormat, intervals_format: IntervalFormat) -> str:
-  joined_symbols = merge_symbols(intervals, intervals_string_format, intervals_format)
-  mark = intervals_string_format.convert_symbols_to_string(joined_symbols)
-  return mark
-
-
-def tier_to_text(tier: IntervalTier, join_with: str = " ") -> str:
-  return intervals_to_text(tier.intervals, join_with)
-
-
-def intervals_to_text(intervals: Iterable[Interval], join_with: str = " ", strip: bool = True) -> str:
-  words = []
-  for interval in intervals:
-    if interval is None:
-      continue
-    interval_text: str = interval.mark
-    if strip:
-      interval_text = interval_text.strip()
-    if len(interval_text) == 0:
-      continue
-    words.append(interval_text)
-  text = join_with.join(words)
-  return text
+from textgrid_tools.core.comparison import check_tiers_are_equal
 
 
 def get_intervals_duration(intervals: Iterable[Interval]) -> float:
@@ -157,14 +102,43 @@ def check_tier_intervals_are_consecutive(tier: IntervalTier) -> bool:
 
 
 def timepoint_is_boundary(timepoint: float, tier: IntervalTier) -> bool:
-  minTime_interval = get_interval_from_minTime(tier, timepoint)
-  if minTime_interval is not None:
+  min_time_interval = get_interval_from_minTime(tier, timepoint)
+  if min_time_interval is not None:
     return True
-  maxTime_interval = get_interval_from_maxTime(tier, timepoint)
-  if maxTime_interval is not None:
+  max_time_interval = get_interval_from_maxTime(tier, timepoint)
+  if max_time_interval is not None:
     # it is the last interval
     return True
   return False
+
+
+def get_mark(interval: Interval) -> str:
+  if interval.mark is None:
+    return ""
+  return interval.mark
+
+
+def get_mark_symbols(interval: Interval, string_format: StringFormat) -> Symbols:
+  return string_format.convert_string_to_symbols(get_mark(interval))
+
+
+def get_mark_symbols_intervals(intervals: Iterable[Interval], string_format: StringFormat) -> Generator[Symbols, None, None]:
+  for interval in intervals:
+    yield get_mark_symbols(interval, string_format)
+
+
+def symbols_are_empty_or_whitespace(symbols: Symbols) -> bool:
+  result = symbols_ignore(symbols, ignore={" ", ""})
+  return len(result) == 0
+
+
+def str_is_empty_or_whitespace(string: str) -> bool:
+  return string.strip() == ""
+
+
+def get_interval_readable(interval: Interval) -> str:
+  result = f"Interval [{interval.minTime}, {interval.maxTime}]: \"{get_mark(interval)}\""
+  return result
 
 
 def get_interval_from_minTime(tier: IntervalTier, minTime: float) -> Optional[Interval]:
@@ -224,11 +198,20 @@ def tier_exists(grid: TextGrid, tier: str) -> bool:
   return False
 
 
-def overwrite_or_add_tier(grid: TextGrid, existing_tier: IntervalTier, new_tier: IntervalTier, overwrite: bool) -> None:
-  if overwrite:
-    replace_tier(existing_tier, new_tier)
+def add_or_update_tier(grid: TextGrid, tier: Optional[IntervalTier], output_tier: IntervalTier, overwrite_tier: bool) -> bool:
+  if overwrite_tier and tier is not None and tier.name == output_tier.name:
+    if not check_tiers_are_equal(tier, output_tier):
+      replace_tier(tier, output_tier)
+      return True
+  elif overwrite_tier and tier_exists(grid, output_tier.name):
+    existing_tier = get_first_tier(grid, output_tier.name)
+    if not check_tiers_are_equal(existing_tier, output_tier):
+      replace_tier(existing_tier, output_tier)
+      return True
   else:
-    grid.append(new_tier)
+    grid.append(output_tier)
+    return True
+  return False
 
 
 def replace_tier(tier: IntervalTier, new_tier: IntervalTier) -> None:

@@ -5,32 +5,36 @@ from typing import Iterable, List, Optional, Set, Tuple, cast
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import IntervalTier, TextGrid
+from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.mfa.grid_audio_synchronization import (
-    can_set_end_to_audio_len, set_end_to_audio_len)
-from textgrid_tools.core.mfa.helper import (
-    check_timepoints_exist_on_all_tiers_as_boundaries,
-    find_intervals_with_mark, get_intervals_from_timespan)
+    LastIntervalToShortError, set_end_to_audio_len)
+from textgrid_tools.core.mfa.helper import (find_intervals_with_mark,
+                                            get_first_tier,
+                                            get_intervals_from_timespan)
+from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
+                                            BoundaryError, InvalidGridError,
+                                            NotExistingTierError)
 from tqdm import tqdm
 
 
-def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str], n_digits: int) -> Tuple[bool, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
+def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str], n_digits: int) -> Tuple[ExecutionResult, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
+  if error := InvalidGridError.validate(grid):
+    return (error, False), None
+
+  if error := NotExistingTierError.validate(grid, reference_tier_name):
+    return (error, False), None
+
+  if error := AudioAndGridLengthMismatchError.validate(grid, audio, sr):
+    return (error, False), None
+
   logger = getLogger(__name__)
 
-  if s_to_samples(grid.maxTime, sr) != audio.shape[0]:
-    logger.error(
-      f"Audio length and grid length does not match ({audio.shape[0]} vs. {s_to_samples(grid.maxTime, sr)})")
-    return False, None
-    # audio_len = samples_to_s(audio.shape[0], sr)
-    # set_maxTime(grid, audio_len)
-
-  ref_tier: IntervalTier = grid.getFirst(reference_tier_name)
-  if ref_tier is None:
-    logger.exception("Tier not found!")
-    raise Exception()
+  ref_tier = get_first_tier(grid, reference_tier_name)
 
   split_intervals = list(find_intervals_with_mark(ref_tier, split_markers, include_empty=False))
   if len(split_intervals) == 0:
-    return True, [(grid, audio)]
+    return (None, False), [(grid, audio)]
+
   target_intervals: List[Tuple[float, float]] = []
   if ref_tier.minTime < split_intervals[0].minTime:
     target_intervals.append((ref_tier.minTime, split_intervals[0].minTime))
@@ -54,12 +58,8 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
       maxTime=0,
     )
 
-    all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
-      timepoints=[minTime, maxTime], tiers=grid.tiers)
-    if not all_tiers_share_timepoints:
-      logger.warning(
-        f"Skipping interval [{minTime}, {maxTime}] because it does not exist on all tiers.")
-      continue
+    if error := BoundaryError.validate([minTime, maxTime], grid.tiers):
+      return (error, False), None
 
     for tier in cast(Iterable[IntervalTier], grid.tiers):
       intervals_in_range = list(get_intervals_from_timespan(
@@ -93,11 +93,10 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     audio_part = range(start, end)
     grid_audio = audio[audio_part]
 
-    # set ending correct
-    success = can_set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
-    if not success:
-      logger.error("Couldn't set grid maxTime to audio len!")
-      return False, None
+    # after multiple removals in audio some difference occurs
+    if error := LastIntervalToShortError.validate(range_grid, grid_audio, sr, n_digits):
+      raise Exception()
+      # return error, False
 
     set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
 
@@ -108,4 +107,4 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
   logger.info(f"Max duration: {max(durations):.2f}s")
   logger.info(f"Mean duration: {np.mean(durations):.2f}s")
   logger.info(f"Total duration: {sum(durations):.2f}s ({sum(durations)/60:.2f}min)")
-  return True, result
+  return (None, True), result

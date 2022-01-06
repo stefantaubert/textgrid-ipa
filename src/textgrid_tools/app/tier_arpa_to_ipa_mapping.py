@@ -59,9 +59,9 @@ def map_arpa_tier_to_ipa(grid_folder_in: Path, arpa_tier_in: str, ipa_tier_out: 
 
     map_arpa_to_ipa(
       grid=grid_in,
-      arpa_tier_name=arpa_tier_in,
-      ipa_tier_name=ipa_tier_out,
-      overwrite_existing_tier=overwrite_tier,
+      tier_name=arpa_tier_in,
+      custom_output_tier_name=ipa_tier_out,
+      overwrite_tier=overwrite_tier,
     )
 
     logger.info("Saving...")

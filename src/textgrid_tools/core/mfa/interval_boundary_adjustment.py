@@ -2,45 +2,52 @@ from logging import getLogger
 from typing import Iterable, Optional, Set, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_boundary_timepoints_from_tier,
                                             get_first_tier,
                                             get_interval_from_maxTime,
                                             get_interval_from_minTime,
-                                            get_tiers, tier_exists,
-                                            timepoint_is_boundary)
+                                            get_tiers, timepoint_is_boundary)
+from textgrid_tools.core.validation import (InvalidGridError, NoTiersDefinedError,
+                                            NonDistinctTiersError,
+                                            NotExistingTierError,
+                                            ValidationError)
 from tqdm import tqdm
 
 
-def can_fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> bool:
-  logger = getLogger(__name__)
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+class ThresholdTooLowError(ValidationError):
+  @classmethod
+  def validate(cls, threshold: float):
+    if threshold <= 0:
+      return cls()
+    return None
 
-  if difference_threshold <= 0:
-    logger.error("Threshold needs to be > 0!")
-    return False
-
-  if not tier_exists(grid, reference_tier_name):
-    logger.error(f"Tier \"{reference_tier_name}\" not found!")
-    return False
-
-  for tier in target_tiers:
-    if tier == reference_tier_name:
-      logger.error("Can not fix same tier as input tier!")
-      return False
-
-    if not tier_exists(grid, tier):
-      logger.error(f"Tier \"{tier}\" not found!")
-      return False
-
-  return True
+  @property
+  def default_message(self) -> str:
+    return "Threshold needs to be > 0!"
 
 
-def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> bool:
-  assert can_fix_interval_boundaries_grid(
-    grid, reference_tier_name, target_tiers, difference_threshold)
+def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> ExecutionResult:
+  # TODO make inf instead of optional and also to new tier possible
+  if error := InvalidGridError.validate(grid):
+    return error, False
+
+  if error := NotExistingTierError.validate(grid, reference_tier_name):
+    return error, False
+
+  if difference_threshold is not None and (error := ThresholdTooLowError.validate(difference_threshold)):
+    return error, False
+
+  if error := NoTiersDefinedError.validate(target_tiers):
+    return error, False
+
+  for tier_name in target_tiers:
+    if error := NotExistingTierError.validate(grid, tier_name):
+      return error, False
+
+    if error := NonDistinctTiersError.validate(tier_name, reference_tier_name):
+      return error, False
 
   logger = getLogger(__name__)
 
@@ -67,7 +74,8 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, targe
   assert grid.minTime == ref_tier.minTime
   assert grid.maxTime == ref_tier.maxTime
   assert check_is_valid_grid(grid)
-  return total_success
+  # TODO check changes
+  return None, True
 
 
 def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: Optional[float]) -> bool:
