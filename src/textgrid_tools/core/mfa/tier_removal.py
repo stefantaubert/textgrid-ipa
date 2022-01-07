@@ -1,36 +1,24 @@
-from logging import getLogger
 from typing import Set
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_tiers, tier_exists
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.mfa.helper import get_all_tiers
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            NotExistingTierError)
 
 
-def can_remove_tiers(grid: TextGrid, tiers: Set[str]) -> bool:
-  logger = getLogger(__name__)
+def remove_tiers(grid: TextGrid, tier_names: Set[str]) -> ExecutionResult:
+  assert len(tier_names) > 0
+  if error := InvalidGridError.validate(grid):
+    return error, False
 
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+  for tier_name in tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
+      return error, False
 
-  if len(tiers) == 0:
-    return False
+  tiers_to_remove = get_all_tiers(grid, tier_names)
 
-  if len(tiers) == 0:
-    logger.error("No tiers given!")
-    return False
+  for tier in tiers_to_remove:
+    grid.tiers.remove(tier)
 
-  result = True
-  for tier in tiers:
-    if not tier_exists(grid, tier):
-      logger.error(f"Tier \"{tier}\" not found!")
-      result = False
-
-  return result
-
-
-def remove_tiers(grid: TextGrid, tiers: Set[str]) -> None:
-  assert can_remove_tiers(grid, tiers)
-  for tier in tiers:
-    remove_tiers_list = list(get_tiers(grid, tier))
-    for remove_tier in remove_tiers_list:
-      grid.tiers.remove(remove_tier)
+  return None, True

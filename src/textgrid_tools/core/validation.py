@@ -3,11 +3,13 @@ from typing import Iterable, Set, cast
 import numpy as np
 from audio_utils.audio import s_to_samples
 from ordered_set import OrderedSet
-from text_utils.string_format import StringFormat
+from text_utils.string_format import (StringFormat,
+                                      can_convert_symbols_string_to_symbols)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
-    get_interval_readable, interval_is_None_or_empty, tier_exists)
+    get_count_of_tiers, get_interval_readable, get_mark, get_mark_symbols,
+    tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
@@ -18,17 +20,17 @@ class ValidationError():
     return ""
 
 
+# class NoTiersDefinedError(ValidationError):
+#   @classmethod
+#   def validate(cls, tiers: Set[str]):
+#     if len(tiers) == 0:
+#       return cls()
+#     return None
 
-class NoTiersDefinedError(ValidationError):
-  @classmethod
-  def validate(cls, tiers: Set[str]):
-    if len(tiers) == 0:
-      return cls()
-    return None
+#   @property
+#   def default_message(self) -> str:
+#     return "No tiers were defined!"
 
-  @property
-  def default_message(self) -> str:
-    return "No tiers were defined!"
 
 class NotExistingTierError(ValidationError):
   def __init__(self, grid: TextGrid, tier_name: str) -> None:
@@ -63,6 +65,23 @@ class ExistingTierError(ValidationError):
   @property
   def default_message(self) -> str:
     return f"Tier \"{self.tier_name}\" already exists!"
+
+
+class MultipleTiersWithThatNameError(ValidationError):
+  def __init__(self, grid: TextGrid, tier_name: str) -> None:
+    super().__init__()
+    self.grid = grid
+    self.tier_name = tier_name
+
+  @classmethod
+  def validate(cls, grid: TextGrid, tier_name: str):
+    if get_count_of_tiers(grid, tier_name) > 1:
+      return cls(grid, tier_name)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"Grid contains multiple tiers with name \"{self.tier_name}\"!"
 
 
 class InvalidGridError(ValidationError):
@@ -121,7 +140,6 @@ class AudioAndGridLengthMismatchError(ValidationError):
     return f"Audio length and grid length does not match ({self.audio.shape[0]} vs. {s_to_samples(self.grid.maxTime, self.sample_rate)})"
 
 
-
 class NonDistinctTiersError(ValidationError):
   def __init__(self, tier_name: str) -> None:
     super().__init__()
@@ -138,31 +156,60 @@ class NonDistinctTiersError(ValidationError):
     return f"Tiers \"{self.tier_name}\" are not distinct!"
 
 
-class NotMatchingIntervalFormatError(ValidationError):
-  def __init__(self, tier: IntervalTier, tier_interval_format: IntervalFormat, string_format: StringFormat, interval: Interval) -> None:
+class InvalidStringFormatIntervalError(ValidationError):
+  def __init__(self, string_format: StringFormat, interval: Interval) -> None:
     super().__init__()
-    self.tier = tier
+    self.string_format = string_format
+    self.interval = interval
+
+  @classmethod
+  def validate(cls, interval: Interval, string_format: StringFormat):
+    if string_format == StringFormat.SYMBOLS:
+      mark = get_mark(interval)
+      if not can_convert_symbols_string_to_symbols(mark):
+        return cls(string_format, interval)
+    return None
+
+  @classmethod
+  def validate_tier(cls, tier: IntervalTier, string_format: StringFormat):
+    for interval in tier.intervals:
+      if error := cls.validate(interval, string_format):
+        return error
+    return None
+
+  @property
+  def default_message(self) -> str:
+    msg = f"Marks format does not match {self.string_format!r}!\n"
+    msg += f"{get_interval_readable(self.interval)}"
+
+
+class NotMatchingIntervalFormatError(ValidationError):
+  def __init__(self, tier_interval_format: IntervalFormat, string_format: StringFormat, interval: Interval) -> None:
+    super().__init__()
     self.tier_interval_format = tier_interval_format
     self.string_format = string_format
     self.interval = interval
 
   @classmethod
-  def validate(cls, tier: IntervalTier, interval_format: IntervalFormat, string_format: StringFormat):
-    for interval in cast(Iterable[Interval], tier.intervals):
-      if interval_is_None_or_empty(interval):
-        continue
-      mark = interval.mark
-      symbols = string_format.convert_string_to_symbols(mark)
-      if interval_format == IntervalFormat.SYMBOL:
-        if len(symbols) > 1:
-          return cls(tier, interval_format, string_format, interval)
-      elif interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
-        if " " in symbols:
-          return cls(tier, interval_format, string_format, interval)
-      elif interval_format == IntervalFormat.WORDS:
-        continue
-      else:
-        assert False
+  def validate(cls, interval: Interval, interval_format: IntervalFormat, string_format: StringFormat):
+    symbols = get_mark_symbols(interval, string_format)
+    if interval_format == IntervalFormat.SYMBOL:
+      if len(symbols) > 1:
+        return cls(interval_format, string_format, interval)
+    elif interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
+      if " " in symbols:
+        return cls(interval_format, string_format, interval)
+    elif interval_format == IntervalFormat.WORDS:
+      return None
+    else:
+      assert False
+    return None
+
+  @classmethod
+  def validate_tier(cls, tier: IntervalTier, interval_format: IntervalFormat, string_format: StringFormat):
+    for interval in tier.intervals:
+      if error := cls.validate(interval, interval_format, string_format):
+        return error
     return None
 
   @property

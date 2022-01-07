@@ -1,42 +1,52 @@
-from logging import getLogger
+from typing import Optional
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa.helper import (add_or_update_tier,
-                                            check_is_valid_grid,
-                                            get_first_tier, tier_exists)
-from textgrid_tools.utils import update_or_add_tier
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.mfa.helper import add_or_update_tier, get_first_tier
+from textgrid_tools.core.validation import (ExistingTierError,
+                                            InvalidGridError,
+                                            NotExistingTierError,
+                                            ValidationError)
 
 
-def can_copy(grid: TextGrid, reference_grid: TextGrid, reference_tier_name: str, new_tier: str, overwrite_tier: bool) -> bool:
-  logger = getLogger(__name__)
+class DifferentGridTimesError(ValidationError):
+  def __init__(self, grid: TextGrid, reference_grid: TextGrid) -> None:
+    super().__init__()
+    self.grid = grid
+    self.reference_grid = reference_grid
 
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+  @classmethod
+  def validate(cls, grid: TextGrid, reference_grid: TextGrid):
+    if grid.minTime != reference_grid.minTime or grid.maxTime != reference_grid.maxTime:
+      return cls(grid, reference_grid)
+    return None
 
-  if not check_is_valid_grid(reference_grid):
-    logger.error("Reference grid is invalid!")
-    return False
-
-  if grid.minTime != reference_grid.minTime or grid.maxTime != reference_grid.maxTime:
-    logger.error("Both grids need to have the same minTime and maxTime!")
-    return False
-
-  if not tier_exists(reference_grid, reference_tier_name):
-    logger.error(f"Tier \"{reference_tier_name}\" not found!")
-    return False
-
-  if tier_exists(grid, new_tier) and not overwrite_tier:
-    logger.error(f"Tier \"{new_tier}\" already exists!")
-    return False
-
-  return True
+  @property
+  def default_message(self) -> str:
+    return "Both grids need to have the same minTime and maxTime!"
 
 
-def copy_tier_to_grid(grid: TextGrid, reference_grid: TextGrid, reference_tier_name: str, new_tier: str, overwrite_tier: bool) -> None:
-  assert can_copy(grid, reference_grid, reference_tier_name, new_tier, overwrite_tier)
+def copy_tier_to_grid(grid: TextGrid, reference_grid: TextGrid, reference_tier_name: str, custom_output_tier_name: Optional[str], overwrite_tier: bool) -> ExecutionResult:
+  if error := InvalidGridError.validate(grid):
+    return error, False
+
+  if error := InvalidGridError.validate(reference_grid):
+    return error, False
+
+  if error := DifferentGridTimesError.validate(grid, reference_grid):
+    return error, False
+
+  if error := NotExistingTierError.validate(grid, reference_tier_name):
+    return error, False
+
+  output_tier_name = reference_tier_name
+  if custom_output_tier_name is not None:
+    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
+      return error, False
+    output_tier_name = custom_output_tier_name
+
   reference_tier = get_first_tier(reference_grid, reference_tier_name)
 
-  reference_tier.name = new_tier
+  reference_tier.name = output_tier_name
 
   add_or_update_tier(grid, None, reference_tier, overwrite_tier)

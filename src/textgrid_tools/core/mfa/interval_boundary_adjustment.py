@@ -9,7 +9,7 @@ from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
                                             get_interval_from_maxTime,
                                             get_interval_from_minTime,
                                             get_tiers, timepoint_is_boundary)
-from textgrid_tools.core.validation import (InvalidGridError, NoTiersDefinedError,
+from textgrid_tools.core.validation import (InvalidGridError,
                                             NonDistinctTiersError,
                                             NotExistingTierError,
                                             ValidationError)
@@ -28,7 +28,8 @@ class ThresholdTooLowError(ValidationError):
     return "Threshold needs to be > 0!"
 
 
-def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tiers: Set[str], difference_threshold: Optional[float]) -> ExecutionResult:
+def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, target_tier_names: Set[str], difference_threshold: Optional[float]) -> ExecutionResult:
+  assert len(target_tier_names) > 0
   # TODO make inf instead of optional and also to new tier possible
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -39,10 +40,7 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, targe
   if difference_threshold is not None and (error := ThresholdTooLowError.validate(difference_threshold)):
     return error, False
 
-  if error := NoTiersDefinedError.validate(target_tiers):
-    return error, False
-
-  for tier_name in target_tiers:
+  for tier_name in target_tier_names:
     if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
 
@@ -55,7 +53,7 @@ def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, targe
 
   synchronize_timepoints = list(get_boundary_timepoints_from_tier(ref_tier))
 
-  targets = list(get_tiers(grid, target_tiers))
+  targets = list(get_tiers(grid, target_tier_names))
 
   for tier in cast(Iterable[IntervalTier], tqdm(targets, desc="Tier", position=0, unit="t")):
     logger.info(f"Fixing tier {tier.name} ...")

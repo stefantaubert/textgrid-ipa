@@ -1,31 +1,30 @@
-from logging import getLogger
-
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_tiers, tier_exists
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.mfa.helper import get_single_tier
+from textgrid_tools.core.validation import (ExistingTierError,
+                                            InvalidGridError,
+                                            MultipleTiersWithThatNameError,
+                                            NonDistinctTiersError,
+                                            NotExistingTierError)
 
 
-def can_rename_tier(grid: TextGrid, tier: str) -> bool:
-  logger = getLogger(__name__)
+def rename_tier(grid: TextGrid, tier_name: str, output_tier_name: str) -> ExecutionResult:
+  if error := InvalidGridError.validate(grid):
+    return error, False
 
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+  if error := NotExistingTierError.validate(grid, tier_name):
+    return error, False
 
-  if not tier_exists(grid, tier):
-    logger.error(f"Tier \"{tier}\" not found!")
-    return False
+  if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
+    return error, False
 
-  return True
+  if error := NonDistinctTiersError.validate(tier_name, output_tier_name):
+    return error, False
 
+  if error := ExistingTierError.validate(grid, output_tier_name):
+    return error, False
 
-def rename_tier(grid: TextGrid, tier: str, new_name: str) -> None:
-  assert can_rename_tier(grid, tier)
+  tier = get_single_tier(grid, tier_name)
+  tier.name = output_tier_name
 
-  logger = getLogger(__name__)
-  tiers = list(get_tiers(grid, {tier}))
-
-  if len(tiers) > 1:
-    logger.warning(
-      f"Found multiple tiers with name \"{tier}\", therefore renaming only the first one.")
-  first_tier = tiers[0]
-  first_tier.name = new_name
+  return None, True

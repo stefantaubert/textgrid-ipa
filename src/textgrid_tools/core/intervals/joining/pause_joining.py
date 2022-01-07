@@ -59,7 +59,7 @@ def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFor
 
   tier = get_first_tier(grid, tier_name)
 
-  if error := NotMatchingIntervalFormatError.validate(tier, tier_interval_format, tier_string_format):
+  if error := NotMatchingIntervalFormatError.validate_tier(tier, tier_interval_format, tier_string_format):
     return error, False
 
   target_intervals = (
