@@ -1,1 +1,1 @@
-#
+from textgrid_tools.core.grids.dictionary_creation import get_arpa_pronunciation_dictionary

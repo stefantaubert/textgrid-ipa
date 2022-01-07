@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
 from textgrid_tools.core.intervals.boundary_joining import (
-    can_join_intervals, join_intervals)
+    can_join_intervals, join_intervals_on_boundaries)
 from textgrid_tools.core.interval_format import IntervalFormat
 from tqdm import tqdm
 
@@ -67,7 +67,7 @@ def files_join_intervals_on_boundaries(directory: Path, tier: str, mark_format: 
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, mark_format, mark_type, boundary_tier,
+    join_intervals_on_boundaries(grid_in, tier, mark_format, mark_type, boundary_tier,
                    output_tier, overwrite_tier)
 
     logger.info("Saving...")

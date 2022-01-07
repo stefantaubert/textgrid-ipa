@@ -34,7 +34,7 @@ class DurationTooLowError(ValidationError):
     return f"Duration needs to be greater than zero but was \"{self.duration}\"!"
 
 
-def join_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, max_duration_s: float, include_empty_intervals: bool) -> ExecutionResult:
+def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, max_duration_s: float, include_empty_intervals: bool) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

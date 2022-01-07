@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
 from textgrid_tools.core.intervals.sentence_joining import (
-    can_join_intervals, join_intervals)
+    can_join_intervals, join_intervals_on_sentences)
 from textgrid_tools.core.interval_format import IntervalFormat
 from tqdm import tqdm
 
@@ -69,7 +69,7 @@ def files_join_intervals(directory: Path, tier: str, mark_format: StringFormat, 
       logger.info("Skipped.")
       continue
 
-    join_intervals(grid_in, tier, mark_format, mark_type,
+    join_intervals_on_sentences(grid_in, tier, mark_format, mark_type,
                    set(strip_symbols), set(punctuation_symbols), output_tier, overwrite_tier)
 
     logger.info("Saving...")

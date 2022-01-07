@@ -4,18 +4,18 @@ from text_utils import StringFormat, symbols_endswith, symbols_strip
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.common import (merge_intervals,
-                                                  replace_intervals)
 from textgrid_tools.core.helper import (get_all_tiers, get_mark_symbols,
                                         interval_is_None_or_whitespace)
 from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools.core.intervals.common import (merge_intervals,
+                                                  replace_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
                                             NotMatchingIntervalFormatError)
 
 
-def join_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> ExecutionResult:
+def join_intervals_on_sentences(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

@@ -32,7 +32,7 @@ class PauseTooLowError(ValidationError):
     return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float) -> ExecutionResult:
+def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
