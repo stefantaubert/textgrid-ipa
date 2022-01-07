@@ -6,7 +6,7 @@ from typing import Iterable, cast
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
 from textgrid_tools.core.mfa.tier_convert_text_to_symbols import (
-    can_convert_text_to_symbols, convert_text_to_symbols)
+    can_convert_text_to_symbols, switch_string_format)
 from tqdm import tqdm
 
 
@@ -50,7 +50,7 @@ def files_convert_text_to_symbols(grid_folder_in: Path, tier: str, new_tier: str
       logger.info("Skipped.")
       continue
 
-    convert_text_to_symbols(grid_in, tier, new_tier)
+    switch_string_format(grid_in, tier, new_tier)
 
     logger.info("Saving...")
     save_grid(grid_file_out_abs, grid_in)

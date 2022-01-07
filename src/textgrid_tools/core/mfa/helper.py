@@ -141,6 +141,11 @@ def get_interval_readable(interval: Interval) -> str:
   return result
 
 
+def get_tier_readable(tier: IntervalTier) -> str:
+  result = f"Tier [{tier.minTime}, {tier.maxTime}]: \"{tier.name}\" (# intervals: {len(tier.intervals)})"
+  return result
+
+
 def get_interval_from_minTime(tier: IntervalTier, minTime: float) -> Optional[Interval]:
   for interval in cast(Iterable[Interval], tier.intervals):
     if interval.minTime == minTime:
@@ -187,33 +192,47 @@ def check_timepoints_exist_on_all_tiers_as_boundaries(timepoints: List[float], t
 
 
 def get_count_of_tiers(grid: TextGrid, tier_name: str) -> int:
-  tiers = list(get_tiers(grid, {tier_name}))
+  tiers = list(get_all_tiers(grid, {tier_name}))
   return len(tiers)
 
 
 def get_single_tier(grid: TextGrid, tier_name: str) -> IntervalTier:
-  tiers = list(get_tiers(grid, {tier_name}))
+  tiers = list(get_all_tiers(grid, {tier_name}))
   if len(tiers) > 1:
     assert False
   return tiers[0]
 
 
-def get_all_tiers(grid: TextGrid, tier_names: Set[str]) -> Generator[IntervalTier, None, None]:
-  result = (
-    tier
-    for tier_name in tier_names
-    for tier in get_tiers(grid, tier_name)
+def can_parse_float(float_str: str) -> bool:
+  try:
+    float(float_str)
+    return True
+  except ValueError:
+    return False
+
+
+def get_all_intervals(grid: TextGrid, tier_names: Set[str]) -> Generator[Interval, None, None]:
+  intervals = (
+    interval
+    for tier in get_all_tiers(grid, tier_names)
+    for interval in cast(Iterable[Interval], tier.intervals)
   )
-  return result
+  return intervals
+
+
+def get_all_tiers(grid: TextGrid, tier_names: Set[str]) -> Generator[IntervalTier, None, None]:
+  for tier in cast(Iterable[IntervalTier], grid.tiers):
+    if tier.name in tier_names:
+      yield tier
 
 
 def get_first_tier(grid: TextGrid, tier_name: str) -> IntervalTier:
   assert tier_exists(grid, tier_name)
-  return next(get_tiers(grid, {tier_name}))
+  return next(get_all_tiers(grid, {tier_name}))
 
 
 def tier_exists(grid: TextGrid, tier: str) -> bool:
-  tiers = get_tiers(grid, {tier})
+  tiers = get_all_tiers(grid, {tier})
   for _ in tiers:
     return True
   return False
@@ -242,12 +261,6 @@ def replace_tier(tier: IntervalTier, new_tier: IntervalTier) -> None:
   tier.maxTime = new_tier.maxTime
   tier.name = new_tier.name
   tier.strict = new_tier.strict
-
-
-def get_tiers(grid: TextGrid, tiers: Set[str]) -> Generator[IntervalTier, None, None]:
-  for tier in cast(Iterable[IntervalTier], grid.tiers):
-    if tier.name in tiers:
-      yield tier
 
 
 def check_timepoint_exist_on_all_tiers_as_boundary(timepoint: float, tiers: List[IntervalTier]) -> bool:

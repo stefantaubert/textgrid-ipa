@@ -1,4 +1,4 @@
-from typing import Iterable, Set, cast
+from typing import Iterable, Optional, Set, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -9,7 +9,7 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.mfa.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_count_of_tiers, get_interval_readable, get_mark, get_mark_symbols,
-    tier_exists)
+    get_tier_readable, tier_exists)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
 
 
@@ -65,6 +65,22 @@ class ExistingTierError(ValidationError):
   @property
   def default_message(self) -> str:
     return f"Tier \"{self.tier_name}\" already exists!"
+
+
+class InvalidTierNameError(ValidationError):
+  def __init__(self, tier_name: str) -> None:
+    super().__init__()
+    self.tier_name = tier_name
+
+  @classmethod
+  def validate(cls, tier_name: str):
+    if tier_name.strip() == "":
+      return cls(tier_name)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"The tier name is invalid: \"{self.tier_name}\"!"
 
 
 class MultipleTiersWithThatNameError(ValidationError):
@@ -157,30 +173,52 @@ class NonDistinctTiersError(ValidationError):
 
 
 class InvalidStringFormatIntervalError(ValidationError):
-  def __init__(self, string_format: StringFormat, interval: Interval) -> None:
+  def __init__(self, string: str, string_format: StringFormat) -> None:
     super().__init__()
+    self.string = string
     self.string_format = string_format
-    self.interval = interval
+    self.interval: Optional[Interval] = None
+    self.tier: Optional[IntervalTier] = None
 
   @classmethod
-  def validate(cls, interval: Interval, string_format: StringFormat):
+  def validate(cls, string: str, string_format: StringFormat):
     if string_format == StringFormat.SYMBOLS:
-      mark = get_mark(interval)
-      if not can_convert_symbols_string_to_symbols(mark):
-        return cls(string_format, interval)
+      if not can_convert_symbols_string_to_symbols(string):
+        return cls(string, string_format)
+    return None
+
+  @classmethod
+  def validate_interval(cls, interval: Interval, string_format: StringFormat):
+    mark = get_mark(interval)
+    if error := cls.validate(mark, string_format):
+      error.interval = interval
+      return error
+    return None
+
+  @classmethod
+  def validate_intervals(cls, intervals: Iterable[Interval], string_format: StringFormat):
+    for interval in intervals:
+      if error := cls.validate_interval(interval, string_format):
+        return error
     return None
 
   @classmethod
   def validate_tier(cls, tier: IntervalTier, string_format: StringFormat):
-    for interval in tier.intervals:
-      if error := cls.validate(interval, string_format):
-        return error
+    if error := cls.validate_intervals(tier.intervals, string_format):
+      error.tier = tier
+      return error
     return None
 
   @property
   def default_message(self) -> str:
-    msg = f"Marks format does not match {self.string_format!r}!\n"
-    msg += f"{get_interval_readable(self.interval)}"
+    msg = f"Marks format does not match!"
+    if self.interval is not None:
+      msg += f"\n@{get_interval_readable(self.interval)}"
+    if self.tier is not None:
+      msg += f"\n@{get_tier_readable(self.tier)}"
+    msg += "\n"
+    msg += f"Format: {str(self.string_format)}\n"
+    msg += f"String:\n\n```\n{self.string}\n```"
 
 
 class NotMatchingIntervalFormatError(ValidationError):

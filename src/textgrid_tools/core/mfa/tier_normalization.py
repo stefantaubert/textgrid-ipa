@@ -1,4 +1,4 @@
-from typing import Iterable, Set, cast
+from typing import Set
 
 from text_utils.language import Language
 from text_utils.string_format import (StringFormat,
@@ -6,9 +6,9 @@ from text_utils.string_format import (StringFormat,
                                       convert_text_string_to_symbols)
 from text_utils.symbol_format import SymbolFormat
 from text_utils.text import text_normalize
-from textgrid.textgrid import Interval, TextGrid
+from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_all_tiers, get_mark_symbols
+from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
@@ -47,13 +47,13 @@ class SymbolFormatNotSupportedError(ValidationError):
     return f"{self.symbol_format} is not supported!"
 
 
-def normalize_tiers(grid: TextGrid, tier_names: Set[str], string_format: StringFormat, language: Language, text_format: SymbolFormat) -> ExecutionResult:
+def normalize_tiers(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, language: Language, text_format: SymbolFormat) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  if error := SymbolsStringFormatNotSupportedError.validate(string_format):
+  if error := SymbolsStringFormatNotSupportedError.validate(tiers_string_format):
     return error, False
 
   if error := SymbolFormatNotSupportedError.validate(text_format):
@@ -63,20 +63,15 @@ def normalize_tiers(grid: TextGrid, tier_names: Set[str], string_format: StringF
     if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
 
-  intervals = list(
-    interval
-    for tier in get_all_tiers(grid, tier_names)
-    for interval in cast(Iterable[Interval], tier.intervals)
-  )
+  intervals = list(get_all_intervals(grid, tier_names))
 
-  for interval in intervals:
-    if error := InvalidStringFormatIntervalError.validate(interval, string_format):
-      return error, False
+  if error := InvalidStringFormatIntervalError.validate_intervals(intervals, tiers_string_format):
+    return error, False
 
   changed_anything = False
 
   for interval in intervals:
-    symbols = get_mark_symbols(interval, string_format)
+    symbols = get_mark_symbols(interval, tiers_string_format)
     text = convert_symbols_to_text_string(symbols)
     text = text.replace("\n", " ")
     text = text.replace("\r", "")
@@ -86,7 +81,7 @@ def normalize_tiers(grid: TextGrid, tier_names: Set[str], string_format: StringF
       text_format=text_format,
     )
     symbols = convert_text_string_to_symbols(text)
-    mark = string_format.convert_symbols_to_string(symbols)
+    mark = tiers_string_format.convert_symbols_to_string(symbols)
     if interval.mark != mark:
       interval.mark = mark
       changed_anything = True

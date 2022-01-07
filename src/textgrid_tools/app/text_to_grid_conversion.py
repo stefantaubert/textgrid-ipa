@@ -104,8 +104,7 @@ def files_convert_text_to_grid(input_directory: Path, audio_directory: Optional[
 
     audio_in = None
     sample_rate = None
-    start = None
-    end = None
+    meta = None
 
     if file_stem in audio_files:
       audio_file_in_abs = audio_directory / audio_files[file_stem]
@@ -113,15 +112,9 @@ def files_convert_text_to_grid(input_directory: Path, audio_directory: Optional[
 
     if file_stem in meta_files:
       meta_file_in_abs = meta_directory / meta_files[file_stem]
-      meta_content = meta_file_in_abs.read_text(encoding="UTF-8")
-      can_parse_meta = can_parse_meta_content(meta_content)
-      if not can_parse_meta:
-        logger.info("Meta file couldn't be parsed!")
-      else:
-        start, end = parse_meta_content(meta_content)
-        logger.info(f"Parsed meta file content: [{start}, {end}].")
+      meta = meta_file_in_abs.read_text(encoding="UTF-8")
 
-    can_convert = can_convert_text_to_grid(text, text_format, audio_in, sample_rate, start, end)
+    can_convert = can_convert_text_to_grid(text, meta, text_format, audio_in, sample_rate)
     if not can_convert:
       logger.info("Skipping.")
       continue

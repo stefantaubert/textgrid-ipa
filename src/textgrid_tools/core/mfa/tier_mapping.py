@@ -1,106 +1,125 @@
-from typing import Iterable, List, Optional, cast
+from typing import Generator, Iterable, List, Set
 
 from text_utils.string_format import StringFormat
-from text_utils.text import symbols_to_words
-from text_utils.types import Symbols
-from text_utils.utils import symbols_to_lower
+from text_utils.types import Symbol
+from text_utils.utils import symbols_ignore
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.joining.common import merge_intervals
-from textgrid_tools.core.mfa.helper import (add_or_update_tier, get_first_tier,
+from textgrid_tools.core.mfa.helper import (get_all_tiers, get_mark,
+                                            get_mark_symbols, get_single_tier,
                                             interval_is_None_or_whitespace)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.validation import (ExistingTierError,
-                                            InvalidGridError, NonDistinctTiersError,
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
+                                            MultipleTiersWithThatNameError,
+                                            NonDistinctTiersError,
                                             NotExistingTierError,
                                             ValidationError)
 
+
 class UnequalIntervalAmountError(ValidationError):
-  def __init__(self, tier_words: List[Symbols], target_tier_words: List[Symbols]) -> None:
+  def __init__(self, tier_intervals: List[Interval], target_tier_intervals: List[Interval]) -> None:
     super().__init__()
-    self.tier_words = tier_words
-    self.target_tier_words = target_tier_words
+    self.tier_intervals = tier_intervals
+    self.target_tier_intervals = target_tier_intervals
 
   @classmethod
-  def validate(cls, tier_words: List[Symbols], target_tier_words: List[Symbols]):
-    if len(tier_words) != len(target_tier_words):
-      return cls(tier_words, target_tier_words)
+  def validate(cls, tier_intervals: List[Interval], target_tier_intervals: List[Interval]):
+    if len(tier_intervals) != len(target_tier_intervals):
+      return cls(tier_intervals, target_tier_intervals)
     return None
 
   @property
   def default_message(self) -> str:
-    msg = f"Amount of non-pause intervals is different: {len(self.tier_words)} vs. {len(self.target_tier_words)} (target)!\n\n"
-    min_len = min(len(self.target_tier_words), len(self.tier_words))
+    msg = f"Amount of intervals is different: {len(self.tier_intervals)} vs. {len(self.target_tier_intervals)} (target)!\n\n"
+    min_len = min(len(self.target_tier_intervals), len(self.tier_intervals))
     for i in range(min_len):
-      is_not_same = symbols_to_lower(
-        self.target_tier_words[i]) != symbols_to_lower(self.tier_words[i])
-
-      msg += f"{'===>' if is_not_same else ''} {''.join(self.tier_words[i])} vs. {''.join(self.target_tier_words[i])}\n"
+      msg += f"===> \"{self.tier_intervals[i].mark}\" vs. \"{self.target_tier_intervals[i].mark}\"\n"
     msg += "..."
     return msg
 
 
-def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tiers_interval_format: IntervalFormat, target_tier_name: str, target_tier_string_format: StringFormat, custom_target_tier_name: Optional[str], overwrite_tier: bool) -> ExecutionResult:
+def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, target_tier_names: Set[str], targets_string_format: StringFormat, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[Symbol]) -> ExecutionResult:
+  """
+  only_symbols: ignore intervals which marks contain only these symbols
+  """
+
   if error := InvalidGridError.validate(grid):
-    return error, False
-
-  if error := NonDistinctTiersError.validate(tier_name, target_tier_name):
-    return error, False
-
-  if error := NotExistingTierError.validate(grid, target_tier_name):
     return error, False
 
   if error := NotExistingTierError.validate(grid, tier_name):
     return error, False
 
-  output_tier_name = target_tier_name
-  if custom_target_tier_name is not None:
-    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_target_tier_name)):
-      return error, False
-    output_tier_name = custom_target_tier_name
-
-  tier = get_first_tier(grid, tier_name)
-  tier_symbols = merge_intervals(tier.intervals, tier_string_format, tiers_interval_format)
-  target_tier = get_first_tier(grid, target_tier_name)
-
-  tier_words = symbols_to_words(tier_symbols)
-  for word in tier_words:
-    # due to whitespace collapsing there should not be any empty words
-    assert len(word) > 0
-
-  # if original was text then: remove words with silence annotations, that have no corresponding interval
-  # old_count = len(words)
-  # words = [word for word in words if alignment_dict[''.join(word).upper()][0] != (SIL,)]
-  # ignored_count = old_count - len(words)
-  # if ignored_count > 0:
-  #   logger.info(f"Ignored {ignored_count} \"{SIL}\" annotations.")
-
-  target_tier_symbols = merge_intervals(
-    target_tier.intervals, target_tier_string_format, tiers_interval_format)
-  target_tier_words = symbols_to_words(target_tier_symbols)
-
-  if error := UnequalIntervalAmountError.validate(tier_words, target_tier_words):
+  if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
     return error, False
 
-  res_tier = IntervalTier(
-    minTime=target_tier.minTime,
-    maxTime=target_tier.maxTime,
-    name=output_tier_name,
-  )
+  tier = get_single_tier(grid, tier_name)
 
-  for target_interval in cast(Iterable[Interval], target_tier.intervals):
-    new_word = target_interval.mark
-    if not interval_is_None_or_whitespace(target_interval):
-      new_word_symbols = tier_words.pop(0)
-      new_word = target_tier_string_format.convert_symbols_to_string(new_word_symbols)
+  if error := InvalidStringFormatIntervalError.validate_tier(tier, tier_string_format):
+    return error, False
 
-    new_interval = Interval(
-      minTime=target_interval.minTime,
-      maxTime=target_interval.maxTime,
-      mark=new_word,
-    )
-    res_tier.addInterval(new_interval)
+  for target_tier_name in target_tier_names:
+    if error := NonDistinctTiersError.validate(tier_name, target_tier_name):
+      return error, False
 
-  changed_anything = add_or_update_tier(grid, target_tier, res_tier, overwrite_tier)
+    if error := NotExistingTierError.validate(grid, target_tier_name):
+      return error, False
+
+  tier_intervals = list(get_intervals(tier, ignore_pauses,
+                        ignore_marks, only_symbols, tier_string_format))
+
+  changed_anything = False
+
+  for target_tier in get_all_tiers(grid, target_tier_names):
+    if error := InvalidStringFormatIntervalError.validate_tier(target_tier, targets_string_format):
+      return error, False
+
+    target_tier_intervals = list(get_intervals(
+      target_tier, ignore_pauses, ignore_marks, only_symbols, targets_string_format))
+
+    if error := UnequalIntervalAmountError.validate(tier_intervals, target_tier_intervals):
+      return error, False
+
+    for tier_interval, target_tier_interval in zip(tier_intervals, target_tier_intervals):
+      if target_tier_interval.mark != tier_interval.mark:
+        target_tier_interval.mark = tier_interval.mark
+        changed_anything = True
 
   return None, changed_anything
+
+
+def get_intervals(tier: IntervalTier, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
+  tier_intervals = tier.intervals
+  if ignore_pauses:
+    tier_intervals = remove_empty_intervals(tier_intervals)
+  if len(ignore_marks) > 0:
+    tier_intervals = remove_intervals_with_marks(tier_intervals, ignore_marks)
+  if len(only_symbols) > 0:
+    tier_intervals = remove_intervals_with_only_symbols(tier_intervals, only_symbols, string_format)
+  return tier_intervals
+
+
+def remove_empty_intervals(intervals: Iterable[Interval]) -> Generator[Interval, None, None]:
+  result = (
+    interval
+    for interval in intervals
+    if not interval_is_None_or_whitespace(interval)
+  )
+  return result
+
+
+def remove_intervals_with_marks(intervals: Iterable[Interval], ignore_marks: Set[str]) -> Generator[Interval, None, None]:
+  result = (
+    interval
+    for interval in intervals
+    if get_mark(interval) not in ignore_marks
+  )
+  return result
+
+
+def remove_intervals_with_only_symbols(intervals: Iterable[Interval], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
+  result = (
+    interval
+    for interval in intervals
+    if len(symbols_ignore(get_mark_symbols(interval, string_format), only_symbols)) > 0
+  )
+  return result

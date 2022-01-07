@@ -1,62 +1,43 @@
-from logging import getLogger
-
+from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import add_or_update_tier, get_tiers
+from textgrid_tools.core.mfa.cloning import copy_tier
+from textgrid_tools.core.mfa.helper import get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
+                                            InvalidTierNameError,
+                                            MultipleTiersWithThatNameError,
                                             NonDistinctTiersError,
                                             NotExistingTierError)
 
 
-def clone_tier(grid: TextGrid, tier_name: str, output_tier_name: str, ignore_marks: bool, overwrite_tier: bool) -> ExecutionResult:
-  # TODO allow multiple output tier names
+def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str], ignore_marks: bool) -> ExecutionResult:
+  assert len(output_tier_names) > 0
+
   if error := InvalidGridError.validate(grid):
     return error, False
 
   if error := NotExistingTierError.validate(grid, tier_name):
     return error, False
 
-  if error := NonDistinctTiersError.validate(tier_name, output_tier_name):
+  if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
     return error, False
 
-  # TODO maybe check also if multiple of that name exist
-  if not overwrite_tier and (error := ExistingTierError.validate(grid, output_tier_name)):
-    return error, False
+  for output_tier_name in output_tier_names:
+    if error := NonDistinctTiersError.validate(tier_name, output_tier_name):
+      return error, False
 
-  logger = getLogger(__name__)
-  tiers = list(get_tiers(grid, {tier_name}))
-  if len(tiers) > 1:
-    logger.warning(
-      f"Found multiple tiers with name \"{tier_name}\", therefore cloning only the first one.")
+    if error := ExistingTierError.validate(grid, output_tier_name):
+      return error, False
 
-  first_tier = tiers[0]
-  new_tier = copy_tier(first_tier, ignore_marks)
-  new_tier.name = output_tier_name
+    if error := InvalidTierNameError.validate(output_tier_name):
+      return error, False
 
-  changed_anything = add_or_update_tier(grid, None, new_tier, overwrite_tier)
-  return None, changed_anything
+  tier = get_single_tier(grid, tier_name)
 
+  for output_tier_name in output_tier_names:
+    new_tier = copy_tier(tier, ignore_marks)
+    new_tier.name = output_tier_name
+    grid.append(new_tier)
 
-def copy_tier(tier: IntervalTier, ignore_marks: bool) -> IntervalTier:
-  result = IntervalTier(
-    name=tier.name,
-    maxTime=tier.maxTime,
-    minTime=tier.minTime,
-  )
-
-  for interval in tier.intervals:
-    cloned_interval = copy_interval(interval, ignore_marks)
-    result.addInterval(cloned_interval)
-
-  return result
-
-
-def copy_interval(interval: Interval, ignore_marks: bool) -> Interval:
-  new_mark = "" if ignore_marks else str(interval.mark)
-  result = Interval(
-    minTime=interval.minTime,
-    mark=new_mark,
-    maxTime=interval.maxTime,
-  )
-  return result
+  return None, True

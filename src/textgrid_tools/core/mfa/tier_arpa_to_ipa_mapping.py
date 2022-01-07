@@ -1,59 +1,49 @@
 from logging import getLogger
-from typing import Iterable, Optional, cast
+from typing import Optional, Set
 
 from text_utils import symbols_map_arpa_to_ipa
 from text_utils.string_format import StringFormat
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from text_utils.types import Symbol
+from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import (add_or_update_tier, get_first_tier,
-                                            get_mark_symbols)
-from textgrid_tools.core.validation import (ExistingTierError,
-                                            InvalidGridError,
+from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
                                             NotExistingTierError)
 
 
-def map_arpa_to_ipa(grid: TextGrid, tier_name: str, custom_output_tier_name: Optional[str], tier_string_format: StringFormat, overwrite_tier: bool) -> ExecutionResult:
+def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol]) -> ExecutionResult:
+  assert len(tier_names) > 0
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  if error := NotExistingTierError.validate(grid, tier_name):
-    return error, False
-
-  output_tier_name = tier_name
-  if custom_output_tier_name is not None:
-    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
+  for tier_name in tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
-    output_tier_name = custom_output_tier_name
+
+  intervals = list(get_all_intervals(grid, tier_names))
+
+  if error := InvalidStringFormatIntervalError.validate_intervals(intervals, tiers_string_format):
+    return error, False
 
   logger = getLogger(__name__)
 
-  tier = get_first_tier(grid, tier_name)
+  changed_anything = False
 
-  output_tier = IntervalTier(
-    minTime=tier.minTime,
-    maxTime=tier.maxTime,
-    name=output_tier_name,
-  )
-
-  for interval in cast(Iterable[IntervalTier], tier.intervals):
-    arpa_symbols = get_mark_symbols(interval, tier_string_format)
+  for interval in intervals:
+    arpa_symbols = get_mark_symbols(interval, tiers_string_format)
     ipa_symbols = symbols_map_arpa_to_ipa(
       arpa_symbols=arpa_symbols,
       ignore={},
-      replace_unknown=False,
-      replace_unknown_with=None,
+      replace_unknown=replace_unknown,
+      replace_unknown_with=replace_unknown_with,
     )
 
-    new_ipa = tier_string_format.convert_symbols_to_string(ipa_symbols)
-    logger.debug(f"Mapped \"{''.join(arpa_symbols)}\" to \"{''.join(ipa_symbols)}\".")
+    ipa = tiers_string_format.convert_symbols_to_string(ipa_symbols)
 
-    ipa_interval = Interval(
-      minTime=interval.minTime,
-      maxTime=interval.maxTime,
-      mark=new_ipa,
-    )
-    output_tier.intervals.append(ipa_interval)
-
-  changed_anything = add_or_update_tier(grid, tier, output_tier, overwrite_tier)
+    if interval.mark != ipa:
+      logger.debug(f"Mapped \"{interval.mark}\" to \"{ipa}\".")
+      interval.mark = ipa
+      changed_anything = True
 
   return None, changed_anything

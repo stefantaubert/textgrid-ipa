@@ -37,19 +37,19 @@ def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_di
   logger = getLogger(__name__)
   changed_something = False
 
-  old_minTime = grid.minTime
+  old_min_time = grid.minTime
   set_minTime(grid, 0)
 
-  if old_minTime != grid.minTime:
+  if old_min_time != grid.minTime:
     changed_something = True
-    logger.info(f"Adjusted start from {old_minTime} to 0.")
+    logger.info(f"Adjusted start from {old_min_time} to 0.")
 
-  oldMaxTime = grid.maxTime
+  old_max_time = grid.maxTime
   set_end_to_audio_len(grid, audio, sample_rate, n_digits)
 
-  if oldMaxTime != grid.maxTime:
+  if old_max_time != grid.maxTime:
     changed_something = True
-    logger.info(f"Adjusted end from {oldMaxTime} to {grid.maxTime}.")
+    logger.info(f"Adjusted end from {old_max_time} to {grid.maxTime}.")
 
   return True, changed_something
 
@@ -68,39 +68,39 @@ def set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool, n
   set_maxTime(grid, audio_duration_s)
 
 
-def can_set_maxTime(grid: TextGrid, maxTime: float) -> bool:
+def can_set_maxTime(grid: TextGrid, max_time: float) -> bool:
   for tier in grid.tiers:
     if len(tier.intervals) > 0:
-      if maxTime <= tier.intervals[-1].minTime:
+      if max_time <= tier.intervals[-1].minTime:
         return False
   return True
 
 
-def set_maxTime(grid: TextGrid, maxTime: float) -> None:
+def set_maxTime(grid: TextGrid, max_time: float) -> None:
   assert check_is_valid_grid(grid)
-  assert can_set_maxTime(grid, maxTime)
-  assert maxTime > grid.minTime
-  assert maxTime > 0
-  if grid.maxTime == maxTime:
+  assert can_set_maxTime(grid, max_time)
+  assert max_time > grid.minTime
+  assert max_time > 0
+  if grid.maxTime == max_time:
     return
   for tier in grid.tiers:
     if len(tier.intervals) > 0:
-      tier.intervals[-1].maxTime = maxTime
-    tier.maxTime = maxTime
-  grid.maxTime = maxTime
+      tier.intervals[-1].maxTime = max_time
+    tier.maxTime = max_time
+  grid.maxTime = max_time
   assert check_is_valid_grid(grid)
 
 
-def set_minTime(grid: TextGrid, minTime: float) -> None:
+def set_minTime(grid: TextGrid, min_time: float) -> None:
   assert check_is_valid_grid(grid)
-  assert minTime >= 0
-  assert minTime < grid.maxTime
-  if grid.minTime == minTime:
+  assert min_time >= 0
+  assert min_time < grid.maxTime
+  if grid.minTime == min_time:
     return
   for tier in grid.tiers:
     if len(tier.intervals) > 0:
-      assert tier.intervals[0].maxTime < minTime
-      tier.intervals[0].minTime = minTime
-    tier.minTime = minTime
-  grid.minTime = minTime
+      assert tier.intervals[0].maxTime < min_time
+      tier.intervals[0].minTime = min_time
+    tier.minTime = min_time
+  grid.minTime = min_time
   assert check_is_valid_grid(grid)

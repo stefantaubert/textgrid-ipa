@@ -2,9 +2,11 @@ from typing import Optional
 
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import add_or_update_tier, get_first_tier
+from textgrid_tools.core.mfa.cloning import copy_tier
+from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
+                                            MultipleTiersWithThatNameError,
                                             NotExistingTierError,
                                             ValidationError)
 
@@ -26,11 +28,13 @@ class DifferentGridTimesError(ValidationError):
     return "Both grids need to have the same minTime and maxTime!"
 
 
-def copy_tier_to_grid(grid: TextGrid, reference_grid: TextGrid, reference_tier_name: str, custom_output_tier_name: Optional[str], overwrite_tier: bool) -> ExecutionResult:
-  if error := InvalidGridError.validate(grid):
-    return error, False
+def copy_tier_to_grid(reference_grid: TextGrid, reference_tier_name: str, grid: TextGrid, custom_output_tier_name: Optional[str]) -> ExecutionResult:
+  # TODO maybe support creation of new grid
 
   if error := InvalidGridError.validate(reference_grid):
+    return error, False
+
+  if error := InvalidGridError.validate(grid):
     return error, False
 
   if error := DifferentGridTimesError.validate(grid, reference_grid):
@@ -39,14 +43,22 @@ def copy_tier_to_grid(grid: TextGrid, reference_grid: TextGrid, reference_tier_n
   if error := NotExistingTierError.validate(grid, reference_tier_name):
     return error, False
 
+  if error := MultipleTiersWithThatNameError.validate(reference_grid, reference_tier_name):
+    return error, False
+
   output_tier_name = reference_tier_name
   if custom_output_tier_name is not None:
-    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
-      return error, False
     output_tier_name = custom_output_tier_name
 
-  reference_tier = get_first_tier(reference_grid, reference_tier_name)
+  if error := ExistingTierError.validate(grid, output_tier_name):
+    return error, False
 
-  reference_tier.name = output_tier_name
+  reference_tier = get_single_tier(reference_grid, reference_tier_name)
 
-  add_or_update_tier(grid, None, reference_tier, overwrite_tier)
+  tier = copy_tier(reference_tier, False)
+  tier.name = output_tier_name
+
+  grid.append(tier)
+  assert check_is_valid_grid(grid)
+  
+  return None, True
