@@ -226,9 +226,9 @@ def get_all_tiers(grid: TextGrid, tier_names: Set[str]) -> Generator[IntervalTie
       yield tier
 
 
-def get_first_tier(grid: TextGrid, tier_name: str) -> IntervalTier:
-  assert tier_exists(grid, tier_name)
-  return next(get_all_tiers(grid, {tier_name}))
+# def get_first_tier(grid: TextGrid, tier_name: str) -> IntervalTier:
+#   assert tier_exists(grid, tier_name)
+#   return next(get_all_tiers(grid, {tier_name}))
 
 
 def tier_exists(grid: TextGrid, tier: str) -> bool:
@@ -238,20 +238,20 @@ def tier_exists(grid: TextGrid, tier: str) -> bool:
   return False
 
 
-def add_or_update_tier(grid: TextGrid, tier: Optional[IntervalTier], output_tier: IntervalTier, overwrite_tier: bool) -> bool:
-  if overwrite_tier and tier is not None and tier.name == output_tier.name:
-    if not check_tiers_are_equal(tier, output_tier):
-      replace_tier(tier, output_tier)
-      return True
-  elif overwrite_tier and tier_exists(grid, output_tier.name):
-    existing_tier = get_first_tier(grid, output_tier.name)
-    if not check_tiers_are_equal(existing_tier, output_tier):
-      replace_tier(existing_tier, output_tier)
-      return True
-  else:
-    grid.append(output_tier)
-    return True
-  return False
+# def add_or_update_tier(grid: TextGrid, tier: Optional[IntervalTier], output_tier: IntervalTier, overwrite_tier: bool) -> bool:
+#   if overwrite_tier and tier is not None and tier.name == output_tier.name:
+#     if not check_tiers_are_equal(tier, output_tier):
+#       replace_tier(tier, output_tier)
+#       return True
+#   elif overwrite_tier and tier_exists(grid, output_tier.name):
+#     existing_tier = get_first_tier(grid, output_tier.name)
+#     if not check_tiers_are_equal(existing_tier, output_tier):
+#       replace_tier(existing_tier, output_tier)
+#       return True
+#   else:
+#     grid.append(output_tier)
+#     return True
+#   return False
 
 
 def replace_tier(tier: IntervalTier, new_tier: IntervalTier) -> None:

@@ -50,6 +50,7 @@ def transcribe_eng_text_to_arpa(grid: TextGrid, tier_names: Set[str], tiers_stri
   changed_anything = False
 
   for interval, interval_symbols in zip(intervals, intervals_symbols):
+    #if len(intervals_symbols) == 0: ...
     assert interval_symbols in intervals_symbols_arpa
     arpa_transcription = intervals_symbols_arpa[interval_symbols]
     mark = convert_symbols_to_symbols_string(arpa_transcription)

@@ -1,136 +1,277 @@
-from collections import OrderedDict
 from logging import getLogger
 from typing import Iterable, List, Set, Tuple, cast
 
 from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
-from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.parser import Pronunciation
+from sentence2pronunciation.lookup_cache import LookupCache
 from sentence2pronunciation.multiprocessing import prepare_cache_mp
-from text_utils import Language, text_to_symbols
 from text_utils.pronunciation.main import get_eng_to_arpa_lookup_method
 from text_utils.string_format import StringFormat
 from text_utils.symbol_format import SymbolFormat
-from text_utils.text import text_to_sentences
-from text_utils.types import Symbol
-from text_utils.utils import symbols_ignore
+from text_utils.types import Symbol, Symbols
+from text_utils.utils import symbols_ignore, symbols_split
 from textgrid import TextGrid
-from textgrid_tools.core.intervals.joining.common import merge_intervals
+from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.mfa.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier, tier_exists)
+from textgrid_tools.core.mfa.helper import (get_all_tiers,
+                                            get_mark_symbols_intervals)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
+                                            NotExistingTierError,
+                                            NotMatchingIntervalFormatError,
+                                            ValidationError)
 from tqdm import tqdm
 
 
-def can_get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool) -> bool:
-  logger = getLogger(__name__)
-  if len(grids) == 0:
-    logger.error("No grids found!")
-    return False
+class PunctuationFormatNotSupportedError(ValidationError):
+  @classmethod
+  def validate(cls, include_punctuation_in_words: bool, include_punctuation_in_pronunciations: bool):
+    if not include_punctuation_in_words and include_punctuation_in_pronunciations:
+      return cls()
+    return None
 
+  @property
+  def default_message(self) -> str:
+    return "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too."
+
+
+class IntervalFormatNotSupportedError(ValidationError):
+  def __init__(self, interval_format: SymbolFormat) -> None:
+    super().__init__()
+    self.interval_format = interval_format
+
+  @classmethod
+  def validate(cls, interval_format: IntervalFormat):
+    if interval_format not in (IntervalFormat.WORD, IntervalFormat.WORDS):
+      return cls(interval_format)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"{self.interval_format} is not supported!"
+
+
+def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunk_size: int) -> PronunciationDict:
+  assert len(grids) > 0
+  assert len(tier_names) > 0
+
+  if error := IntervalFormatNotSupportedError.validate(tiers_interval_format):
+    return error, False
+
+  if error := PunctuationFormatNotSupportedError.validate(include_punctuation_in_words, include_punctuation_in_pronunciations):
+    return error, False
+
+  all_tiers: List[IntervalTier] = []
   for grid in grids:
-    if not check_is_valid_grid(grid):
-      logger.error("Grid is invalid!")
-      return False
+    if error := InvalidGridError.validate(grid):
+      return error, False
 
-    if not tier_exists(grid, tier):
-      logger.info("Tier does not exist.")
-      return False
+    for tier_name in tier_names:
+      if error := NotExistingTierError.validate(grid, tier_name):
+        return error, False
 
-  if not include_punctuation_in_words:
-    if include_punctuation_in_pronunciations:
-      logger.info(
-        "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too.")
-      return False
-  return True
+    tiers = list(get_all_tiers(grid, tier_names))
 
+    for tier in tiers:
+      if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
+        return error, False
 
-def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, punctuation: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool) -> PronunciationDict:
-  assert can_get_arpa_pronunciation_dicts_from_texts(
-    grids, tier, include_punctuation_in_pronunciations, include_punctuation_in_words)
+      if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+        return error, False
+    all_tiers.extend(tiers)
+
   logger = getLogger(__name__)
-  logger.info(f"Chosen dictionary type: {dict_type}")
-  assert include_punctuation_in_words or not include_punctuation_in_pronunciations
+  # logger.debug(f"Chosen dictionary type: {dict_type}")
 
-  logger.info("Getting all sentences...")
-  texts = []
-  for grid in grids:
-    target_tier = get_first_tier(grid, tier)
-    # TODO
-    text = merge_intervals(target_tier, StringFormat.TEXT, IntervalFormat.WORDS)
-    texts.append(text)
+  words = get_word_symbols_from_tiers(all_tiers, tiers_string_format)
+  logger.debug(f"Retrieved {len(words)} unique words.")
 
-  text_sentences = {
-    text_to_symbols(
-      lang=Language.ENG,
-      text=sentence,
-      text_format=SymbolFormat.GRAPHEMES,
-    )
-    for text in tqdm(texts)
-    for sentence in text_to_sentences(
-      text=text,
-      text_format=SymbolFormat.GRAPHEMES,
-      lang=Language.ENG
-    )
-  }
-
-  logger.info(f"Done. Retrieved {len(text_sentences)} unique sentences.")
-
-  logger.info("Converting all words to ARPA...")
+  logger.debug("Converting all words to ARPA...")
   cache = prepare_cache_mp(
-    sentences=text_sentences,
+    sentences=words,
     annotation_split_symbol="/",
-    chunksize=500,
+    chunksize=chunk_size,
     consider_annotation=consider_annotations,
     get_pronunciation=get_eng_to_arpa_lookup_method(),
-    ignore_case=ignore_case,
+    ignore_case=True,
     n_jobs=n_jobs,
     split_on_hyphen=split_on_hyphen,
     trim_symbols=punctuation,
     maxtasksperchild=None,
   )
-  logger.info("Done.")
+  logger.debug("Done.")
 
-  logger.info("Creating pronunciation dictionary...")
-  result: PronunciationDict = OrderedDict()
+  logger.debug("Creating pronunciation dictionary...")
+  result = get_pronunciation_dictionary(
+    cache, include_punctuation_in_pronunciations, include_punctuation_in_words, punctuation)
 
-  allowed_symbols = ALLOWED_MFA_MODEL_SYMBOLS
-  for unique_word, arpa_symbols in cast(Iterable[Tuple[Pronunciation, Pronunciation]], tqdm(sorted(cache.items()))):
-    assert len(unique_word) > 0
-    assert len(arpa_symbols) > 0
+  check_pronunciation_dictionary_for_silence(result)
+  check_pronunciation_dictionary_for_invalid_mfa_symbols(result)
+
+  return (None, False), result
+
+
+def check_pronunciation_dictionary_for_silence(result: PronunciationDict) -> None:
+  logger = getLogger(__name__)
+  for word, pronunciations in result.items():
+    pronunciation = pronunciations[0]
+    if pronunciation == (SIL,):
+      logger.info(
+        f"The ARPA of the word {word} contained only punctuation, therefore \"{SIL}\" was annotated.")
+
+
+def check_pronunciation_dictionary_for_invalid_mfa_symbols(result: PronunciationDict) -> None:
+  logger = getLogger(__name__)
+  for word, pronunciations in result.items():
+    pronunciation = pronunciations[0]
+    not_allowed_symbols = {
+      symbol
+      for symbol in pronunciation
+      if symbol not in ALLOWED_MFA_MODEL_SYMBOLS
+    }
+
+    if len(not_allowed_symbols) > 0:
+      logger.warning(
+        "Not all symbols can be aligned! You have missed some trim-symbols or annotated non-existent ARPA symbols!")
+      logger.info(
+        f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({word} -> {''.join(pronunciation)})")
+
+
+def get_pronunciation_dictionary(cache: LookupCache, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, punctuation: Set[Symbol]):
+  result = PronunciationDict()
+
+  for word_symbols, word_arpa_symbols in cast(Iterable[Tuple[Pronunciation, Pronunciation]], tqdm(sorted(cache.items()))):
+    if len(word_symbols) == 0:
+      continue
+    assert len(word_arpa_symbols) > 0
 
     if include_punctuation_in_words:
-      word_str = "".join(unique_word)
+      word_str = "".join(word_symbols)
+      assert word_str not in result
     else:
-      unique_word_no_punctuation = symbols_ignore(unique_word, punctuation)
+      unique_word_no_punctuation = symbols_ignore(word_symbols, punctuation)
       word_str = "".join(unique_word_no_punctuation)
       if word_str in result:
         continue
 
     # maybe ignore spn here
     if include_punctuation_in_pronunciations:
-      final_word_symbols = arpa_symbols
+      final_word_symbols = word_arpa_symbols
     else:
-      arpa_symbols_no_punctuation = symbols_ignore(arpa_symbols, punctuation)
-      not_allowed_symbols = {
-        symbol for symbol in arpa_symbols_no_punctuation if symbol not in allowed_symbols}
-      if len(not_allowed_symbols) > 0:
-        logger.warning(
-          "Not all symbols can be aligned! You have missed some trim-symbols or annotated non-existent ARPA symbols!")
-        logger.info(
-          f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({''.join(unique_word)} -> {''.join(arpa_symbols)})")
+      final_word_symbols = symbols_ignore(word_arpa_symbols, punctuation)
 
-      arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
+      arpa_contains_only_punctuation = len(final_word_symbols) == 0
       if arpa_contains_only_punctuation:
-        arpa_symbols_no_punctuation = (SIL,)
-        logger.info(
-          f"The ARPA of the word {''.join(unique_word)} contained only punctuation, therefore \"{SIL}\" was annotated.")
-      final_word_symbols = arpa_symbols_no_punctuation
+        final_word_symbols = (SIL,)
 
-    assert word_str not in result
     result[word_str] = OrderedSet([final_word_symbols])
-
-  logger.info("Done.")
-
   return result
+
+
+def get_word_symbols_from_tiers(tiers: Iterable[IntervalTier], tiers_string_format: StringFormat) -> Set[Symbols]:
+  all_intervals = (
+    interval
+    for tier in tiers
+    for interval in cast(
+        Iterable[Interval], tier.intervals)
+  )
+
+  words = {
+    word
+    for interval_symbols in get_mark_symbols_intervals(all_intervals, tiers_string_format)
+    for word in symbols_split(interval_symbols, " ")
+  }
+
+  return words
+
+
+# def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, punctuation: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool) -> PronunciationDict:
+#   assert can_get_arpa_pronunciation_dicts_from_texts(
+#     grids, tier, include_punctuation_in_pronunciations, include_punctuation_in_words)
+#   logger = getLogger(__name__)
+#   logger.info(f"Chosen dictionary type: {dict_type}")
+#   assert include_punctuation_in_words or not include_punctuation_in_pronunciations
+
+#   logger.info("Getting all sentences...")
+#   texts = []
+#   for grid in grids:
+#     target_tier = get_first_tier(grid, tier)
+#     # TODO
+#     text = merge_intervals(target_tier, StringFormat.TEXT, IntervalFormat.WORDS)
+#     texts.append(text)
+
+#   text_sentences = {
+#     text_to_symbols(
+#       lang=Language.ENG,
+#       text=sentence,
+#       text_format=SymbolFormat.GRAPHEMES,
+#     )
+#     for text in tqdm(texts)
+#     for sentence in text_to_sentences(
+#       text=text,
+#       text_format=SymbolFormat.GRAPHEMES,
+#       lang=Language.ENG
+#     )
+#   }
+
+#   logger.info(f"Done. Retrieved {len(text_sentences)} unique sentences.")
+
+#   logger.info("Converting all words to ARPA...")
+#   cache = prepare_cache_mp(
+#     sentences=text_sentences,
+#     annotation_split_symbol="/",
+#     chunksize=500,
+#     consider_annotation=consider_annotations,
+#     get_pronunciation=get_eng_to_arpa_lookup_method(),
+#     ignore_case=ignore_case,
+#     n_jobs=n_jobs,
+#     split_on_hyphen=split_on_hyphen,
+#     trim_symbols=punctuation,
+#     maxtasksperchild=None,
+#   )
+#   logger.info("Done.")
+
+#   logger.info("Creating pronunciation dictionary...")
+#   result: PronunciationDict = OrderedDict()
+
+#   allowed_symbols = ALLOWED_MFA_MODEL_SYMBOLS
+#   for unique_word, arpa_symbols in cast(Iterable[Tuple[Pronunciation, Pronunciation]], tqdm(sorted(cache.items()))):
+#     assert len(unique_word) > 0
+#     assert len(arpa_symbols) > 0
+
+#     if include_punctuation_in_words:
+#       word_str = "".join(unique_word)
+#     else:
+#       unique_word_no_punctuation = symbols_ignore(unique_word, punctuation)
+#       word_str = "".join(unique_word_no_punctuation)
+#       if word_str in result:
+#         continue
+
+#     # maybe ignore spn here
+#     if include_punctuation_in_pronunciations:
+#       final_word_symbols = arpa_symbols
+#     else:
+#       arpa_symbols_no_punctuation = symbols_ignore(arpa_symbols, punctuation)
+#       not_allowed_symbols = {
+#         symbol for symbol in arpa_symbols_no_punctuation if symbol not in allowed_symbols}
+#       if len(not_allowed_symbols) > 0:
+#         logger.warning(
+#           "Not all symbols can be aligned! You have missed some trim-symbols or annotated non-existent ARPA symbols!")
+#         logger.info(
+#           f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({''.join(unique_word)} -> {''.join(arpa_symbols)})")
+
+#       arpa_contains_only_punctuation = len(arpa_symbols_no_punctuation) == 0
+#       if arpa_contains_only_punctuation:
+#         arpa_symbols_no_punctuation = (SIL,)
+#         logger.info(
+#           f"The ARPA of the word {''.join(unique_word)} contained only punctuation, therefore \"{SIL}\" was annotated.")
+#       final_word_symbols = arpa_symbols_no_punctuation
+
+#     assert word_str not in result
+#     result[word_str] = OrderedSet([final_word_symbols])
+
+#   logger.info("Done.")
+
+#   return result
