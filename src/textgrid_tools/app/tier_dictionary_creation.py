@@ -11,7 +11,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_overwrite_argument, get_grid_files,
                                        load_grid)
-from textgrid_tools.core.mfa.tiers_dictionary_creation import (
+from textgrid_tools.core.tiers_dictionary_creation import (
     can_get_arpa_pronunciation_dicts_from_texts,
     get_arpa_pronunciation_dicts_from_texts)
 from tqdm import tqdm

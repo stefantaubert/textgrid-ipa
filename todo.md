@@ -5,9 +5,9 @@ Maybe refactor commands like so:
 ```txt
 textgrid-tools grids {create-dictionary}
 textgrid-tools grid {create,synchronize-to-audio,split,print-stats}
-textgrid-tools tiers {remove,normalize,remove-symbols,fix-boundaries,switch-string-format}
-textgrid-tools tier {clone,move,copy,rename,transcribe-words-to-arpa,map,transcribe-arpa-to-ipa}
-textgrid-tools intervals {join-between-pause,join-by-boundary,join-by-duration,join-by-sentence,split}
+textgrid-tools tiers {remove,remove-symbols,normalize,switch-string-format,transcribe-words-to-arpa,transcribe-arpa-to-ipa}
+textgrid-tools tier {clone,move,copy,rename,map,export-to-txt}
+textgrid-tools intervals {join-between-pause,join-by-boundary,join-by-duration,join-by-sentence,split,remove,fix-boundaries}
 ```
 
 - provide windows and mac version

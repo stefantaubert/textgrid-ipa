@@ -5,14 +5,14 @@ import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.grid_audio_synchronization import (
+from textgrid_tools.core.grid.audio_synchronization import (
     LastIntervalToShortError, set_end_to_audio_len)
-from textgrid_tools.core.mfa.helper import (
+from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     find_intervals_with_mark, get_boundary_timepoints_from_intervals,
     get_boundary_timepoints_from_tier, get_intervals_on_tier, get_single_tier,
     set_precision_interval)
-from textgrid_tools.core.mfa.interval_boundary_adjustment import fix_timepoint
+from textgrid_tools.core.intervals.boundary_adjustment import fix_timepoint
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             BoundaryError, InvalidGridError,
                                             MultipleTiersWithThatNameError,

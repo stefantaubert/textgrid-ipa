@@ -5,9 +5,9 @@ from text_utils.types import Symbol
 from text_utils.utils import symbols_ignore
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import (get_all_tiers, get_mark,
-                                            get_mark_symbols, get_single_tier,
-                                            interval_is_None_or_whitespace)
+from textgrid_tools.core.helper import (get_all_tiers, get_mark,
+                                        get_mark_symbols, get_single_tier,
+                                        interval_is_None_or_whitespace)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             MultipleTiersWithThatNameError,
@@ -38,7 +38,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier_to_other_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, target_tier_names: Set[str], targets_string_format: StringFormat, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[Symbol]) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, target_tier_names: Set[str], targets_string_format: StringFormat, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[Symbol]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """

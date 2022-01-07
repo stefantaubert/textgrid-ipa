@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.mfa.tier_words_to_arpa_transcription import (
+from textgrid_tools.core.tier_words_to_arpa_transcription import (
     can_transcribe_words_to_arpa_on_phoneme_level,
     transcribe_words_to_arpa_on_phoneme_level)
 from tqdm import tqdm

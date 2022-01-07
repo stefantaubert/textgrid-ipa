@@ -1,7 +1,7 @@
 from math import inf
 
 from textgrid import Interval
-from textgrid_tools.core.intervals.joining.pause_joining import chunk_intervals
+from textgrid_tools.core.intervals.pause_joining import chunk_intervals
 from textgrid_tools_tests.helper import assert_intervals_are_equal
 
 

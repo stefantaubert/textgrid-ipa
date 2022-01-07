@@ -8,7 +8,7 @@ from scipy.io.wavfile import read
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (get_audio_files, get_grid_files,
                                        load_grid, save_audio, save_grid)
-from textgrid_tools.core.mfa.grid_splitting import split_grid
+from textgrid_tools.core.grid_splitting import split_grid
 from tqdm import tqdm
 
 

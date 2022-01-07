@@ -1,6 +1,6 @@
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_single_tier
+from textgrid_tools.core.helper import get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
                                             InvalidTierNameError,

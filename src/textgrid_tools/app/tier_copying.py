@@ -7,7 +7,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.mfa.tier_copying import can_copy, copy_tier_to_grid
+from textgrid_tools.core.tier_copying import can_copy, copy_tier_to_grid
 from tqdm import tqdm
 
 

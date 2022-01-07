@@ -1,5 +1,5 @@
 from textgrid import Interval
-from textgrid_tools.core.intervals.joining.pause_joining import \
+from textgrid_tools.core.intervals.pause_joining import \
     group_adjacent_pauses
 from textgrid_tools_tests.helper import (assert_interval_is_equal,
                                          assert_intervals_are_equal)

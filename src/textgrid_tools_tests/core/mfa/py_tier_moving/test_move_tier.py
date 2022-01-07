@@ -1,5 +1,5 @@
 from textgrid.textgrid import IntervalTier, TextGrid
-from textgrid_tools.core.mfa.tier_moving import move_tier
+from textgrid_tools.core.tier_moving import move_tier
 
 
 def test_empty__is_not_moved():

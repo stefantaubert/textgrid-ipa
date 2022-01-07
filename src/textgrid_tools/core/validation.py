@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Set, cast
+from typing import Iterable, Optional
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -6,11 +6,11 @@ from ordered_set import OrderedSet
 from text_utils.string_format import (StringFormat,
                                       can_convert_symbols_string_to_symbols)
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.mfa.helper import (
+from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_count_of_tiers, get_interval_readable, get_mark, get_mark_symbols,
     get_tier_readable, tier_exists)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.interval_format import IntervalFormat
 
 
 class ValidationError():

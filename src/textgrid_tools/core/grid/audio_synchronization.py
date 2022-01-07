@@ -4,7 +4,7 @@ import numpy as np
 from audio_utils.audio import samples_to_s
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import check_is_valid_grid
+from textgrid_tools.core.helper import check_is_valid_grid
 from textgrid_tools.core.validation import InvalidGridError, ValidationError
 
 

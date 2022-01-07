@@ -8,7 +8,7 @@ from text_utils.symbol_format import SymbolFormat
 from text_utils.text import text_normalize
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
+from textgrid_tools.core.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError)

@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_grid_files, load_grid, save_audio,
                                        save_grid)
-from textgrid_tools.core.mfa.grid_interval_removal import (
+from textgrid_tools.core.grid_interval_removal import (
     can_remove_intervals, remove_intervals)
 from tqdm import tqdm
 

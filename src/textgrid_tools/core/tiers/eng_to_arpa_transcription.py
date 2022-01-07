@@ -8,8 +8,8 @@ from text_utils.string_format import (StringFormat,
                                       convert_symbols_to_symbols_string)
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import (get_all_intervals,
-                                            get_mark_symbols_intervals)
+from textgrid_tools.core.helper import (get_all_intervals,
+                                        get_mark_symbols_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError)

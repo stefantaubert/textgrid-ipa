@@ -6,7 +6,7 @@ from audio_utils.audio import samples_to_s
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import can_parse_float, check_is_valid_grid
+from textgrid_tools.core.helper import can_parse_float, check_is_valid_grid
 from textgrid_tools.core.validation import (InvalidStringFormatIntervalError,
                                             InvalidTierNameError,
                                             ValidationError)
@@ -144,7 +144,7 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def convert_text_to_grid(text: str, text_string_format: StringFormat, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
   if audio is not None:
     assert sample_rate is not None

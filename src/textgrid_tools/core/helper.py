@@ -4,7 +4,6 @@ from ordered_set import OrderedSet
 from text_utils import StringFormat, symbols_ignore
 from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.comparison import check_tiers_are_equal
 
 
 def get_intervals_duration(intervals: Iterable[Interval]) -> float:

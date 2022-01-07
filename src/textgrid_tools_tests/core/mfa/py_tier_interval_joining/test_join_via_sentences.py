@@ -1,9 +1,9 @@
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.interval_format import IntervalFormat
 from text_utils import StringFormat
-from textgrid_tools.core.mfa.tier_interval_joining import join_via_sentences
+from textgrid_tools.core.tier_interval_joining import join_via_sentences
 
 
 def test_a():

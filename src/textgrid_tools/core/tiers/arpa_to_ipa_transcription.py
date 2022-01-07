@@ -6,7 +6,7 @@ from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
+from textgrid_tools.core.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError)
@@ -14,7 +14,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
 
 def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol]) -> ExecutionResult:
   assert len(tier_names) > 0
-  
+
   if error := InvalidGridError.validate(grid):
     return error, False
 

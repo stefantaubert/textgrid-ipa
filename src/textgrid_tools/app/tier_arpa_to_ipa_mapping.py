@@ -5,7 +5,7 @@ from typing import Iterable, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
-from textgrid_tools.core.mfa.tier_arpa_to_ipa_mapping import (
+from textgrid_tools.core.tier_arpa_to_ipa_mapping import (
     can_map_arpa_to_ipa, map_arpa_to_ipa)
 from tqdm import tqdm
 

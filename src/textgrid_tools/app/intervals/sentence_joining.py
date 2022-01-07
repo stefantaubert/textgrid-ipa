@@ -8,9 +8,9 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_overwrite_tier_argument,
                                        get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.intervals.joining.sentence_joining import (
+from textgrid_tools.core.intervals.sentence_joining import (
     can_join_intervals, join_intervals)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.interval_format import IntervalFormat
 from tqdm import tqdm
 
 

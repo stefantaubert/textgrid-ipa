@@ -3,7 +3,7 @@ from typing import Set
 from text_utils.string_format import StringFormat, get_other_format
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
+from textgrid_tools.core.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError)

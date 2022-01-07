@@ -5,12 +5,12 @@ from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.joining.common import (merge_intervals,
-                                                          replace_intervals)
-from textgrid_tools.core.mfa.helper import (get_all_tiers,
-                                            get_interval_readable,
-                                            interval_is_None_or_whitespace)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.intervals.common import (merge_intervals,
+                                                  replace_intervals)
+from textgrid_tools.core.helper import (get_all_tiers,
+                                        get_interval_readable,
+                                        interval_is_None_or_whitespace)
+from textgrid_tools.core.interval_format import IntervalFormat
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,

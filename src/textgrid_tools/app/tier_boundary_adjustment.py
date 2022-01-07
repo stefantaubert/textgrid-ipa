@@ -5,7 +5,7 @@ from typing import Iterable, List, Optional, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
-from textgrid_tools.core.mfa.interval_boundary_adjustment import (
+from textgrid_tools.core.interval_boundary_adjustment import (
     can_fix_interval_boundaries_grid, fix_interval_boundaries_grid)
 from tqdm import tqdm
 

@@ -8,16 +8,15 @@ from sentence2pronunciation.lookup_cache import LookupCache
 from sentence2pronunciation.multiprocessing import prepare_cache_mp
 from text_utils.pronunciation.main import get_eng_to_arpa_lookup_method
 from text_utils.string_format import StringFormat
-from text_utils.symbol_format import SymbolFormat
 from text_utils.types import Symbol, Symbols
 from text_utils.utils import symbols_ignore, symbols_split
 from textgrid import TextGrid
 from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
-from textgrid_tools.core.mfa.helper import (get_all_tiers,
-                                            get_mark_symbols_intervals)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.grids.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
+from textgrid_tools.core.helper import (get_all_tiers,
+                                        get_mark_symbols_intervals)
+from textgrid_tools.core.interval_format import IntervalFormat
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,

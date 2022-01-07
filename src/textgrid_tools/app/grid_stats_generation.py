@@ -5,7 +5,7 @@ from typing import Iterable, List, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid
-from textgrid_tools.core.mfa.grid_stats_generation import print_stats
+from textgrid_tools.core.grid_stats_generation import print_stats
 from tqdm import tqdm
 
 

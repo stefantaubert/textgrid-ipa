@@ -7,8 +7,8 @@ from text_utils.language import Language
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_grid_files,
                                        load_grid, save_grid)
-from textgrid_tools.core.mfa.tier_normalization import (can_normalize_tiers,
-                                                        normalize_tiers)
+from textgrid_tools.core.tier_normalization import (can_normalize_tiers,
+                                                    normalize_tiers)
 from tqdm import tqdm
 
 

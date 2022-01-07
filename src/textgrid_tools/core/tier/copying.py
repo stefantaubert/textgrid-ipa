@@ -2,8 +2,8 @@ from typing import Optional
 
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.cloning import copy_tier
-from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_single_tier
+from textgrid_tools.core.cloning import copy_tier
+from textgrid_tools.core.helper import check_is_valid_grid, get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
                                             InvalidTierNameError,

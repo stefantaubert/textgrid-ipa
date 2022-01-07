@@ -6,7 +6,7 @@ from text_utils.types import Symbol
 from text_utils.utils import symbols_ignore
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
+from textgrid_tools.core.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError)

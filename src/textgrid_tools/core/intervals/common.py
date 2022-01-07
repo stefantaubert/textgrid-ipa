@@ -3,9 +3,9 @@ from typing import Collection, List, Optional, Set
 from text_utils import StringFormat
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_tools.core.mfa.helper import get_mark_symbols_intervals
-from textgrid_tools.core.mfa.interval_format import (IntervalFormat,
-                                                     merge_interval_symbols)
+from textgrid_tools.core.helper import get_mark_symbols_intervals
+from textgrid_tools.core.interval_format import (IntervalFormat,
+                                                 merge_interval_symbols)
 
 
 def merge_intervals(intervals: Collection[Interval], intervals_string_format: StringFormat, intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]] = None, ignore_join_symbols: Optional[Set[Symbol]] = None) -> Interval:

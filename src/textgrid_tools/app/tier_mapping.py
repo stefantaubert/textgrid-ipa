@@ -10,8 +10,8 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_tier_argument, copy_grid,
                                        get_grid_files, load_grid, save_grid)
 from textgrid_tools.app.validation import validation_directory_exists_fails
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.mfa.tier_mapping import map_tier_to_other_tier
+from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools.core.tier_mapping import map_tier_to_other_tier
 from tqdm import tqdm
 
 

@@ -6,7 +6,7 @@ from typing import Iterable, List, cast
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_grid_files,
                                        load_grid, save_grid)
-from textgrid_tools.core.mfa.tier_removal import can_remove_tiers, remove_tiers
+from textgrid_tools.core.tier_removal import can_remove_tiers, remove_tiers
 from tqdm import tqdm
 
 

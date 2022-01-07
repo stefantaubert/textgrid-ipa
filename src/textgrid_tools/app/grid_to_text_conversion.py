@@ -8,9 +8,9 @@ from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, get_grid_files,
                                        load_grid)
-from textgrid_tools.core.mfa.grid_to_text_conversion import (
+from textgrid_tools.core.grid_to_text_conversion import (
     can_convert_tier_to_text, convert_tier_to_text)
-from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.interval_format import IntervalFormat
 from tqdm import tqdm
 
 

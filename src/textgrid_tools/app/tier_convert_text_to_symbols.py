@@ -5,7 +5,7 @@ from typing import Iterable, cast
 
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import get_grid_files, load_grid, save_grid
-from textgrid_tools.core.mfa.tier_convert_text_to_symbols import (
+from textgrid_tools.core.tier_convert_text_to_symbols import (
     can_convert_text_to_symbols, switch_string_format)
 from tqdm import tqdm
 

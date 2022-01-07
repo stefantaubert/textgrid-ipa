@@ -5,7 +5,7 @@ from text_utils.pronunciation.ipa2symb import merge_left, merge_right
 from text_utils.string_format import convert_symbols_string_to_symbols
 from text_utils.types import Symbol, Symbols
 from text_utils.utils import symbols_join, symbols_split_iterable
-from textgrid_tools.core.mfa.helper import symbols_are_empty_or_whitespace
+from textgrid_tools.core.helper import symbols_are_empty_or_whitespace
 
 
 class IntervalFormat(IntEnum):
