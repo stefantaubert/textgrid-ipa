@@ -18,15 +18,18 @@ from tqdm import tqdm
 
 
 class ThresholdTooLowError(ValidationError):
+  def __init__(self, threshold: float) -> None:
+      super().__init__()
+      self.threshold = threshold
   @classmethod
   def validate(cls, threshold: float):
     if not threshold > 0:
-      return cls()
+      return cls(threshold)
     return None
 
   @property
   def default_message(self) -> str:
-    return "Threshold needs to be > 0!"
+    return f"Threshold needs to be greater than zero but was \"{self.threshold}\"!"
 
 
 def fix_interval_boundaries_grid(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float) -> ExecutionResult:

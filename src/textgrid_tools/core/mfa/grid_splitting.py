@@ -17,19 +17,19 @@ from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
 from tqdm import tqdm
 
 
-def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: str, split_markers: Set[str], n_digits: int) -> Tuple[ExecutionResult, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
+def split_grid(grid: TextGrid, audio: np.ndarray, sample_rate: int, tier_name: str, split_markers: Set[str], n_digits: int) -> Tuple[ExecutionResult, Optional[List[Tuple[TextGrid, np.ndarray]]]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
-  if error := NotExistingTierError.validate(grid, reference_tier_name):
+  if error := NotExistingTierError.validate(grid, tier_name):
     return (error, False), None
 
-  if error := AudioAndGridLengthMismatchError.validate(grid, audio, sr):
+  if error := AudioAndGridLengthMismatchError.validate(grid, audio, sample_rate):
     return (error, False), None
 
   logger = getLogger(__name__)
 
-  ref_tier = get_first_tier(grid, reference_tier_name)
+  ref_tier = get_first_tier(grid, tier_name)
 
   split_intervals = list(find_intervals_with_mark(ref_tier, split_markers, include_empty=False))
   if len(split_intervals) == 0:
@@ -87,18 +87,18 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sr: int, reference_tier_name: 
     if len(range_grid.tiers) > 0:
       range_grid.maxTime = range_grid.tiers[0].maxTime
 
-    start = s_to_samples(minTime, sr)
-    end = s_to_samples(maxTime, sr)
+    start = s_to_samples(minTime, sample_rate)
+    end = s_to_samples(maxTime, sample_rate)
     assert end <= audio.shape[0]
     audio_part = range(start, end)
     grid_audio = audio[audio_part]
 
     # after multiple removals in audio some difference occurs
-    if error := LastIntervalToShortError.validate(range_grid, grid_audio, sr, n_digits):
+    if error := LastIntervalToShortError.validate(range_grid, grid_audio, sample_rate, n_digits):
       raise Exception()
       # return error, False
 
-    set_end_to_audio_len(range_grid, grid_audio, sr, n_digits)
+    set_end_to_audio_len(range_grid, grid_audio, sample_rate, n_digits)
 
     result.append((range_grid, grid_audio))
   durations = list(res_grid.maxTime for res_grid, _ in result)

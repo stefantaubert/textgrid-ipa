@@ -64,10 +64,10 @@ def do_interval_boundaries_match_those_from_tier(tier: IntervalTier) -> bool:
   return True
 
 
-def check_minTime_and_maxTime_are_valid(minTime: float, maxTime: float) -> bool:
-  if not (minTime < maxTime):
+def check_minTime_and_maxTime_are_valid(min_time: float, max_time: float) -> bool:
+  if not (min_time < max_time):
     return False
-  if minTime < 0 or maxTime <= 0:
+  if min_time < 0 or max_time <= 0:
     return False
   return True
 
@@ -174,13 +174,13 @@ def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interv
   return result
 
 
-def get_intervals_part_of_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Generator[Interval, None, None]:
+def get_intervals_part_of_timespan(tier: IntervalTier, min_time: float, max_time: float) -> Generator[Interval, None, None]:
   # intervals where interval.maxTime = minTime were not considered
   # intervals where interval.minTime = maxTime were not considered
   for interval in cast(Iterable[Interval], tier.intervals):
-    minTime_lies_in_span = minTime <= interval.minTime and interval.minTime < maxTime
-    maxTime_lies_in_span = minTime < interval.maxTime and interval.maxTime <= maxTime
-    if minTime_lies_in_span or maxTime_lies_in_span:
+    min_time_lies_in_span = min_time <= interval.minTime and interval.minTime < max_time
+    max_time_lies_in_span = min_time < interval.maxTime and interval.maxTime <= max_time
+    if min_time_lies_in_span or max_time_lies_in_span:
       yield interval
 
 

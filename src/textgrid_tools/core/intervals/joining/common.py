@@ -1,8 +1,8 @@
-from typing import Collection, Optional, Set
+from typing import Collection, List, Optional, Set
 
 from text_utils import StringFormat
 from text_utils.types import Symbol
-from textgrid.textgrid import Interval
+from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.mfa.helper import get_mark_symbols_intervals
 from textgrid_tools.core.mfa.interval_format import (IntervalFormat,
                                                      merge_interval_symbols)
@@ -29,3 +29,16 @@ def merge_intervals(intervals: Collection[Interval], intervals_string_format: St
     return interval
 
   raise NotImplementedError()
+
+
+def replace_intervals(tier: IntervalTier, intervals: List[Interval], replace_with: List[Interval]) -> None:
+  assert len(intervals) > 0
+  assert len(replace_with) > 0
+  assert intervals[0].minTime == replace_with[0].minTime
+  assert intervals[-1].maxTime == replace_with[-1].maxTime
+  from_index = tier.intervals.index(intervals[0])
+  for interval in intervals:
+    tier.intervals.remove(interval)
+
+  for interval in reversed(replace_with):
+    tier.intervals.insert(from_index, interval)

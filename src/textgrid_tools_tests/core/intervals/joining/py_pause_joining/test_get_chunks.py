@@ -21,7 +21,7 @@ def test_component__min_pause_0__merges_no_pause_intervals():
     Interval(6, 7, ""),
   )
 
-  result = list(chunk_intervals(intervals, min_pause_s=0))
+  result = list(chunk_intervals(intervals, pause=0))
 
   assert len(result) == 6
   assert_intervals_are_equal(result[0], [
@@ -56,7 +56,7 @@ def test_component__min_pause_1_1__merges_pause_intervals_smaller_than_1_1():
     Interval(6, 7, ""),
   )
 
-  result = list(chunk_intervals(intervals, min_pause_s=1.1))
+  result = list(chunk_intervals(intervals, pause=1.1))
 
   assert len(result) == 4
   assert_intervals_are_equal(result[0], [
@@ -87,7 +87,7 @@ def test_component__min_pause_inf__merges_all_pause_intervals():
     Interval(6, 7, ""),
   )
 
-  result = list(chunk_intervals(intervals, min_pause_s=inf))
+  result = list(chunk_intervals(intervals, pause=inf))
 
   assert len(result) == 1
   assert_intervals_are_equal(result[0], [

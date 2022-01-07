@@ -1,93 +1,78 @@
-from logging import getLogger
-from math import inf
-from typing import Generator, Iterable, List, Optional, Union
+from typing import Generator, Iterable, List, Set, Union
 
 from text_utils import StringFormat
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import Interval, TextGrid
+from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.joining.common import merge_intervals
-from textgrid_tools.core.mfa.helper import (add_or_update_tier,
-                                            check_is_valid_grid,
-                                            get_first_tier,
+from textgrid_tools.core.intervals.joining.common import (merge_intervals,
+                                                          replace_intervals)
+from textgrid_tools.core.mfa.helper import (get_all_tiers,
                                             get_intervals_duration,
-                                            interval_is_None_or_whitespace,
-                                            tier_exists)
+                                            interval_is_None_or_whitespace)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
-from textgrid_tools.core.validation import (ExistingTierError,
-                                            InvalidGridError,
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
                                             NotExistingTierError,
-                                            NotMatchingIntervalFormatError)
+                                            NotMatchingIntervalFormatError,
+                                            ValidationError)
 
 
-def can_join_intervals(grid: TextGrid, tier_name: str, join_pauses_under_duration: float, output_tier_name: Optional[str], overwrite_tier: bool) -> None:
-  logger = getLogger(__name__)
+class PauseTooLowError(ValidationError):
+  def __init__(self, pause: float) -> None:
+    super().__init__()
+    self.pause = pause
 
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+  @classmethod
+  def validate(cls, pause: float):
+    if not pause >= 0:
+      return cls(pause)
+    return None
 
-  if not tier_exists(grid, tier_name):
-    logger.error(f"Tier \"{tier_name}\" not found!")
-    return False
-
-  if output_tier_name is None:
-    output_tier_name = tier_name
-
-  if not join_pauses_under_duration >= 0:
-    logger.error("Minimum pause needs to be >= 0!")
-    return False
-
-  if tier_exists(grid, output_tier_name) and not overwrite_tier:
-    logger.error(f"Tier \"{output_tier_name}\" already exists!")
-    return False
-
-  return True
+  @property
+  def default_message(self) -> str:
+    return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, join_pauses_under_duration: float = inf, custom_output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> ExecutionResult:
+def join_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float) -> ExecutionResult:
+  assert len(tier_names) > 0
+  
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  if error := NotExistingTierError.validate(grid, tier_name):
+  if error := PauseTooLowError.validate(pause):
     return error, False
 
-  output_tier_name = tier_name
-  if custom_output_tier_name is not None:
-    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
+  for tier_name in tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
-    output_tier_name = custom_output_tier_name
 
-  tier = get_first_tier(grid, tier_name)
+  tiers = list(get_all_tiers(grid, tier_names))
 
-  if error := NotMatchingIntervalFormatError.validate_tier(tier, tier_interval_format, tier_string_format):
-    return error, False
+  for tier in tiers:
+    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
+      return error, False
 
-  target_intervals = (
-    merge_intervals(chunk, tier_string_format, tier_interval_format)
-    for chunked_interval in chunk_intervals(tier.intervals, join_pauses_under_duration)
-    for chunk in chunked_interval
-  )
+    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+      return error, False
 
-  output_tier = IntervalTier(
-    name=output_tier_name,
-    minTime=tier.minTime,
-    maxTime=tier.maxTime,
-  )
-
-  output_tier.intervals.extend(target_intervals)
-
-  changed_anything = add_or_update_tier(grid, tier, output_tier, overwrite_tier)
+  changed_anything = False
+  for tier in tiers:
+    for chunk in chunk_intervals(tier.intervals, pause):
+      merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      if not check_intervals_are_equal(chunk, [merged_interval]):
+        replace_intervals(tier, chunk, [merged_interval])
+        changed_anything = True
 
   return None, changed_anything
 
 
-def chunk_intervals(intervals: Iterable[Interval], min_pause_s: float) -> Generator[List[Interval], None, None]:
+def chunk_intervals(intervals: Iterable[Interval], pause: float) -> Generator[List[Interval], None, None]:
   chunk = []
   intervals_with_grouped_pauses = group_adjacent_pauses(intervals)
   for interval_or_pause_group in intervals_with_grouped_pauses:
     is_pause = isinstance(interval_or_pause_group, list)
     if is_pause:
-      if get_intervals_duration(interval_or_pause_group) < min_pause_s:
+      if get_intervals_duration(interval_or_pause_group) <= pause:
         # extend because they should be merged
         chunk.extend(interval_or_pause_group)
       else:

@@ -6,6 +6,7 @@ from textgrid_tools.core.mfa.cloning import copy_tier
 from textgrid_tools.core.mfa.helper import check_is_valid_grid, get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
+                                            InvalidTierNameError,
                                             MultipleTiersWithThatNameError,
                                             NotExistingTierError,
                                             ValidationError)
@@ -53,6 +54,9 @@ def copy_tier_to_grid(reference_grid: TextGrid, reference_tier_name: str, grid: 
   if error := ExistingTierError.validate(grid, output_tier_name):
     return error, False
 
+  if error := InvalidTierNameError.validate(output_tier_name):
+    return error, False
+
   reference_tier = get_single_tier(reference_grid, reference_tier_name)
 
   tier = copy_tier(reference_tier, False)
@@ -60,5 +64,5 @@ def copy_tier_to_grid(reference_grid: TextGrid, reference_tier_name: str, grid: 
 
   grid.append(tier)
   assert check_is_valid_grid(grid)
-  
+
   return None, True

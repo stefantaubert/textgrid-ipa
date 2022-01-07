@@ -27,6 +27,7 @@ class AllTiersRemoveError(ValidationError):
 
 def remove_tiers(grid: TextGrid, tier_names: Set[str]) -> ExecutionResult:
   assert len(tier_names) > 0
+  
   if error := InvalidGridError.validate(grid):
     return error, False
 

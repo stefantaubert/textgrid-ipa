@@ -1,87 +1,68 @@
-from logging import getLogger
-from typing import Generator, Iterable, List, Optional, Set
+from typing import Generator, Iterable, List, Set
 
 from text_utils import StringFormat, symbols_endswith, symbols_strip
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.intervals.joining.common import merge_intervals
-from textgrid_tools.core.mfa.helper import (check_is_valid_grid,
-                                            get_first_tier,
-                                            interval_is_None_or_whitespace,
-                                            replace_tier,
-                                            tier_exists)
+from textgrid.textgrid import Interval, TextGrid
+from textgrid_tools.core.comparison import check_intervals_are_equal
+from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.core.intervals.joining.common import (merge_intervals,
+                                                          replace_intervals)
+from textgrid_tools.core.mfa.helper import (get_all_tiers, get_mark_symbols,
+                                            interval_is_None_or_whitespace)
 from textgrid_tools.core.mfa.interval_format import IntervalFormat
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
+                                            NotExistingTierError,
+                                            NotMatchingIntervalFormatError)
 
 
-def can_join_intervals(grid: TextGrid, tier_name: str, output_tier_name: Optional[str], overwrite_tier: bool) -> None:
-  logger = getLogger(__name__)
+def join_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> ExecutionResult:
+  assert len(tier_names) > 0
 
-  if not check_is_valid_grid(grid):
-    logger.error("Grid is invalid!")
-    return False
+  if error := InvalidGridError.validate(grid):
+    return error, False
 
-  if not tier_exists(grid, tier_name):
-    logger.error(f"Tier \"{tier_name}\" not found!")
-    return False
+  for tier_name in tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
+      return error, False
 
-  if output_tier_name is None:
-    output_tier_name = tier_name
+  tiers = list(get_all_tiers(grid, tier_names))
 
-  if tier_exists(grid, output_tier_name) and not overwrite_tier:
-    logger.error(f"Tier \"{output_tier_name}\" already exists!")
-    return False
+  for tier in tiers:
+    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
+      return error, False
 
-  return True
+    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+      return error, False
 
+  changed_anything = False
+  for tier in tiers:
+    for chunk in chunk_intervals(tier.intervals, tiers_string_format, strip_symbols, punctuation_symbols):
+      merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      if not check_intervals_are_equal(chunk, [merged_interval]):
+        replace_intervals(tier, chunk, [merged_interval])
+        changed_anything = True
 
-def join_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, strip_symbols: Set[str], punctuation_symbols: Set[str], output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> None:
-  assert can_join_intervals(grid, tier_name, output_tier_name, overwrite_tier)
-
-  if output_tier_name is None:
-    output_tier_name = tier_name
-
-  tier = get_first_tier(grid, tier_name)
-
-  new_tier = IntervalTier(
-    name=output_tier_name,
-    minTime=grid.minTime,
-    maxTime=grid.maxTime,
-  )
-
-  chunked_intervals = chunk_intervals(
-    tier.intervals, tier_string_format, strip_symbols, punctuation_symbols)
-
-  for chunk in chunked_intervals:
-    interval = merge_intervals(chunk, tier_string_format, tier_interval_format)
-    new_tier.addInterval(interval)
-
-  if overwrite_tier and tier.name == new_tier.name:
-    replace_tier(tier, new_tier)
-  elif overwrite_tier and tier_exists(grid, new_tier.name):
-    existing_tier = get_first_tier(grid, new_tier.name)
-    replace_tier(existing_tier, new_tier)
-  else:
-    grid.append(new_tier)
+  return None, changed_anything
 
 
 def chunk_intervals(intervals: Iterable[Interval], intervals_string_format: StringFormat, strip_symbols: Set[str], punctuation_symbols: Set[str]) -> Generator[List[Interval], None, None]:
-  current_sentence = []
+  chunk = []
   for interval in intervals:
     interval_is_pause_between_sentences = len(
-      current_sentence) == 0 and interval_is_None_or_whitespace(interval)
+      chunk) == 0 and interval_is_None_or_whitespace(interval)
 
     if interval_is_pause_between_sentences:
       yield [interval]
       continue
 
-    current_sentence.append(interval)
+    chunk.append(interval)
 
-    mark = interval.mark
-    if mark is None:
-      mark = ""
-
-    mark_symbols = intervals_string_format.convert_string_to_symbols(mark)
-    mark_symbols_stripped = symbols_strip(mark_symbols, strip=strip_symbols)
+    mark_symbols = get_mark_symbols(interval, intervals_string_format)
+    mark_symbols_stripped = symbols_strip(mark_symbols, strip_symbols)
     was_ending = symbols_endswith(mark_symbols_stripped, punctuation_symbols)
     if was_ending:
-      yield current_sentence
-      current_sentence = []
+      yield chunk
+      chunk = []
+
+  if len(chunk) > 0:
+    yield chunk

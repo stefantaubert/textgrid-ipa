@@ -1,16 +1,18 @@
-from typing import Generator, Optional, Set
+from typing import Generator, Iterable, Optional, Set, cast
 
 from pronunciation_dict_parser.parser import Symbol
 from text_utils import StringFormat
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import Interval, TextGrid
+from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.mfa.helper import (add_or_update_tier, get_first_tier,
+from textgrid_tools.core.intervals.joining.common import replace_intervals
+from textgrid_tools.core.mfa.helper import (get_all_tiers,
                                             interval_is_None_or_whitespace)
 from textgrid_tools.core.mfa.interval_format import (IntervalFormat,
                                                      has_lower_format,
                                                      split_interval_symbols)
-from textgrid_tools.core.validation import (ExistingTierError,
-                                            InvalidGridError,
+from textgrid_tools.core.validation import (InvalidGridError,
+                                            InvalidStringFormatIntervalError,
                                             NotExistingTierError,
                                             NotMatchingIntervalFormatError,
                                             ValidationError)
@@ -32,42 +34,38 @@ class InvalidIntervalFormatError(ValidationError):
     return f"{str(self.tier_interval_format)} marks could not be further split."
 
 
-def split_intervals(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, tier_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]], custom_output_tier_name: Optional[str] = None, overwrite_tier: bool = True) -> ExecutionResult:
+def split_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> ExecutionResult:
+  assert len(tier_names) > 0
+
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  if error := NotExistingTierError.validate(grid, tier_name):
+  if error := InvalidIntervalFormatError.validate(tiers_interval_format):
     return error, False
 
-  if error := InvalidIntervalFormatError.validate(tier_interval_format):
-    return error, False
-
-  output_tier_name = tier_name
-  if custom_output_tier_name is not None:
-    if not overwrite_tier and (error := ExistingTierError.validate(grid, custom_output_tier_name)):
+  for tier_name in tier_names:
+    if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
-    output_tier_name = custom_output_tier_name
 
-  tier = get_first_tier(grid, tier_name)
+  tiers = list(get_all_tiers(grid, tier_names))
 
-  if error := NotMatchingIntervalFormatError.validate_tier(tier, tier_interval_format, tier_string_format):
-    return error, False
+  for tier in tiers:
+    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
+      return error, False
 
-  target_intervals = (
-    new_interval
-    for interval in tier.intervals
-    for new_interval in get_split_intervals(interval, tier_string_format, tier_interval_format, join_symbols, ignore_join_symbols)
-  )
+    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+      return error, False
 
-  output_tier = IntervalTier(
-    name=output_tier_name,
-    minTime=tier.minTime,
-    maxTime=tier.maxTime,
-  )
+  changed_anything = False
 
-  output_tier.intervals.extend(target_intervals)
+  for tier in tiers:
+    for interval in cast(Iterable[Interval], tier.intervals):
+      splitted_intervals = list(get_split_intervals(
+        interval, tiers_string_format, tiers_interval_format, join_symbols, ignore_join_symbols))
 
-  changed_anything = add_or_update_tier(grid, tier, output_tier, overwrite_tier)
+      if not check_intervals_are_equal([interval], splitted_intervals):
+        replace_intervals(tier, [interval], splitted_intervals)
+        changed_anything = True
 
   return None, changed_anything
 
@@ -86,7 +84,7 @@ def get_split_intervals(interval: Interval, tier_string_format: StringFormat, ti
   for i, split_mark_symbols in enumerate(split_mark_symbols):
     string = tier_string_format.convert_symbols_to_string(split_mark_symbols)
     duration = interval.duration() * (len(split_mark_symbols) / count_of_symbols)
-    print(interval.duration(), len(split_mark_symbols), count_of_symbols)
+    # print(interval.duration(), len(split_mark_symbols), count_of_symbols)
     min_time = current_timepoint
 
     is_last = i == len(split_mark_symbols) - 1
