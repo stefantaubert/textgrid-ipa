@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Iterable, List, Set, Tuple, cast
+from typing import Iterable, List, Optional, Set, Tuple, cast
 
 from ordered_set import OrderedSet
 from pronunciation_dict_parser import PronunciationDict
@@ -13,6 +13,7 @@ from text_utils.types import Symbol, Symbols
 from text_utils.utils import symbols_ignore, symbols_split
 from textgrid import TextGrid
 from textgrid.textgrid import Interval, IntervalTier
+from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.mfa.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
 from textgrid_tools.core.mfa.helper import (get_all_tiers,
                                             get_mark_symbols_intervals)
@@ -37,49 +38,31 @@ class PunctuationFormatNotSupportedError(ValidationError):
     return "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too."
 
 
-class IntervalFormatNotSupportedError(ValidationError):
-  def __init__(self, interval_format: SymbolFormat) -> None:
-    super().__init__()
-    self.interval_format = interval_format
-
-  @classmethod
-  def validate(cls, interval_format: IntervalFormat):
-    if interval_format not in (IntervalFormat.WORD, IntervalFormat.WORDS):
-      return cls(interval_format)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"{self.interval_format} is not supported!"
-
-
-def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunk_size: int) -> PronunciationDict:
+def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunk_size: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
-
-  if error := IntervalFormatNotSupportedError.validate(tiers_interval_format):
-    return error, False
+  assert tiers_interval_format in (IntervalFormat.WORD, IntervalFormat.WORDS)
 
   if error := PunctuationFormatNotSupportedError.validate(include_punctuation_in_words, include_punctuation_in_pronunciations):
-    return error, False
+    return (error, False), None
 
   all_tiers: List[IntervalTier] = []
   for grid in grids:
     if error := InvalidGridError.validate(grid):
-      return error, False
+      return (error, False), None
 
     for tier_name in tier_names:
       if error := NotExistingTierError.validate(grid, tier_name):
-        return error, False
+        return (error, False), None
 
     tiers = list(get_all_tiers(grid, tier_names))
 
     for tier in tiers:
       if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
-        return error, False
+        return (error, False), None
 
       if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
-        return error, False
+        return (error, False), None
     all_tiers.extend(tiers)
 
   logger = getLogger(__name__)

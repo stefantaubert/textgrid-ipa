@@ -11,52 +11,15 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.mfa.helper import get_all_intervals, get_mark_symbols
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
-                                            NotExistingTierError,
-                                            ValidationError)
-
-
-class SymbolsStringFormatNotSupportedError(ValidationError):
-  def __init__(self, string_format: StringFormat) -> None:
-    super().__init__()
-    self.string_format = string_format
-
-  @classmethod
-  def validate(cls, string_format: StringFormat):
-    if string_format != StringFormat.TEXT:
-      return cls(string_format)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"{self.string_format} is not supported!"
-
-
-class SymbolFormatNotSupportedError(ValidationError):
-  def __init__(self, symbol_format: SymbolFormat) -> None:
-    super().__init__()
-    self.symbol_format = symbol_format
-
-  @classmethod
-  def validate(cls, symbol_format: SymbolFormat):
-    if symbol_format != SymbolFormat.GRAPHEMES:
-      return cls(symbol_format)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"{self.symbol_format} is not supported!"
+                                            NotExistingTierError)
 
 
 def normalize_tiers(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, language: Language, text_format: SymbolFormat) -> ExecutionResult:
   assert len(tier_names) > 0
+  assert tiers_string_format == StringFormat.TEXT
+  assert text_format == SymbolFormat.GRAPHEMES
 
   if error := InvalidGridError.validate(grid):
-    return error, False
-
-  if error := SymbolsStringFormatNotSupportedError.validate(tiers_string_format):
-    return error, False
-
-  if error := SymbolFormatNotSupportedError.validate(text_format):
     return error, False
 
   for tier_name in tier_names:

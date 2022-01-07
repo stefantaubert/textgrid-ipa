@@ -5,12 +5,11 @@ Maybe refactor commands like so:
 ```txt
 textgrid-tools grids {create-dictionary}
 textgrid-tools grid {create,synchronize-to-audio,split,print-stats}
-textgrid-tools tiers {remove,normalize,remove-symbols,fix-boundaries,convert-to-symbols}
-textgrid-tools tier {clone,move,rename,transcribe-words-to-arpa}
-textgrid-tools intervals {join}
+textgrid-tools tiers {remove,normalize,remove-symbols,fix-boundaries,switch-string-format}
+textgrid-tools tier {clone,move,copy,rename,transcribe-words-to-arpa,map,transcribe-arpa-to-ipa}
+textgrid-tools intervals {join-between-pause,join-by-boundary,join-by-duration,join-by-sentence,split}
 ```
 
-- add insert tiers from other grids
 - provide windows and mac version
 - use local dictionary for create-dict-from-grids
 - make map on phoneme level word based!
@@ -18,8 +17,6 @@ textgrid-tools intervals {join}
 - bug: "transliterated oov word to ..." shows same pronunciation multiple times
 - remove old references
 - make all consistent
-  - overwrite tier at all places
-  - improve logging
   - refactor all sub-command parsers
   - check that custom output parameters are set to default if not defined per cli e.g. output-directory is set to input-directory
 - remove start/end from textgrid
@@ -27,4 +24,5 @@ textgrid-tools intervals {join}
 - add validation methods, e.g.,
   - tier contains custom symbols
   - tier contains only ARPAbet symbols
+    - add this to pronunciation parser
   - tier contains non-dictionary words
