@@ -12,7 +12,7 @@ from textgrid_tools.core.mfa.helper import (find_intervals_with_mark,
                                             get_first_tier,
                                             get_intervals_from_timespan)
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
-                                            BoundaryError, InvalidGridError,
+                                            BoundaryError, InvalidGridError, MultipleTiersWithThatNameError,
                                             NotExistingTierError)
 from tqdm import tqdm
 
@@ -23,6 +23,9 @@ def split_grid(grid: TextGrid, audio: np.ndarray, sample_rate: int, tier_name: s
 
   if error := NotExistingTierError.validate(grid, tier_name):
     return (error, False), None
+
+  if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
+    return error, False
 
   if error := AudioAndGridLengthMismatchError.validate(grid, audio, sample_rate):
     return (error, False), None

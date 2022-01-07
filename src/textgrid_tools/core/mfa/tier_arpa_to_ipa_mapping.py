@@ -14,6 +14,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
 
 def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol]) -> ExecutionResult:
   assert len(tier_names) > 0
+  
   if error := InvalidGridError.validate(grid):
     return error, False
 

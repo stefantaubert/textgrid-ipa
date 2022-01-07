@@ -80,7 +80,7 @@ def get_split_intervals(interval: Interval, tier_string_format: StringFormat, ti
 
   count_of_symbols = sum(1 for new_mark_symbols in split_mark_symbols for _ in new_mark_symbols)
   current_timepoint = interval.minTime
-  print("split_mark_symbols", len(split_mark_symbols))
+  # print("split_mark_symbols", len(split_mark_symbols))
   for i, split_mark_symbols in enumerate(split_mark_symbols):
     string = tier_string_format.convert_symbols_to_string(split_mark_symbols)
     duration = interval.duration() * (len(split_mark_symbols) / count_of_symbols)
