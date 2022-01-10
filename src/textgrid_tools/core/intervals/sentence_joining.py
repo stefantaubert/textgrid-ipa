@@ -31,7 +31,7 @@ def join_intervals_on_sentences(grid: TextGrid, tier_names: Set[str], tiers_stri
     if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
       return error, False
 
-    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
       return error, False
 
   changed_anything = False

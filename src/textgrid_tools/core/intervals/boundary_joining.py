@@ -50,7 +50,7 @@ def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_n
     if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
       return error, False
 
-    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
       return error, False
 
   changed_anything = False

@@ -1,5 +1,5 @@
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_tools.core.helper import find_intervals_with_mark
+from textgrid_tools.core.intervals.removing import find_intervals_with_mark
 
 
 def test_empty_mark_from_marks__is_removed():

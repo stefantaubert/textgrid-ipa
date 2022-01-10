@@ -60,7 +60,7 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
       if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
         return (error, False), None
 
-      if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+      if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
         return (error, False), None
     all_tiers.extend(tiers)
 

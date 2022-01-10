@@ -29,6 +29,11 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
                       help="overwrite existing files")
 
 
+def add_output_directory_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+                      help="directory where to output the grids if not to the same directory")
+
+
 def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
                       help="overwrite existing tiers")
@@ -40,15 +45,24 @@ def add_n_jobs_argument(parser: ArgumentParser) -> None:
 
 
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:
-  return get_files_dict(folder, filetypes={GRID_FILE_TYPE})
+  result = get_files_dict(folder, filetypes={GRID_FILE_TYPE})
+  logger = getLogger(__name__)
+  logger.info(f"Found {len(result)} grid files.")
+  return result
 
 
 def get_audio_files(folder: Path) -> OrderedDictType[str, Path]:
-  return get_files_dict(folder, filetypes={WAV_FILE_TYPE})
+  result = get_files_dict(folder, filetypes={WAV_FILE_TYPE})
+  logger = getLogger(__name__)
+  logger.info(f"Found {len(result)} audio files.")
+  return result
 
 
 def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
-  return get_files_dict(folder, filetypes={TXT_FILE_TYPE})
+  result = get_files_dict(folder, filetypes={TXT_FILE_TYPE})
+  logger = getLogger(__name__)
+  logger.info(f"Found {len(result)} text files.")
+  return result
 
 
 def load_grid(path: Path, n_digits: int) -> TextGrid:
@@ -67,8 +81,25 @@ def save_grid(path: Path, grid: TextGrid) -> None:
 def copy_grid(grid_in: Path, grid_out: Path) -> None:
   logger = getLogger(__name__)
   logger.info("Copying grid...")
-  grid_out.parent.mkdir(exist_ok=True, parents=True)
-  copy(grid_in, grid_out)
+  copy_file(grid_in, grid_out)
+
+
+def copy_audio(audio_in: Path, audio_out: Path) -> None:
+  logger = getLogger(__name__)
+  logger.info("Copying audio...")
+  copy_file(audio_in, audio_out)
+
+
+def copy_file(file_in: Path, file_out: Path) -> None:
+  file_out.parent.mkdir(exist_ok=True, parents=True)
+  copy(file_in, file_out)
+
+
+def save_text(path: Path, text: str, encoding: str) -> None:
+  logger = getLogger(__name__)
+  logger.info("Saving text...")
+  path.parent.mkdir(parents=True, exist_ok=True)
+  path.write_text(text, encoding=encoding)
 
 
 def save_audio(path: Path, audio: np.ndarray, sampling_rate: int) -> None:

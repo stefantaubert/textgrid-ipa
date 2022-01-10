@@ -1,15 +1,15 @@
 from logging import getLogger
-from typing import Iterable, List, Tuple, cast
+from typing import Iterable, List, Optional, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.cloning import copy_intervals
+from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.grid.audio_synchronization import (
     LastIntervalToShortError, set_end_to_audio_len)
 from textgrid_tools.core.helper import (get_boundary_timepoints_from_tier,
-                                        get_intervals_on_tier,
-                                        get_single_tier,
+                                        get_intervals_on_tier, get_single_tier,
                                         interval_is_None_or_whitespace)
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             BoundaryError, InvalidGridError,
@@ -17,7 +17,7 @@ from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             NotExistingTierError)
 
 
-def split_grid_on_intervals(grid: TextGrid, audio: np.ndarray, sample_rate: int, tier_name: str, include_empty_intervals: bool, n_digits: int) -> List[Tuple[TextGrid, np.ndarray]]:
+def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, include_empty_intervals: bool, n_digits: int) -> Tuple[ExecutionResult, List[Tuple[TextGrid, Optional[np.ndarray]]]]:
   assert n_digits >= 0
 
   if error := InvalidGridError.validate(grid):
@@ -29,8 +29,10 @@ def split_grid_on_intervals(grid: TextGrid, audio: np.ndarray, sample_rate: int,
   if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
     return error, False
 
-  if error := AudioAndGridLengthMismatchError.validate(grid, audio, sample_rate):
-    return error, False
+  if audio is not None:
+    assert sample_rate is not None
+    if error := AudioAndGridLengthMismatchError.validate(grid, audio, sample_rate):
+      return error, False
 
   tier = get_single_tier(grid, tier_name)
   timepoints = get_boundary_timepoints_from_tier(tier)
@@ -43,20 +45,22 @@ def split_grid_on_intervals(grid: TextGrid, audio: np.ndarray, sample_rate: int,
   if error := BoundaryError.validate(timepoints, other_tiers):
     return error, False
 
-  result: List[Tuple[TextGrid, np.ndarray]] = []
+  result: List[Tuple[TextGrid, Optional[np.ndarray]]] = []
   for interval in cast(Iterable[Interval], tier.intervals):
     if not include_empty_intervals and interval_is_None_or_whitespace(interval):
       continue
 
     extracted_grid = extract_grid(grid, interval, n_digits)
-    extracted_audio = extract_audio(audio, sample_rate, interval)
+    extracted_audio = None
+    if audio is not None:
+      extracted_audio = extract_audio(audio, sample_rate, interval)
 
-    # after multiple removals in audio some difference occurs
-    if error := LastIntervalToShortError.validate(extracted_grid, extracted_audio, sample_rate, n_digits):
-      raise Exception("Internal error.")
-      # return error, False
+      # after multiple removals in audio some difference occurs
+      if error := LastIntervalToShortError.validate(extracted_grid, extracted_audio, sample_rate, n_digits):
+        raise Exception("Internal error.")
+        # return error, False
 
-    set_end_to_audio_len(extracted_grid, extracted_audio, sample_rate, n_digits)
+      set_end_to_audio_len(extracted_grid, extracted_audio, sample_rate, n_digits)
 
     result.append((extracted_grid, extracted_audio))
 

@@ -5,12 +5,12 @@ from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.common import replace_intervals
 from textgrid_tools.core.helper import (get_all_tiers,
                                         interval_is_None_or_whitespace)
 from textgrid_tools.core.interval_format import (IntervalFormat,
                                                  has_lower_format,
                                                  split_interval_symbols)
+from textgrid_tools.core.intervals.common import replace_intervals
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
@@ -53,7 +53,7 @@ def split_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
     if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
       return error, False
 
-    if error := NotMatchingIntervalFormatError.validate(tier, tiers_interval_format, tiers_string_format):
+    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
       return error, False
 
   changed_anything = False

@@ -1,18 +1,17 @@
 from argparse import ArgumentParser
-from logging import getLogger
+from functools import partial
 from math import inf
 from pathlib import Path
-from typing import Iterable, Optional, cast
+from typing import List, Optional
 
 from text_utils import StringFormat
+from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument,
-                                       add_overwrite_tier_argument,
-                                       get_grid_files, load_grid, save_grid)
-from textgrid_tools.core.intervals.pause_joining import (
-    can_join_intervals, join_intervals)
+                                       add_overwrite_tier_argument)
+from textgrid_tools.app.tier.common import process_grids
+from textgrid_tools.core import join_intervals_between_pauses
 from textgrid_tools.core.interval_format import IntervalFormat
-from tqdm import tqdm
 
 
 def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
@@ -36,42 +35,13 @@ def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
   return files_join_intervals_on_pauses
 
 
-def files_join_intervals_on_pauses(directory: Path, tier: str, mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, output_tier: Optional[str], overwrite_tier: bool, n_digits: int, output_directory: Path, overwrite: bool) -> None:
-  logger = getLogger(__name__)
+def files_join_intervals_on_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+  method = partial(
+    join_intervals_between_pauses,
+    pause=join_pause,
+    tier_names=set(tiers),
+    tiers_interval_format=mark_type,
+    tiers_string_format=mark_format,
+  )
 
-  if not directory.exists():
-    logger.error(f"Directory \"{directory}\" does not exist!")
-    return
-
-  if output_directory is None:
-    output_directory = directory
-
-  grid_files = get_grid_files(directory)
-  logger.info(f"Found {len(grid_files)} grid files.")
-
-  logger.info("Reading files...")
-  for file_stem in cast(Iterable[str], tqdm(grid_files)):
-    logger.info(f"Processing {file_stem} ...")
-
-    grid_file_out_abs = output_directory / grid_files[file_stem]
-
-    if grid_file_out_abs.exists() and not overwrite:
-      logger.info("Target grid already exists.")
-      logger.info("Skipped.")
-      continue
-
-    grid_file_in_abs = directory / grid_files[file_stem]
-    grid_in = load_grid(grid_file_in_abs, n_digits)
-
-    can_join = can_join_intervals(grid_in, tier, join_pause, output_tier, overwrite_tier)
-    if not can_join:
-      logger.info("Skipped.")
-      continue
-
-    join_intervals(grid_in, tier, mark_format, mark_type, join_pause,
-                   output_tier, overwrite_tier)
-
-    logger.info("Saving...")
-    save_grid(grid_file_out_abs, grid_in)
-
-  logger.info(f"Done. Written output to: {output_directory}")
+  return process_grids(directory, n_digits, output_directory, overwrite, method)

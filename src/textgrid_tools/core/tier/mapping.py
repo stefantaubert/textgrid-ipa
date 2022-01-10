@@ -38,7 +38,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, target_tier_names: Set[str], targets_string_format: StringFormat, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[Symbol]) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, target_tier_names: Set[str], targets_string_format: StringFormat, include_pauses: bool, ignore_marks: Set[str], only_symbols: Set[Symbol]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """
@@ -64,7 +64,7 @@ def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, t
     if error := NotExistingTierError.validate(grid, target_tier_name):
       return error, False
 
-  tier_intervals = list(get_intervals(tier, ignore_pauses,
+  tier_intervals = list(get_intervals(tier, include_pauses,
                         ignore_marks, only_symbols, tier_string_format))
 
   changed_anything = False
@@ -74,7 +74,7 @@ def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, t
       return error, False
 
     target_tier_intervals = list(get_intervals(
-      target_tier, ignore_pauses, ignore_marks, only_symbols, targets_string_format))
+      target_tier, include_pauses, ignore_marks, only_symbols, targets_string_format))
 
     if error := UnequalIntervalAmountError.validate(tier_intervals, target_tier_intervals):
       return error, False
@@ -87,9 +87,9 @@ def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, t
   return None, changed_anything
 
 
-def get_intervals(tier: IntervalTier, ignore_pauses: bool, ignore_marks: Set[str], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
+def get_intervals(tier: IntervalTier, include_pauses: bool, ignore_marks: Set[str], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
   tier_intervals = tier.intervals
-  if ignore_pauses:
+  if not include_pauses:
     tier_intervals = remove_empty_intervals(tier_intervals)
   if len(ignore_marks) > 0:
     tier_intervals = remove_intervals_with_marks(tier_intervals, ignore_marks)

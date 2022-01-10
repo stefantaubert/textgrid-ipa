@@ -13,7 +13,7 @@ def merge_intervals(intervals: Collection[Interval], intervals_string_format: St
   interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
   joined_interval_symbols = list(merge_interval_symbols(
     interval_symbols, intervals_interval_format, join_symbols, ignore_join_symbols))
-  assert len(interval_symbols) < len(joined_interval_symbols)
+  assert 0 <= len(joined_interval_symbols) <= len(interval_symbols)
 
   if len(joined_interval_symbols) == 1:
     mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols[0])

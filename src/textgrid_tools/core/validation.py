@@ -136,7 +136,7 @@ class BoundaryError(ValidationError):
     msg += "Timepoints (in s):"
     for boundary in self.timepoints:
       msg += f"- {boundary}\n"
-
+    return msg
 
 class AudioAndGridLengthMismatchError(ValidationError):
   def __init__(self, grid: TextGrid, audio: np.ndarray, sample_rate: int) -> None:
@@ -219,6 +219,7 @@ class InvalidStringFormatIntervalError(ValidationError):
     msg += "\n"
     msg += f"Format: {str(self.string_format)}\n"
     msg += f"String:\n\n```\n{self.string}\n```"
+    return msg
 
 
 class NotMatchingIntervalFormatError(ValidationError):
@@ -227,6 +228,7 @@ class NotMatchingIntervalFormatError(ValidationError):
     self.tier_interval_format = tier_interval_format
     self.string_format = string_format
     self.interval = interval
+    self.tier: Optional[IntervalTier] = None
 
   @classmethod
   def validate(cls, interval: Interval, interval_format: IntervalFormat, string_format: StringFormat):
@@ -247,12 +249,13 @@ class NotMatchingIntervalFormatError(ValidationError):
   def validate_tier(cls, tier: IntervalTier, interval_format: IntervalFormat, string_format: StringFormat):
     for interval in tier.intervals:
       if error := cls.validate(interval, interval_format, string_format):
+        error.tier = tier
         return error
     return None
 
   @property
   def default_message(self) -> str:
-    msg = f"Interval marks format does not match {self.tier_interval_format!r}!\n"
+    msg = f"Interval marks format does not match {self.tier_interval_format}!\n"
     if self.tier_interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
       if self.string_format == StringFormat.TEXT:
         msg += "Spaces are not allowed:\n"
@@ -265,3 +268,6 @@ class NotMatchingIntervalFormatError(ValidationError):
     else:
       assert False
     msg += f"{get_interval_readable(self.interval)}"
+    if self.tier is not None:
+      msg += f"\n{get_tier_readable(self.tier)}"
+    return msg

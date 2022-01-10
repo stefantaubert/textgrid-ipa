@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Iterable, List, Optional, Set, Tuple, cast
+from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -9,10 +9,10 @@ from textgrid_tools.core.grid.audio_synchronization import (
     LastIntervalToShortError, set_end_to_audio_len)
 from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
-    find_intervals_with_mark, get_boundary_timepoints_from_intervals,
-    get_boundary_timepoints_from_tier, get_intervals_on_tier, get_single_tier,
+    get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,
+    get_intervals_on_tier, get_single_tier, interval_is_None_or_whitespace,
     set_precision_interval)
-from textgrid_tools.core.intervals.boundary_adjustment import fix_timepoint
+from textgrid_tools.core.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             BoundaryError, InvalidGridError,
                                             MultipleTiersWithThatNameError,
@@ -139,3 +139,10 @@ def move_interval(interval: Interval, new_minTime: float, n_digits: int) -> None
   interval.minTime = new_minTime
   interval.maxTime = interval.minTime + duration
   set_precision_interval(interval, n_digits)
+
+
+def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:
+  for interval in cast(Iterable[Interval], tier.intervals):
+    match = (interval.mark in marks) or (include_empty and interval_is_None_or_whitespace(interval))
+    if match:
+      yield interval

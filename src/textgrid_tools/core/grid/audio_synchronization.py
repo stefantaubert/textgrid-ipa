@@ -28,6 +28,7 @@ class LastIntervalToShortError(ValidationError):
 
 
 def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_digits: int) -> ExecutionResult:
+  assert n_digits >= 0
   if error := InvalidGridError.validate(grid):
     return error, False
 

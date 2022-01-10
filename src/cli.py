@@ -1,7 +1,9 @@
 import argparse
-from argparse import ArgumentParser, _SubParsersAction
-from typing import Callable
+from argparse import ArgumentParser
+from logging import getLogger
+from typing import Callable, Generator, Tuple
 
+from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.grid.duration_splitting import \
     init_files_split_grid_on_durations_parser
 from textgrid_tools.app.grid.interval_splitting import \
@@ -50,13 +52,7 @@ from textgrid_tools.app.tier_words_to_arpa_transcription import \
 INVOKE_HANDLER_VAR = "invoke_handler"
 
 
-def __add_parser_to(subparsers: _SubParsersAction, name: str, init_method: Callable[[ArgumentParser], Callable], help_msg: str):
-  parser = subparsers.add_parser(name, help=help_msg, formatter_class=formatter)
-  __configure_parser(parser, init_method)
-  return parser
-
-
-def __configure_parser(parser: ArgumentParser, init_method: Callable[[ArgumentParser], Callable]) -> None:
+def __configure_parser(parser: ArgumentParser, init_method: Callable[[ArgumentParser], Callable[..., ExecutionResult]]) -> None:
   invoke_method = init_method(parser)
   parser.set_defaults(**{
     INVOKE_HANDLER_VAR: invoke_method,
@@ -72,61 +68,55 @@ def formatter(prog):
 
 
 def _init_parser():
-  #result = ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  # result = ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   result = ArgumentParser(formatter_class=formatter)
   result.description = "This program provides methods to modify TextGrids (.TextGrid) and their corresponding audio files (.wav)."
   __configure_parser(result, init_main_parser)
 
   subparsers = result.add_subparsers(help="description")
 
-  __add_parser_to(subparsers, "convert-text-to-grid",
-                  init_files_convert_text_to_grid_parser, "convert text files to grid files")
-  __add_parser_to(subparsers, "convert-grid-to-text",
-                  init_files_convert_grid_to_text_parser, "convert grid files to text files")
-  __add_parser_to(subparsers, "create-dict-from-grids", init_convert_texts_to_dicts_parser,
-                  "create pronunciation dictionary from multiple grid files")
-  __add_parser_to(subparsers, "join-tier-intervals-on-sentences",
-                  init_files_join_intervals_on_sentences_parser, "join tier intervals sentence-wise")
-  __add_parser_to(subparsers, "join-tier-intervals-on-pauses",
-                  init_files_join_intervals_on_pauses_parser, "join tier intervals on pauses")
-  __add_parser_to(subparsers, "join-tier-intervals-on-boundaries",
-                  init_files_join_intervals_on_boundaries_parser, "join tier intervals on boundaries")
-  __add_parser_to(subparsers, "map-tier", init_files_map_tier_to_other_tier_parser,
-                  "map content of one tier to another tier")
-  __add_parser_to(subparsers, "map-arpa-tier-to-ipa", init_map_arpa_tier_to_ipa_parser,
-                  "map a tier with ARPA transcriptions to IPA")
-  __add_parser_to(subparsers, "remove-tiers", init_files_remove_tiers_parser, "remove tiers")
-  __add_parser_to(subparsers, "remove-symbols-from-tiers",
-                  init_remove_symbols_from_tiers_parser, "remove symbols from tiers")
-  __add_parser_to(subparsers, "remove-intervals",
-                  init_files_remove_intervals_parser, "remove intervals on all tiers")
-  __add_parser_to(subparsers, "rename-tier", init_files_rename_tier_parser, "rename a tier")
-  __add_parser_to(subparsers, "clone-tier", init_files_clone_tier_parser, "clone a tier")
-  __add_parser_to(subparsers, "copy-tier",
-                  init_files_copy_tier_to_grid_parser, "copy tier from one grid to another")
-  __add_parser_to(subparsers, "move-tier", init_files_move_tier_parser,
-                  "move a tier to another position in the grid")
-  # _add_parser_to(subparsers, "mfa-words-to-arpa", init_app_transcribe_words_to_arpa_parser)
-  __add_parser_to(subparsers, "transcribe-words-to-arpa",
-                  init_app_transcribe_words_to_arpa_on_phoneme_level_parser, "transcribe a tier containing words with help of a pronunciation dictionary to ARPA")
-  __add_parser_to(subparsers, "split-intervals",
-                  init_files_split_intervals_parser, "split intervals")
-  __add_parser_to(subparsers, "split-grid",
-                  init_files_split_grid_parser, "split a grid file on intervals into multiple grid files (incl. audio files)")
-  __add_parser_to(subparsers, "split-grid-on-intervals",
-                  init_files_split_grid_on_intervals_parser, "split a grid file on intervals into multiple grid files (incl. audio files)")
-  __add_parser_to(subparsers, "split-grid-on-durations",
-                  init_files_split_grid_on_durations_parser, "split a grid file on intervals based on durations into multiple grid files (incl. audio files)")
-  __add_parser_to(subparsers, "convert-text-to-symbols",
-                  init_files_convert_text_to_symbols_parser, "convert text string format to symbol string format")
-  __add_parser_to(subparsers, "fix-boundaries",
-                  init_files_fix_boundaries_parser, "align boundaries of tiers according to a reference tier")
-  __add_parser_to(subparsers, "sync-grid-to-audio",
-                  init_files_sync_grids_parser, "synchronize grid minTime and maxTime according to the corresponding audio file")
-  __add_parser_to(subparsers, "print-stats",
-                  init_files_print_stats_parser, "print statistics")
-  __add_parser_to(subparsers, "normalize-tiers",
-                  init_files_normalize_tiers_parser, "normalize text of tiers")
+  methods: Generator[Tuple[str, str, Callable[[ArgumentParser], Callable[..., ExecutionResult]]]] = (
+    ("convert-text-to-grid", "convert text files to grid files", init_files_convert_text_to_grid_parser),
+    ("convert-grid-to-text", "convert grid files to text files", init_files_convert_grid_to_text_parser),
+    ("create-dict-from-grids", "create pronunciation dictionary from multiple grid files",
+     init_convert_texts_to_dicts_parser),
+    ("join-tier-intervals-on-sentences", "join tier intervals sentence-wise",
+     init_files_join_intervals_on_sentences_parser),
+    ("join-tier-intervals-on-pauses", "join tier intervals on pauses",
+     init_files_join_intervals_on_pauses_parser),
+    ("join-tier-intervals-on-boundaries", "join tier intervals on boundaries",
+     init_files_join_intervals_on_boundaries_parser),
+    ("map-tier", "map content of one tier to another tier", init_files_map_tier_to_other_tier_parser),
+    ("map-arpa-tier-to-ipa", "map a tier with ARPA transcriptions to IPA", init_map_arpa_tier_to_ipa_parser),
+    ("remove-tiers", "remove tiers", init_files_remove_tiers_parser),
+    ("remove-symbols-from-tiers", "remove symbols from tiers", init_remove_symbols_from_tiers_parser),
+    ("remove-intervals", "remove intervals on all tiers", init_files_remove_intervals_parser),
+    ("rename-tier", "rename a tier", init_files_rename_tier_parser),
+    ("clone-tier", "clone a tier", init_files_clone_tier_parser),
+    ("copy-tier", "copy tier from one grid to another", init_files_copy_tier_to_grid_parser),
+    ("move-tier", "move a tier to another position in the grid", init_files_move_tier_parser),
+    ("transcribe-words-to-arpa", "transcribe a tier containing words with help of a pronunciation dictionary to ARPA",
+     init_app_transcribe_words_to_arpa_on_phoneme_level_parser),
+    ("split-intervals", "split intervals", init_files_split_intervals_parser),
+    ("split-grid", "split a grid file on intervals into multiple grid files (incl. audio files)",
+     init_files_split_grid_parser),
+    ("split-grid-on-intervals", "split a grid file on intervals into multiple grid files (incl. audio files)",
+     init_files_split_grid_on_intervals_parser),
+    ("split-grid-on-durations", "split a grid file on intervals based on durations into multiple grid files (incl. audio files)",
+     init_files_split_grid_on_durations_parser),
+    ("convert-text-to-symbols", "convert text string format to symbol string format",
+     init_files_convert_text_to_symbols_parser),
+    ("fix-boundaries", "align boundaries of tiers according to a reference tier",
+     init_files_fix_boundaries_parser),
+    ("sync-grid-to-audio", "synchronize grid minTime and maxTime according to the corresponding audio file",
+     init_files_sync_grids_parser),
+    ("print-stats", "print statistics", init_files_print_stats_parser),
+    ("normalize-tiers", "normalize text of tiers", init_files_normalize_tiers_parser),
+  )
+
+  for command, description, method in methods:
+    parser = subparsers.add_parser(command, help=description, formatter_class=formatter)
+    __configure_parser(parser, method)
 
   return result
 
@@ -135,8 +125,15 @@ def _process_args(args):
   params = vars(args)
 
   if INVOKE_HANDLER_VAR in params:
-    invoke_handler = params.pop(INVOKE_HANDLER_VAR)
-    invoke_handler(**params)
+    invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
+    error, changed_anything = invoke_handler(**params)
+    logger = getLogger(__name__)
+    if error is None:
+      logger.info("Everything was successfull!")
+    else:
+      logger.warning("Not everything was successfull!")
+    if not changed_anything:
+      logger.info("Didn't changed anything.")
 
 
 if __name__ == "__main__":

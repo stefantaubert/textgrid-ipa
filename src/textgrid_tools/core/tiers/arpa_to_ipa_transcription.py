@@ -12,7 +12,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError)
 
 
-def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol]) -> ExecutionResult:
+def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -35,7 +35,7 @@ def map_arpa_to_ipa(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
     arpa_symbols = get_mark_symbols(interval, tiers_string_format)
     ipa_symbols = symbols_map_arpa_to_ipa(
       arpa_symbols=arpa_symbols,
-      ignore={},
+      ignore=ignore,
       replace_unknown=replace_unknown,
       replace_unknown_with=replace_unknown_with,
     )

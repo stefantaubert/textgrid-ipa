@@ -32,6 +32,9 @@ def set_precision_interval(interval: Interval, n_digits: int) -> None:
 
 
 def check_is_valid_grid(grid: TextGrid) -> bool:
+  if grid.minTime is None or grid.maxTime is None:
+    return False
+
   if not check_minTime_and_maxTime_are_valid(grid.minTime, grid.maxTime):
     return False
 
@@ -279,13 +282,6 @@ def get_boundary_timepoints_from_intervals(intervals: List[Interval]) -> Ordered
     result.add(interval.minTime)
     result.add(interval.maxTime)
   return result
-
-
-def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:
-  for interval in cast(Iterable[Interval], tier.intervals):
-    match = (interval.mark in marks) or (include_empty and interval_is_None_or_whitespace(interval))
-    if match:
-      yield interval
 
 
 def interval_is_None_or_whitespace(interval: Interval) -> bool:
