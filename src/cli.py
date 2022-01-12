@@ -5,6 +5,8 @@ from typing import Callable, Dict, Generator, Tuple
 
 from textgrid_tools.app import *
 
+__version__ = "0.9.1"
+
 INVOKE_HANDLER_VAR = "invoke_handler"
 
 
@@ -60,15 +62,15 @@ def _init_parser():
     formatter_class=formatter,
     description="This program provides methods to modify TextGrids (.TextGrid) and their corresponding audios (.wav).",
   )
-
+  main_parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
   subparsers = main_parser.add_subparsers(help="description")
 
   parsers: Dict[str, Tuple[Parsers, str]] = {
-    "grids": (get_grids_parsers(), "commands targeted at multiple grids at once"),
-    "grid": (get_grid_parsers(), "commands targeted at single grids"),
-    "tiers": (get_tiers_parsers(), "commands targeted at multiple tiers at once"),
-    "tier": (get_tier_parsers(), "commands targeted at single tiers"),
-    "intervals": (get_intervals_parsers(), "commands targeted at intervals of tiers"),
+    "grids": (get_grids_parsers(), "execute commands targeted at multiple grids at once"),
+    "grid": (get_grid_parsers(), "execute commands targeted at single grids"),
+    "tiers": (get_tiers_parsers(), "execute commands targeted at multiple tiers at once"),
+    "tier": (get_tier_parsers(), "execute commands targeted at single tiers"),
+    "intervals": (get_intervals_parsers(), "execute commands targeted at intervals of tiers"),
   }
 
   for parser_name, (methods, help_str) in parsers.items():

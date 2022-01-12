@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from collections import OrderedDict
 from logging import getLogger
 from os import cpu_count
 from pathlib import Path

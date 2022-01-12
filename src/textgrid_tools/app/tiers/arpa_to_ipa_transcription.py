@@ -11,7 +11,7 @@ from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument)
-from textgrid_tools.app.tier.common import process_grids
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.core import map_arpa_to_ipa
 
 

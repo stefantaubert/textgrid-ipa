@@ -5,7 +5,7 @@ from typing import Optional, Set
 
 from text_utils.string_format import StringFormat
 from textgrid_tools.app.globals import DEFAULT_N_DIGITS, ExecutionResult
-from textgrid_tools.app.tier.common import process_grids
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.core import switch_string_format
 
 

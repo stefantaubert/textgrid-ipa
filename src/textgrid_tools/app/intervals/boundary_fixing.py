@@ -3,12 +3,12 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument)
-from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import fix_interval_boundaries
 
 
