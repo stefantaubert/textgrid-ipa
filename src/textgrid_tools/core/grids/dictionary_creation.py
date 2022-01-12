@@ -92,7 +92,8 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
     cache, include_punctuation_in_pronunciations, include_punctuation_in_words, punctuation)
 
   check_pronunciation_dictionary_for_silence(result)
-  check_pronunciation_dictionary_for_invalid_mfa_symbols(result)
+  if not include_punctuation_in_pronunciations:
+    check_pronunciation_dictionary_for_invalid_mfa_symbols(result)
 
   return (None, True), result
 
@@ -120,7 +121,7 @@ def check_pronunciation_dictionary_for_invalid_mfa_symbols(result: Pronunciation
       logger.warning(
         "Not all symbols can be aligned! You have missed some trim-symbols or annotated non-existent ARPA symbols!")
       logger.info(
-        f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({word} -> {''.join(pronunciation)})")
+        f"Word containing not allowed symbols: {' '.join(sorted(not_allowed_symbols))} ({word} -> {' '.join(pronunciation)})")
 
 
 def get_pronunciation_dictionary(cache: LookupCache, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, punctuation: Set[Symbol]):

@@ -34,12 +34,13 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
     return error, False
 
   intervals_symbols = list(get_mark_symbols_intervals(intervals, tiers_string_format))
-
+  all_symbols = set(intervals_symbols)
+  all_symbols.remove(tuple())
   logger = getLogger(__name__)
   logger.debug("Transcibing...")
   intervals_symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=convert_pronunciation_dict_to_cache(pronunciation_dictionary),
-    sentences=set(intervals_symbols),
+    sentences=all_symbols,
     chunksize=chunksize,
     consider_annotation=False,  # was decided in dictionary creation
     annotation_split_symbol=None,
@@ -51,9 +52,12 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
 
   for interval, interval_symbols in zip(intervals, intervals_symbols):
     #if len(intervals_symbols) == 0: ...
-    assert interval_symbols in intervals_symbols_arpa
-    arpa_transcription = intervals_symbols_arpa[interval_symbols]
-    mark = convert_symbols_to_symbols_string(arpa_transcription)
+    if interval_symbols == tuple():
+      mark = ""
+    else:
+      assert interval_symbols in intervals_symbols_arpa
+      arpa_transcription = intervals_symbols_arpa[interval_symbols]
+      mark = convert_symbols_to_symbols_string(arpa_transcription)
     if interval.mark != mark:
       logger.debug(f"Transcribed \"{interval.mark}\" to \"{mark}\".")
       interval.mark = mark
@@ -63,7 +67,7 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
 
 
 def convert_pronunciation_dict_to_cache(pronunciation_dictionary: PronunciationDict) -> LookupCache:
-  cache = LookupCache(
+  cache: LookupCache = dict(
     (tuple(word), pronunciation[0])
     for word, pronunciation in pronunciation_dictionary.items()
   )

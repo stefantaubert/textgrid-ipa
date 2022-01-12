@@ -5,13 +5,13 @@ from typing import Optional, Set
 
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument)
-from textgrid_tools.app.common import process_grids
 from textgrid_tools.core import map_tier
 
 
@@ -29,7 +29,7 @@ def get_mapping_parser(parser: ArgumentParser):
   parser.add_argument("--ignore", type=str, nargs="*",
                       metavar="MARK", help="ignore these marks", default=[])
   parser.add_argument("--ignore-symbols", type=str, nargs="*",
-                      metavar="SYMBOL", help="ignore marks that contain only these symbols")
+                      metavar="SYMBOL", help="ignore marks that contain only these symbols", default=[])
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)

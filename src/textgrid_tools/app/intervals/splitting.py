@@ -6,7 +6,7 @@ from typing import List, Optional
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids
-from textgrid_tools.app.globals import ExecutionResult
+from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
 from textgrid_tools.app.helper import (add_interval_format_argument,
                                        add_n_digits_argument,
                                        add_output_directory_argument,
@@ -25,7 +25,7 @@ def get_splitting_parser(parser: ArgumentParser):
   add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
   add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
   parser.add_argument('--join-symbols', type=str, nargs="*",
-                      help="join these symbols while splitting WORD to SYMBOLS", default=[])
+                      help="join these symbols while splitting WORD to SYMBOLS", default=DEFAULT_PUNCTUATION)
   parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
                       help="don't join to these symbols while splitting WORD to SYMBOLS", default=[])
   add_n_digits_argument(parser)

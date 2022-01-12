@@ -37,3 +37,13 @@ def test_double_space__returns_two_intervals():
   assert len(intervals) == 2
   assert intervals[0] == Interval(3, 3.5, "Is")
   assert intervals[1] == Interval(3.5, 5.0, "right.")
+
+
+def test_component():
+  interval = Interval(3, 5, "Is  right and a test and 123 abce: and? \"no\" ??.")
+
+  intervals = list(get_split_intervals(
+    interval, StringFormat.TEXT,
+      IntervalFormat.WORDS, {}, {}))
+
+  assert len(intervals) == 11

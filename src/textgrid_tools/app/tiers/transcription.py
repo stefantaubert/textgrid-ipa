@@ -6,6 +6,7 @@ from typing import Optional, Set
 
 from pronunciation_dict_parser.parser import parse_file
 from text_utils.string_format import StringFormat
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_grid_directory_argument,
@@ -14,7 +15,6 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument)
-from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.validation import FileNotExistsError
 from textgrid_tools.core import transcribe_text
 
@@ -22,11 +22,11 @@ from textgrid_tools.core import transcribe_text
 def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
   add_grid_directory_argument(parser)
+  parser.add_argument("dictionary", metavar="dictionary", type=Path,
+                      help="path to the pronunciation dictionary")
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
                       help="tiers which should be transcribed")
   add_string_format_argument(parser, "--tiers-format", "format of tiers")
-  parser.add_argument("dictionary", metavar="dictionary", type=Path,
-                      help="path to the pronunciation dictionary")
   add_encoding_argument(parser, "encoding of the dictionary")
   add_n_jobs_argument(parser)
   parser.add_argument("--chunksize", type=int, metavar="NUMBER",

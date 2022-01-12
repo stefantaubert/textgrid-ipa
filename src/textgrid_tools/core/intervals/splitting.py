@@ -78,22 +78,27 @@ def get_split_intervals(interval: Interval, tier_string_format: StringFormat, ti
   mark_symbols = tier_string_format.convert_string_to_symbols(interval.mark)
   split_mark_symbols = list(split_interval_symbols(
     mark_symbols, tier_interval_format, join_symbols, ignore_join_symbols))
-
-  count_of_symbols = sum(1 for new_mark_symbols in split_mark_symbols for _ in new_mark_symbols)
+  count_of_symbols = sum(len(new_mark_symbols) for new_mark_symbols in split_mark_symbols)
   current_timepoint = interval.minTime
+  interval_duration = interval.duration()
   # print("split_mark_symbols", len(split_mark_symbols))
   for i, symbols in enumerate(split_mark_symbols):
     assert len(symbols) > 0
-    string = tier_string_format.convert_symbols_to_string(symbols)
-    duration = interval.duration() * (len(symbols) / count_of_symbols)
-    # print(interval.duration(), len(symbols), count_of_symbols)
-    min_time = current_timepoint
 
-    is_last = i == len(symbols) - 1
+    duration = interval_duration * (len(symbols) / count_of_symbols)
+    string = tier_string_format.convert_symbols_to_string(symbols)
+    
+    min_time = current_timepoint
+    is_last = i == len(split_mark_symbols) - 1
     if is_last:
       max_time = interval.maxTime
     else:
       max_time = current_timepoint + duration
+
+    # if not min_time < max_time:
+    #   print(split_mark_symbols)
+    #   print(count_of_symbols)
+    assert min_time < max_time
 
     new_interval = Interval(
       minTime=min_time,
