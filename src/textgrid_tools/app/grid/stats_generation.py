@@ -48,4 +48,4 @@ def app_print_stats(directory: Path, duration_threshold: float, print_symbols_ti
       logger.info("Skipped.")
       continue
 
-  return total_success, False
+  return total_success, True

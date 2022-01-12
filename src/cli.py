@@ -25,7 +25,7 @@ def get_grids_parsers() -> Parsers:
 def get_grid_parsers() -> Parsers:
   yield "create", "convert text files to grid files", get_creation_parser
   yield "sync", "synchronize grid minTime and maxTime according to the corresponding audio file", get_audio_synchronization_parser
-  yield "split", "split a grid file on intervals into multiple grid files (incl. audio files)", get_splitting_parser
+  yield "split", "split a grid file on intervals into multiple grid files (incl. audio files)", get_grid_splitting_parser
   yield "print-stats", "print statistics", get_stats_generation_parser
 
 
@@ -53,7 +53,7 @@ def get_intervals_parsers() -> Parsers:
   yield "join-on-sentences", "join intervals sentence-wise", get_sentence_joining_parser
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
-  yield "split", "split intervals", get_separating_parser
+  yield "split", "split intervals", get_intervals_splitting_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
 
 
@@ -93,9 +93,9 @@ def main():
 
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
-    error, changed_anything = invoke_handler(**params)
+    success, changed_anything = invoke_handler(**params)
     logger = getLogger(__name__)
-    if error is None:
+    if success:
       logger.info("Everything was successfull!")
     else:
       logger.warning("Not everything was successfull!")

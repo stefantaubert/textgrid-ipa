@@ -34,7 +34,7 @@ class InvalidIntervalFormatError(ValidationError):
     return f"{str(self.tier_interval_format)} marks could not be further split."
 
 
-def separate(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> ExecutionResult:
+def split(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -59,7 +59,8 @@ def separate(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFo
   changed_anything = False
 
   for tier in tiers:
-    for interval in cast(Iterable[Interval], tier.intervals):
+    intervals = cast(Iterable[Interval], list(tier.intervals))
+    for interval in intervals:
       splitted_intervals = list(get_split_intervals(
         interval, tiers_string_format, tiers_interval_format, join_symbols, ignore_join_symbols))
 
@@ -81,13 +82,14 @@ def get_split_intervals(interval: Interval, tier_string_format: StringFormat, ti
   count_of_symbols = sum(1 for new_mark_symbols in split_mark_symbols for _ in new_mark_symbols)
   current_timepoint = interval.minTime
   # print("split_mark_symbols", len(split_mark_symbols))
-  for i, split_mark_symbols in enumerate(split_mark_symbols):
-    string = tier_string_format.convert_symbols_to_string(split_mark_symbols)
-    duration = interval.duration() * (len(split_mark_symbols) / count_of_symbols)
-    # print(interval.duration(), len(split_mark_symbols), count_of_symbols)
+  for i, symbols in enumerate(split_mark_symbols):
+    assert len(symbols) > 0
+    string = tier_string_format.convert_symbols_to_string(symbols)
+    duration = interval.duration() * (len(symbols) / count_of_symbols)
+    # print(interval.duration(), len(symbols), count_of_symbols)
     min_time = current_timepoint
 
-    is_last = i == len(split_mark_symbols) - 1
+    is_last = i == len(symbols) - 1
     if is_last:
       max_time = interval.maxTime
     else:

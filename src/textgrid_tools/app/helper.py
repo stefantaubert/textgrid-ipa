@@ -13,6 +13,7 @@ from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import (DEFAULT_ENCODING, DEFAULT_N_DIGITS,
                                         DEFAULT_N_JOBS)
+from textgrid_tools.core.helper import check_is_valid_grid
 from textgrid_tools.core.interval_format import IntervalFormat
 
 GRID_FILE_TYPE = ".TextGrid"
@@ -96,6 +97,7 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
 def save_grid(path: Path, grid: TextGrid) -> None:
   logger = getLogger(__name__)
   logger.info("Saving grid...")
+  assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)
 

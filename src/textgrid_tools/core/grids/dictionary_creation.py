@@ -94,7 +94,7 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
   check_pronunciation_dictionary_for_silence(result)
   check_pronunciation_dictionary_for_invalid_mfa_symbols(result)
 
-  return (None, False), result
+  return (None, True), result
 
 
 def check_pronunciation_dictionary_for_silence(result: PronunciationDict) -> None:

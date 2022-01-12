@@ -52,7 +52,7 @@ def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_di
     changed_something = True
     logger.info(f"Adjusted end from {old_max_time} to {grid.maxTime}.")
 
-  return True, changed_something
+  return None, changed_something
 
 
 def can_set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool, n_digits: int) -> bool:

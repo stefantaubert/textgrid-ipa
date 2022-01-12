@@ -57,6 +57,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     logger.error(error.default_message)
     return False, False
 
+  if audio_directory is None:
+    audio_directory = directory
+
+  if meta_directory is None:
+    meta_directory = directory
+
   if output_directory is None:
     output_directory = directory
 
@@ -111,4 +117,4 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
 
     save_grid(grid_file_out_abs, grid)
 
-  return total_success, False
+  return total_success, True

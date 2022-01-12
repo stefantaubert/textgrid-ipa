@@ -45,7 +45,7 @@ class DirectoriesAreNotDistinctError(ValidationError):
     return "Directories are not distinct!"
 
 
-def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, output_tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(reference_directory):
@@ -95,7 +95,7 @@ def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, direct
     grid_file_in_abs = directory / grid_files[file_stem]
     grid = load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = copy_tier_to_grid(ref_grid_in, reference_tier, grid, output_tier)
+    error, changed_anything = copy_tier_to_grid(ref_grid_in, reference_tier, grid, tier)
 
     success = error is None
     total_success &= success

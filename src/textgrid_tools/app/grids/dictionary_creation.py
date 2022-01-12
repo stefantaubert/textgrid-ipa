@@ -107,4 +107,4 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, tiers: List[str], pun
   )
 
   # logger.info(f"Written pronunciation dictionary to: \"{output_file}\".")
-  return True, False
+  return True, True

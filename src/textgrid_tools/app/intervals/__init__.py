@@ -9,4 +9,4 @@ from textgrid_tools.app.intervals.duration_joining import \
 from textgrid_tools.app.intervals.removing import get_removing_parser
 from textgrid_tools.app.intervals.sentence_joining import \
     get_sentence_joining_parser
-from textgrid_tools.app.intervals.separating import get_separating_parser
+from textgrid_tools.app.intervals.splitting import get_splitting_parser

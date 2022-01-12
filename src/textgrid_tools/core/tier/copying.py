@@ -1,8 +1,8 @@
 from typing import Optional
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.cloning import copy_tier
+from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import check_is_valid_grid, get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
@@ -41,7 +41,7 @@ def copy_tier_to_grid(reference_grid: TextGrid, reference_tier_name: str, grid: 
   if error := DifferentGridTimesError.validate(grid, reference_grid):
     return error, False
 
-  if error := NotExistingTierError.validate(grid, reference_tier_name):
+  if error := NotExistingTierError.validate(reference_grid, reference_tier_name):
     return error, False
 
   if error := MultipleTiersWithThatNameError.validate(reference_grid, reference_tier_name):

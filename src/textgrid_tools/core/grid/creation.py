@@ -217,7 +217,7 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
   mark = text_string_format.convert_symbols_to_string(text_symbols)
   result = get_grid(grid_name, tier_name, min_time, min_time_text_interval,
                     mark, max_time_text_interval, max_time)
-  return result
+  return (None, True), result
 
 
 def get_grid(grid_name: str, tier_name: str, min_time: float, min_time_text_interval: float, mark: str, max_time_text_interval: float, max_time: float,) -> TextGrid:

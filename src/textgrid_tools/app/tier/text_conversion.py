@@ -68,4 +68,4 @@ def app_convert_tier_to_text(directory: Path, tier: str, tier_format: StringForm
     save_text(text_file_out_abs, text, encoding)
 
   logger.info(f"Written output to: {output_directory}")
-  return total_success, False
+  return total_success, True

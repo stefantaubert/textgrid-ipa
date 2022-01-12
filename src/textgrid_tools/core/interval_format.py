@@ -4,7 +4,8 @@ from typing import Generator, Iterable, Optional, Set
 from text_utils.pronunciation.ipa2symb import merge_left, merge_right
 from text_utils.string_format import convert_symbols_string_to_symbols
 from text_utils.types import Symbol, Symbols
-from text_utils.utils import symbols_join, symbols_split_iterable
+from text_utils.utils import (symbols_ignore, symbols_join,
+                              symbols_split_iterable)
 from textgrid_tools.core.helper import symbols_are_empty_or_whitespace
 
 
@@ -117,6 +118,7 @@ def split_interval_symbols(symbols: Symbols, intervals_interval_format: Interval
     marks = (tuple(symbol) for symbol in symbols)
   else:
     assert False
+  marks = (symbols for symbols in marks if len(symbols) > 0)
   return marks
 
 
