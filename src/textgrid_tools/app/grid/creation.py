@@ -29,8 +29,8 @@ def get_creation_parser(parser: ArgumentParser):
                       help="directory containing audio files if not directory")
   parser.add_argument("--meta-directory", type=Path, metavar='PATH',
                       help="directory containing meta files if not directory")
-  parser.add_argument("--grid-name", type=str, metavar='',
-                      help="name of the generated grid")
+  parser.add_argument("--name", type=str, metavar='NAME',
+                      help="name of the grid")
   add_encoding_argument(parser, "encoding of text and meta files")
   parser.add_argument("--speech-rate", type=float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
@@ -42,7 +42,7 @@ def get_creation_parser(parser: ArgumentParser):
   return app_create_grid_from_text
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], grid_name: Optional[str], tier: str, speech_rate: float, text_format: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, text_format: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -99,7 +99,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       logger.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, text_format, meta, audio_in,
-                            sample_rate, grid_name, tier, speech_rate, n_digits)
+                                             sample_rate, name, tier, speech_rate, n_digits)
 
     success = error is None
     total_success &= success

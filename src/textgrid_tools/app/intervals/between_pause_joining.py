@@ -17,7 +17,7 @@ from textgrid_tools.core import join_intervals_between_pauses
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def git_between_pause_joining_parser(parser: ArgumentParser):
+def get_between_pause_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",

@@ -5,7 +5,7 @@ from os import cpu_count
 from pathlib import Path
 from shutil import copy
 from typing import OrderedDict as OrderedDictType
-from typing import Set, Tuple
+from typing import Tuple
 
 import numpy as np
 from general_utils.main import get_files_dict
@@ -23,7 +23,7 @@ MP3_FILE_TYPE = ".mp3"
 
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='N',
+  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='COUNT',
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
 
 

@@ -1,128 +1,93 @@
 import argparse
 from argparse import ArgumentParser
 from logging import getLogger
-from typing import Callable, Generator, Tuple
+from typing import Callable, Dict, Generator, Tuple
 
-from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.grid.duration_splitting import \
-    init_files_split_grid_on_durations_parser
-from textgrid_tools.app.grid.interval_splitting import \
-    init_files_split_grid_on_intervals_parser
-from textgrid_tools.app.grid_audio_synchronization import \
-    init_files_sync_grids_parser
-from textgrid_tools.app.grid_interval_removal import \
-    init_files_remove_intervals_parser
-from textgrid_tools.app.grid_splitting import init_files_split_grid_parser
-from textgrid_tools.app.grid_stats_generation import \
-    init_files_print_stats_parser
-from textgrid_tools.app.grid_to_text_conversion import \
-    init_files_convert_grid_to_text_parser
-from textgrid_tools.app.intervals.boundary_joining import \
-    init_files_join_intervals_on_boundaries_parser
-from textgrid_tools.app.intervals.interval_splitting import \
-    init_files_split_intervals_parser
-from textgrid_tools.app.intervals.pause_joining import \
-    init_files_join_intervals_on_pauses_parser
-from textgrid_tools.app.intervals.sentence_joining import \
-    get_sentence_joining_parser
-from textgrid_tools.app.text_to_grid_conversion import \
-    init_files_convert_text_to_grid_parser
-from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
-    init_map_arpa_tier_to_ipa_parser
-from textgrid_tools.app.tier_boundary_adjustment import \
-    init_files_fix_boundaries_parser
-from textgrid_tools.app.tier_cloning import init_files_clone_tier_parser
-from textgrid_tools.app.tier_convert_text_to_symbols import \
-    init_files_convert_text_to_symbols_parser
-from textgrid_tools.app.tier_copying import init_files_copy_tier_to_grid_parser
-from textgrid_tools.app.tier_dictionary_creation import \
-    init_convert_texts_to_dicts_parser
-from textgrid_tools.app.tier_mapping import \
-    init_files_map_tier_to_other_tier_parser
-from textgrid_tools.app.tier_moving import init_files_move_tier_parser
-from textgrid_tools.app.tier_normalization import \
-    init_files_normalize_tiers_parser
-from textgrid_tools.app.tier_removal import init_files_remove_tiers_parser
-from textgrid_tools.app.tier_renaming import init_files_rename_tier_parser
-from textgrid_tools.app.tier_symbol_removal import \
-    init_remove_symbols_from_tiers_parser
-from textgrid_tools.app.tier_words_to_arpa_transcription import \
-    init_app_transcribe_words_to_arpa_on_phoneme_level_parser
+from textgrid_tools.app import *
 
 INVOKE_HANDLER_VAR = "invoke_handler"
 
 
-def __configure_parser(parser: ArgumentParser, init_method: Callable[[ArgumentParser], Callable[..., ExecutionResult]]) -> None:
-  invoke_method = init_method(parser)
-  parser.set_defaults(**{
-    INVOKE_HANDLER_VAR: invoke_method,
-  })
-
-
-def init_main_parser(parser: ArgumentParser):
-  return parser.print_help
+Parsers = Generator[Tuple[str, str, Callable[[ArgumentParser],
+                                             Callable[..., ExecutionResult]]], None, None]
 
 
 def formatter(prog):
   return argparse.ArgumentDefaultsHelpFormatter(prog, max_help_position=40)
 
 
+def get_grids_parsers() -> Parsers:
+  yield "create-dictionary", "create pronunciation dictionary from multiple grid files", get_dictionary_creation_parser
+
+
+def get_grid_parsers() -> Parsers:
+  yield "create", "convert text files to grid files", get_creation_parser
+  yield "sync", "synchronize grid minTime and maxTime according to the corresponding audio file", get_audio_synchronization_parser
+  yield "split", "split a grid file on intervals into multiple grid files (incl. audio files)", get_splitting_parser
+  yield "print-stats", "print statistics", get_stats_generation_parser
+
+
+def get_tiers_parsers() -> Parsers:
+  yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_arpa_to_ipa_transcription_parser
+  yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_parser
+  yield "normalize", "normalize content of tiers", get_normalization_parser
+  yield "remove", "remove tiers", get_tiers_removing_parser
+  yield "switch-format", "switch tier format of tiers", get_string_format_switching_parser
+  yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
+
+
+def get_tier_parsers() -> Parsers:
+  yield "rename", "rename tier", get_renaming_parser
+  yield "clone", "clone tier", get_cloning_parser
+  yield "copy", "copy tier from one grid to another", get_copying_parser
+  yield "map", "map tier to other tiers", get_mapping_parser
+  yield "move", "move tier to another position", get_moving_parser
+  yield "export", "export content of tier to a txt file", get_text_conversion_parser
+
+
+def get_intervals_parsers() -> Parsers:
+  yield "join-between-pauses", "join intervals between pauses", get_between_pause_joining_parser
+  yield "join-by-boundary", "join intervals by boundaries of a tier", get_boundary_joining_parser
+  yield "join-on-sentences", "join intervals sentence-wise", get_sentence_joining_parser
+  yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
+  yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
+  yield "split", "split intervals", get_separating_parser
+  yield "remove", "remove intervals", get_intervals_removing_parser
+
+
 def _init_parser():
-  # result = ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  result = ArgumentParser(formatter_class=formatter)
-  result.description = "This program provides methods to modify TextGrids (.TextGrid) and their corresponding audio files (.wav)."
-  __configure_parser(result, init_main_parser)
-
-  subparsers = result.add_subparsers(help="description")
-
-  methods: Generator[Tuple[str, str, Callable[[ArgumentParser], Callable[..., ExecutionResult]]]] = (
-    ("convert-text-to-grid", "convert text files to grid files", init_files_convert_text_to_grid_parser),
-    ("convert-grid-to-text", "convert grid files to text files", init_files_convert_grid_to_text_parser),
-    ("create-dict-from-grids", "create pronunciation dictionary from multiple grid files",
-     init_convert_texts_to_dicts_parser),
-    ("join-tier-intervals-on-sentences", "join tier intervals sentence-wise",
-     get_sentence_joining_parser),
-    ("join-tier-intervals-on-pauses", "join tier intervals on pauses",
-     init_files_join_intervals_on_pauses_parser),
-    ("join-tier-intervals-on-boundaries", "join tier intervals on boundaries",
-     init_files_join_intervals_on_boundaries_parser),
-    ("map-tier", "map content of one tier to another tier", init_files_map_tier_to_other_tier_parser),
-    ("map-arpa-tier-to-ipa", "map a tier with ARPA transcriptions to IPA", init_map_arpa_tier_to_ipa_parser),
-    ("remove-tiers", "remove tiers", init_files_remove_tiers_parser),
-    ("remove-symbols-from-tiers", "remove symbols from tiers", init_remove_symbols_from_tiers_parser),
-    ("remove-intervals", "remove intervals on all tiers", init_files_remove_intervals_parser),
-    ("rename-tier", "rename a tier", init_files_rename_tier_parser),
-    ("clone-tier", "clone a tier", init_files_clone_tier_parser),
-    ("copy-tier", "copy tier from one grid to another", init_files_copy_tier_to_grid_parser),
-    ("move-tier", "move a tier to another position in the grid", init_files_move_tier_parser),
-    ("transcribe-words-to-arpa", "transcribe a tier containing words with help of a pronunciation dictionary to ARPA",
-     init_app_transcribe_words_to_arpa_on_phoneme_level_parser),
-    ("split-intervals", "split intervals", init_files_split_intervals_parser),
-    ("split-grid", "split a grid file on intervals into multiple grid files (incl. audio files)",
-     init_files_split_grid_parser),
-    ("split-grid-on-intervals", "split a grid file on intervals into multiple grid files (incl. audio files)",
-     init_files_split_grid_on_intervals_parser),
-    ("split-grid-on-durations", "split a grid file on intervals based on durations into multiple grid files (incl. audio files)",
-     init_files_split_grid_on_durations_parser),
-    ("convert-text-to-symbols", "convert text string format to symbol string format",
-     init_files_convert_text_to_symbols_parser),
-    ("fix-boundaries", "align boundaries of tiers according to a reference tier",
-     init_files_fix_boundaries_parser),
-    ("sync-grid-to-audio", "synchronize grid minTime and maxTime according to the corresponding audio file",
-     init_files_sync_grids_parser),
-    ("print-stats", "print statistics", init_files_print_stats_parser),
-    ("normalize-tiers", "normalize text of tiers", init_files_normalize_tiers_parser),
+  main_parser = ArgumentParser(
+    formatter_class=formatter,
+    description="This program provides methods to modify TextGrids (.TextGrid) and their corresponding audios (.wav).",
   )
 
-  for command, description, method in methods:
-    parser = subparsers.add_parser(command, help=description, formatter_class=formatter)
-    __configure_parser(parser, method)
+  subparsers = main_parser.add_subparsers(help="description")
 
-  return result
+  parsers: Dict[str, Tuple[Parsers, str]] = {
+    "grids": (get_grids_parsers(), "commands targeted at multiple grids at once"),
+    "grid": (get_grid_parsers(), "commands targeted at single grids"),
+    "tiers": (get_tiers_parsers(), "commands targeted at multiple tiers at once"),
+    "tier": (get_tier_parsers(), "commands targeted at single tiers"),
+    "intervals": (get_intervals_parsers(), "commands targeted at intervals of tiers"),
+  }
+
+  for parser_name, (methods, help_str) in parsers.items():
+    sub_parser = subparsers.add_parser(parser_name, help=help_str, formatter_class=formatter)
+    subparsers_of_subparser = sub_parser.add_subparsers()
+    for command, description, method in methods:
+      method_parser = subparsers_of_subparser.add_parser(
+        command, help=description, formatter_class=formatter)
+      method_parser.set_defaults(**{
+        INVOKE_HANDLER_VAR: method(method_parser),
+      })
+
+  return main_parser
 
 
-def _process_args(args):
-  params = vars(args)
+def main():
+  parser = _init_parser()
+  received_args = parser.parse_args()
+  params = vars(received_args)
 
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
@@ -134,9 +99,9 @@ def _process_args(args):
       logger.warning("Not everything was successfull!")
     if not changed_anything:
       logger.info("Didn't changed anything.")
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main_parser = _init_parser()
-  received_args = main_parser.parse_args()
-  _process_args(received_args)
+  main()

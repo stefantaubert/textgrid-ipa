@@ -34,7 +34,7 @@ class InvalidIntervalFormatError(ValidationError):
     return f"{str(self.tier_interval_format)} marks could not be further split."
 
 
-def split_intervals(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> ExecutionResult:
+def separate(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
