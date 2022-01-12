@@ -17,7 +17,7 @@ from textgrid_tools.core import convert_tier_to_text
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
+def get_text_conversion_parser(parser: ArgumentParser):
   parser.description = "This command writes the content of a tier into a text file."
 
   add_grid_directory_argument(parser)
@@ -29,10 +29,10 @@ def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
                       help="directory where to output the text files if not to the same directory")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return __main
+  return app_convert_tier_to_text
 
 
-def __main(directory: Path, tier: str, tier_format: StringFormat, tier_type: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_convert_tier_to_text(directory: Path, tier: str, tier_format: StringFormat, tier_type: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):

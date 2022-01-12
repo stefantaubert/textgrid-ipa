@@ -13,13 +13,13 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        get_audio_files, get_files_dict,
                                        get_text_files, read_audio, save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
-from textgrid_tools.core import create_grid_from_text as main
+from textgrid_tools.core import create_grid_from_text
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
 
 
-def get_create_grid_from_text_parser(parser: ArgumentParser):
+def get_creation_parser(parser: ArgumentParser):
   parser.description = f"This command converts text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing text, audio and meta files")
@@ -39,10 +39,10 @@ def get_create_grid_from_text_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return create_grid_from_text
+  return app_create_grid_from_text
 
 
-def create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], grid_name: Optional[str], tier: str, speech_rate: float, text_format: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], grid_name: Optional[str], tier: str, speech_rate: float, text_format: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -98,7 +98,7 @@ def create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta
     else:
       logger.info("No meta file found.")
 
-    (error, _), grid = main(text, text_format, meta, audio_in,
+    (error, _), grid = create_grid_from_text(text, text_format, meta, audio_in,
                             sample_rate, grid_name, tier, speech_rate, n_digits)
 
     success = error is None

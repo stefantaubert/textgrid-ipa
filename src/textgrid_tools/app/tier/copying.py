@@ -13,7 +13,7 @@ from textgrid_tools.app.validation import (DirectoryNotExistsError,
 from textgrid_tools.core import copy_tier_to_grid
 
 
-def init_files_copy_tier_to_grid_parser(parser: ArgumentParser):
+def get_copying_parser(parser: ArgumentParser):
   parser.description = "This command copies a tier in one grid to a tier in another grid."
   parser.add_argument("reference_directory", metavar="reference-directory", type=Path,
                       help="the directory containing the grid files with the content that should be mapped")
@@ -26,7 +26,7 @@ def init_files_copy_tier_to_grid_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return files_copy_tier_to_grid
+  return app_copy_tier_to_grid
 
 
 class DirectoriesAreNotDistinctError(ValidationError):
@@ -45,7 +45,7 @@ class DirectoriesAreNotDistinctError(ValidationError):
     return "Directories are not distinct!"
 
 
-def files_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, output_tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, output_tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(reference_directory):

@@ -15,7 +15,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import map_tier
 
 
-def get_map_tier_parser(parser: ArgumentParser):
+def get_mapping_parser(parser: ArgumentParser):
   parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals."
   add_grid_directory_argument(parser)
   parser.add_argument("tier", metavar="tier", type=str,
@@ -33,10 +33,10 @@ def get_map_tier_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return __main
+  return app_map_tier
 
 
-def __main(directory: Path, tier: str, tier_format: StringFormat, target_tiers: Set[str], target_tiers_format: StringFormat, include_pauses: bool, ignore: Set[str], ignore_symbols: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_map_tier(directory: Path, tier: str, tier_format: StringFormat, target_tiers: Set[str], target_tiers_format: StringFormat, include_pauses: bool, ignore: Set[str], ignore_symbols: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     map_tier,
     ignore_marks=ignore,

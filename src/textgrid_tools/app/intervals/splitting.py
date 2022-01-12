@@ -16,7 +16,7 @@ from textgrid_tools.core.interval_format import IntervalFormat
 # TODO tiers support
 
 
-def init_files_split_intervals_parser(parser: ArgumentParser):
+def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing the grid files which should be modified")
@@ -35,10 +35,10 @@ def init_files_split_intervals_parser(parser: ArgumentParser):
                       help="tier on which the mapped content should be written if not to target-tier.")
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return files_split_intervals_tier
+  return app_split_intervals
 
 
-def files_split_intervals_tier(directory: Path, tiers: List[str], tier_format: StringFormat, tier_type: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_split_intervals(directory: Path, tiers: List[str], tier_format: StringFormat, tier_type: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     split_intervals,
     ignore_join_symbols=ignore_join_symbols,

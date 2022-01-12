@@ -24,7 +24,7 @@ from textgrid_tools.app.intervals.interval_splitting import \
 from textgrid_tools.app.intervals.pause_joining import \
     init_files_join_intervals_on_pauses_parser
 from textgrid_tools.app.intervals.sentence_joining import \
-    init_files_join_intervals_on_sentences_parser
+    get_sentence_joining_parser
 from textgrid_tools.app.text_to_grid_conversion import \
     init_files_convert_text_to_grid_parser
 from textgrid_tools.app.tier_arpa_to_ipa_mapping import \
@@ -81,7 +81,7 @@ def _init_parser():
     ("create-dict-from-grids", "create pronunciation dictionary from multiple grid files",
      init_convert_texts_to_dicts_parser),
     ("join-tier-intervals-on-sentences", "join tier intervals sentence-wise",
-     init_files_join_intervals_on_sentences_parser),
+     get_sentence_joining_parser),
     ("join-tier-intervals-on-pauses", "join tier intervals on pauses",
      init_files_join_intervals_on_pauses_parser),
     ("join-tier-intervals-on-boundaries", "join tier intervals on boundaries",

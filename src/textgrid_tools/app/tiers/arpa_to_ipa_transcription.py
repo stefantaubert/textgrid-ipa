@@ -15,7 +15,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import map_arpa_to_ipa
 
 
-def init_map_arpa_tier_to_ipa_parser(parser: ArgumentParser):
+def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   parser.description = "This command maps ARPA transcriptions to IPA."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
@@ -30,10 +30,10 @@ def init_map_arpa_tier_to_ipa_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return map_arpa_tier_to_ipa
+  return app_map_arpa_to_ipa
 
 
-def map_arpa_tier_to_ipa(directory: Path, tiers: List[str], tiers_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_map_arpa_to_ipa(directory: Path, tiers: List[str], tiers_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     map_arpa_to_ipa,
     ignore=set(ignore),

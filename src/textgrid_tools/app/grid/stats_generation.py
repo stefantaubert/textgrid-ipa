@@ -10,7 +10,7 @@ from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import print_stats
 
 
-def init_files_print_stats_parser(parser: ArgumentParser):
+def get_stats_generation_parser(parser: ArgumentParser):
   parser.description = "This command generate statistics about the grid files."
   add_grid_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=float, default=0.002,

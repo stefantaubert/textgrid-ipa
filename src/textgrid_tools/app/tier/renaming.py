@@ -15,7 +15,7 @@ from textgrid_tools.core.validation import (InvalidTierNameError,
                                             NonDistinctTiersError)
 
 
-def init_files_rename_tier_parser(parser: ArgumentParser):
+def get_renaming_parser(parser: ArgumentParser):
   parser.description = "This command renames a tier."
   add_grid_directory_argument(parser)
   parser.add_argument("tier", type=str, metavar="tier",
@@ -25,10 +25,10 @@ def init_files_rename_tier_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return files_rename_tier
+  return app_rename_tier
 
 
-def files_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := NonDistinctTiersError.validate(tier, name):

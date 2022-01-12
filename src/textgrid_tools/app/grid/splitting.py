@@ -10,11 +10,11 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        get_grid_files, load_grid, save_audio,
                                        save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
-from textgrid_tools.core import split_grid_on_intervals as main
+from textgrid_tools.core import split_grid_on_intervals
 from tqdm import tqdm
 
 
-def init_files_split_grid_parser(parser: ArgumentParser):
+def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits a grid into multiple grids."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing the grids and audios")
@@ -32,10 +32,10 @@ def init_files_split_grid_parser(parser: ArgumentParser):
                       help="the directory where to output the modified audios if not to directory/audio-directory.")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return split_grid_on_intervals
+  return app_split_grid_on_intervals
 
 
-def split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_pauses: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
+def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_pauses: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -92,7 +92,7 @@ def split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], ti
       audio_file_in_abs = audio_directory / audio_files[file_stem]
       sample_rate, audio = read(audio_file_in_abs)
 
-    (error, changed_anything), grids_audios = main(
+    (error, changed_anything), grids_audios = split_grid_on_intervals(
       grid, audio, sample_rate, tier, include_pauses, n_digits)
 
     success = error is None

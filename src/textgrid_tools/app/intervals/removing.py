@@ -12,13 +12,13 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        get_grid_files, load_grid, save_audio,
                                        save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
-from textgrid_tools.core import remove_intervals as main
+from textgrid_tools.core import remove_intervals
 from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
 
 # TODO tiers support
 
 
-def get_remove_intervals_parser(parser: ArgumentParser):
+def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing the grids and the corresponding audios")
@@ -37,10 +37,10 @@ def get_remove_intervals_parser(parser: ArgumentParser):
                       help="the directory where to output the modified audio files if not to directory/audio-directory.")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return remove_intervals
+  return app_remove_intervals
 
 
-def remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_audio: bool, tier: str, marks: List[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_audio: bool, tier: str, marks: List[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -111,8 +111,8 @@ def remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_au
       audio_file_in_abs = audio_directory / audio_files[file_stem]
       sample_rate, audio = read(audio_file_in_abs)
 
-    (error, changed_anything), new_audio = main(grid, audio, sample_rate, tier,
-                                                set(marks), pauses, n_digits)
+    (error, changed_anything), new_audio = remove_intervals(grid, audio, sample_rate, tier,
+                                                            set(marks), pauses, n_digits)
 
     success = error is None
     total_success &= success

@@ -17,7 +17,7 @@ from textgrid_tools.core import join_intervals_between_pauses
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
+def git_between_pause_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
@@ -29,10 +29,10 @@ def init_files_join_intervals_on_pauses_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return files_join_intervals_on_pauses
+  return app_join_intervals_between_pauses
 
 
-def files_join_intervals_on_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_between_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_between_pauses,
     pause=join_pause,

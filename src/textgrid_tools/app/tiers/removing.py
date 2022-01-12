@@ -10,7 +10,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import remove_tiers
 
 
-def init_files_remove_tiers_parser(parser: ArgumentParser):
+def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes tiers from a grid."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="the directory containing the grid files")
@@ -19,10 +19,10 @@ def init_files_remove_tiers_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return files_remove_tiers
+  return app_remove_tiers
 
 
-def files_remove_tiers(directory: Path, tiers: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_remove_tiers(directory: Path, tiers: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     remove_tiers,
     tier_names=set(tiers),

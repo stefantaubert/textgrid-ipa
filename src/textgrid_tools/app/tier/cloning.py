@@ -13,7 +13,7 @@ from textgrid_tools.core import clone_tier
 from textgrid_tools.core.globals import ExecutionResult
 
 
-def init_files_clone_tier_parser(parser: ArgumentParser):
+def get_cloning_parser(parser: ArgumentParser):
   parser.description = "This command clones a tier."
 
   add_grid_directory_argument(parser)

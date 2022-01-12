@@ -16,7 +16,7 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def init_files_join_intervals_on_boundaries_parser(parser: ArgumentParser):
+def get_boundary_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier according to the interval boundaries of another tier."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
@@ -28,10 +28,10 @@ def init_files_join_intervals_on_boundaries_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return files_join_intervals_on_boundaries
+  return app_join_intervals_on_boundaries
 
 
-def files_join_intervals_on_boundaries(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, boundary_tier: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_on_boundaries(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, boundary_tier: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_on_boundaries,
     boundary_tier_name=boundary_tier,

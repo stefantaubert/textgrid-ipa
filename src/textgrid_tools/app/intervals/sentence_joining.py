@@ -17,7 +17,7 @@ from textgrid_tools.core import join_intervals_on_sentences
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def init_files_join_intervals_on_sentences_parser(parser: ArgumentParser):
+def get_sentence_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
@@ -31,10 +31,10 @@ def init_files_join_intervals_on_sentences_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return files_join_intervals
+  return app_join_intervals_on_sentences
 
 
-def files_join_intervals(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, ignore: List[str], punctuation: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_on_sentences(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, ignore: List[str], punctuation: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_on_sentences,
     punctuation_symbols=set(punctuation),

@@ -10,7 +10,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import remove_symbols
 
 
-def init_remove_symbols_from_tiers_parser(parser: ArgumentParser):
+def get_symbol_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes symbols from tiers."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tiers", type=str, nargs='+', required=True)
@@ -18,10 +18,10 @@ def init_remove_symbols_from_tiers_parser(parser: ArgumentParser):
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
-  return remove_symbols_from_tiers
+  return app_remove_symbols
 
 
-def remove_symbols_from_tiers(directory: Path, tiers: List[str], tiers_format: StringFormat, symbols: List[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_remove_symbols(directory: Path, tiers: List[str], tiers_format: StringFormat, symbols: List[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     remove_symbols,
     tier_names=set(tiers),

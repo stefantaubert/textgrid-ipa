@@ -9,7 +9,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import switch_string_format
 
 
-def init_files_convert_text_to_symbols_parser(parser: ArgumentParser):
+def get_string_format_switching_parser(parser: ArgumentParser):
   parser.description = "This command converts text in TEXT format to the SYMBOL format."
   parser.add_argument("--grid_folder_in", type=Path, required=True)
   parser.add_argument("--tier", type=str, required=True)
@@ -17,10 +17,10 @@ def init_files_convert_text_to_symbols_parser(parser: ArgumentParser):
   parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
   parser.add_argument("--grid_folder_out", type=Path, required=True)
   parser.add_argument("--overwrite", action="store_true")
-  return files_convert_text_to_symbols
+  return app_switch_string_format
 
 
-def files_convert_text_to_symbols(directory: Path, tiers: Set[str], tiers_format: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_switch_string_format(directory: Path, tiers: Set[str], tiers_format: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     switch_string_format,
     tier_names=set(tiers),

@@ -11,10 +11,10 @@ from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        get_audio_files, get_grid_files,
                                        load_grid, read_audio, save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
-from textgrid_tools.core import sync_grid_to_audio as main
+from textgrid_tools.core import sync_grid_to_audio
 
 
-def get_sync_grid_to_audio_parser(parser: ArgumentParser):
+def get_audio_synchronization_parser(parser: ArgumentParser):
   parser.description = "This command synchronizes the grids minTime and maxTime according to the audio, i.e. if minTime is not zero, then the first interval will be set to start at zero and if the last interval is not ending at the total duration of the audio, it will be adjusted to it."
   add_grid_directory_argument(parser)
   parser.add_argument("--audio-directory", type=Path, metavar="PATH",
@@ -22,10 +22,10 @@ def get_sync_grid_to_audio_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return sync_grid_to_audio
+  return app_sync_grid_to_audio
 
 
-def sync_grid_to_audio(directory: Path, audio_directory: Optional[Path], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_sync_grid_to_audio(directory: Path, audio_directory: Optional[Path], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -72,7 +72,7 @@ def sync_grid_to_audio(directory: Path, audio_directory: Optional[Path], n_digit
     audio_file_in_abs = audio_directory / audio_files[file_stem]
     sample_rate, audio_in = read_audio(audio_file_in_abs)
 
-    error, changed_anything = main(grid, audio_in, sample_rate, n_digits)
+    error, changed_anything = sync_grid_to_audio(grid, audio_in, sample_rate, n_digits)
 
     success = error is None
     total_success &= success

@@ -12,7 +12,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import fix_interval_boundaries
 
 
-def init_files_fix_boundaries_parser(parser: ArgumentParser):
+def get_boundary_fixing_parser(parser: ArgumentParser):
   parser.description = "This command set the closest boundaries of tiers to those of a reference tier."
   add_grid_directory_argument(parser)
   parser.add_argument("tier", type=str, help="tier with contains the right boundaries")
@@ -22,10 +22,10 @@ def init_files_fix_boundaries_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
-  return files_fix_boundaries
+  return app_fix_interval_boundaries
 
 
-def files_fix_boundaries(directory: Path, tier: str, tiers: List[str], difference_threshold: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_fix_interval_boundaries(directory: Path, tier: str, tiers: List[str], difference_threshold: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     fix_interval_boundaries,
     difference_threshold=difference_threshold,

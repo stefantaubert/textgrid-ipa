@@ -14,7 +14,7 @@ from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import normalize_tiers
 
 
-def get_normalize_parser(parser: ArgumentParser):
+def get_normalization_parser(parser: ArgumentParser):
   parser.description = "This command normalizes text on multiple tiers."
   parser.add_argument("directory", type=Path, metavar="directory",
                       help="directory containing the grid files")
@@ -29,10 +29,10 @@ def get_normalize_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
-  return __main
+  return app_normalize_tiers
 
 
-def __main(directory: Path, tiers: List[str], tier_format: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_normalize_tiers(directory: Path, tiers: List[str], tier_format: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     normalize_tiers,
     language=language,

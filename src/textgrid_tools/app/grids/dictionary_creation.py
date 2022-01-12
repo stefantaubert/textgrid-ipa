@@ -21,7 +21,7 @@ from textgrid_tools.core import get_arpa_pronunciation_dictionary
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
+def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   arpa_dicts = [
     PublicDictType.MFA_ARPA,
     PublicDictType.CMU_ARPA,
@@ -52,10 +52,10 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
   add_string_format_argument(parser, "--tiers-format", "format of tiers")
   add_interval_format_argument(parser, "--tiers-type", "type of tiers")
   add_overwrite_argument(parser)
-  return convert_texts_to_arpa_dicts
+  return app_get_arpa_pronunciation_dictionary
 
 
-def convert_texts_to_arpa_dicts(directory: Path, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, dictionary: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_get_arpa_pronunciation_dictionary(directory: Path, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, dictionary: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):

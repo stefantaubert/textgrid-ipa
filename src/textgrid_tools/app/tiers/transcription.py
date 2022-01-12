@@ -19,7 +19,7 @@ from textgrid_tools.app.validation import FileNotExistsError
 from textgrid_tools.core import transcribe_text
 
 
-def init_app_transcribe_words_to_arpa_on_phoneme_level_parser(parser: ArgumentParser):
+def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
