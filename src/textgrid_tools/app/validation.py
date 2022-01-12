@@ -38,3 +38,19 @@ class FileAlreadyExistsError(ValidationError):
   @property
   def default_message(self) -> str:
     return f"File \"{str(self.path)}\" does already exist!"
+
+
+class FileNotExistsError(ValidationError):
+  def __init__(self, path: Path) -> None:
+    super().__init__()
+    self.path = path
+
+  @classmethod
+  def validate(cls, path: Path):
+    if not path.exists():
+      return cls(path)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return f"File \"{str(self.path)}\" does not exist!"

@@ -1,20 +1,21 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import Callable, Iterable, List, cast
+from typing import Callable, List
 
 from pronunciation_dict_parser.default_parser import PublicDictType
 from pronunciation_dict_parser.export import export
+from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFAULT_PUNCTUATION
+from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_overwrite_argument, get_grid_files,
                                        load_grid)
-from textgrid_tools.core.tiers_dictionary_creation import (
-    can_get_arpa_pronunciation_dicts_from_texts,
-    get_arpa_pronunciation_dicts_from_texts)
-from tqdm import tqdm
+from textgrid_tools.app.validation import (DirectoryNotExistsError,
+                                           FileAlreadyExistsError)
+from textgrid_tools.core import get_arpa_pronunciation_dictionary
+from textgrid_tools.core.interval_format import IntervalFormat
 
 
 def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
@@ -41,61 +42,56 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
                       help="include punctuation in the words")
   parser.add_argument("--split-on-hyphen", action="store_true",
                       help="split words on hyphen symbol before lookup")
-  parser.add_argument("--dictionary", metavar='PATH', choices=arpa_dicts,
-                      type=PublicDictType.__getitem__, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur then its pronunciation will be estimated)")
+  # parser.add_argument("--dictionary", metavar='PATH', choices=arpa_dicts,
+  #                     type=PublicDictType.__getitem__, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur then its pronunciation will be estimated)")
   add_n_jobs_argument(parser)
   add_overwrite_argument(parser)
   return convert_texts_to_arpa_dicts
 
 
-def convert_texts_to_arpa_dicts(input_directory: Path, tier: str, punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, output_file: Path, dictionary: PublicDictType, n_digits: int, overwrite: bool) -> None:
+def convert_texts_to_arpa_dicts(directory: Path, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, output_file: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  if not input_directory.exists():
-    logger.error("Textgrid folder does not exist!")
-    return
+  if error := DirectoryNotExistsError.validate(directory):
+    logger.error(error.default_message)
+    return False, False
 
-  if output_file.is_file() and not overwrite:
-    logger.error(f"{output_file} already exists!")
-    return
+  if not overwrite and (error := FileAlreadyExistsError(output_file)):
+    logger.error(error.default_message)
+    return False, False
 
-  trim_symbols_set = set(punctuation)
-  logger.info(
-    f"Punctuation symbols: {' '.join(sorted(trim_symbols_set))} (#{len(trim_symbols_set)})")
+  grid_files = get_grid_files(directory)
 
-  grid_files = get_grid_files(input_directory)
-  logger.info(f"Found {len(grid_files)} grid files.")
-
-  logger.info("Reading files...")
   grids: List[TextGrid] = []
-  for file_stem in cast(Iterable[str], tqdm(grid_files)):
-    logger.info(f"Processing {file_stem} ...")
-
-    grid_file_in_abs = input_directory / grid_files[file_stem]
+  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
+    logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
+    grid_file_in_abs = directory / rel_path
     grid_in = load_grid(grid_file_in_abs, n_digits)
     grids.append(grid_in)
 
-  can_create_pronunciations = can_get_arpa_pronunciation_dicts_from_texts(grids, tier,
-                                                                          include_punctuation_in_pronunciations,
-                                                                          include_punctuation_in_words)
-  if not can_create_pronunciations:
-    return
-
   logger.info("Producing dictionary...")
-  pronunciation_dict = get_arpa_pronunciation_dicts_from_texts(
+  (error, changed_anything), pronunciation_dict = get_arpa_pronunciation_dictionary(
     grids=grids,
-    tier=tier,
-    punctuation=trim_symbols_set,
-    dict_type=dictionary,
+    punctuation=set(punctuation),
     consider_annotations=consider_annotations,
-    ignore_case=True,
     n_jobs=n_jobs,
     split_on_hyphen=split_on_hyphen,
     include_punctuation_in_pronunciations=include_punctuation_in_pronunciations,
     include_punctuation_in_words=include_punctuation_in_words,
+    chunksize=chunksize,
+    tier_names=set(tiers),
+    tiers_interval_format=tiers_type,
+    tiers_string_format=tiers_format,
   )
 
-  logger.info(f"Saving {output_file} ...")
+  assert not changed_anything
+  success = error is None
+
+  if not success:
+    logger.error(error.default_message)
+    return False, False
+
+  logger.info("Saving dictionary...")
   export(
     include_counter=True,
     path=output_file,
@@ -103,6 +99,6 @@ def convert_texts_to_arpa_dicts(input_directory: Path, tier: str, punctuation: L
     symbol_sep=" ",
     word_pronunciation_sep="  ",
   )
-  logger.info(f"Written pronunciation dictionary to: \"{output_file}\".")
 
-  return
+  # logger.info(f"Written pronunciation dictionary to: \"{output_file}\".")
+  return True, False

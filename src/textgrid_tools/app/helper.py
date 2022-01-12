@@ -34,6 +34,11 @@ def add_output_directory_argument(parser: ArgumentParser) -> None:
                       help="directory where to output the grids if not to the same directory")
 
 
+def add_grid_directory_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("directory", type=Path, metavar="directory",
+                      help="directory containing the grids")
+
+
 def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
                       help="overwrite existing tiers")

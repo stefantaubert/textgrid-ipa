@@ -2,17 +2,15 @@ from argparse import ArgumentParser
 from functools import partial
 from logging import getLogger
 from pathlib import Path
-from typing import Callable, Iterable, List, Optional, cast
+from typing import Callable, Optional, cast
 
-from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS
 from textgrid_tools.app.helper import (copy_grid, get_grid_files, load_grid,
                                        save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
-from textgrid_tools.core import clone_tier
 from textgrid_tools.core.globals import ExecutionResult
 from tqdm import tqdm
+
 
 def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
   logger = getLogger(__name__)

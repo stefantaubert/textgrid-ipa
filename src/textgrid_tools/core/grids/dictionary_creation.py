@@ -37,7 +37,7 @@ class PunctuationFormatNotSupportedError(ValidationError):
     return "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too."
 
 
-def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunk_size: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
+def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunksize: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
   assert tiers_interval_format in (IntervalFormat.WORD, IntervalFormat.WORDS)
@@ -67,6 +67,8 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
   logger = getLogger(__name__)
   # logger.debug(f"Chosen dictionary type: {dict_type}")
 
+  # logger.info(f"Punctuation symbols: {' '.join(sorted(punctuation))} (#{len(punctuation)})")
+
   words = get_word_symbols_from_tiers(all_tiers, tiers_string_format)
   logger.debug(f"Retrieved {len(words)} unique words.")
 
@@ -74,7 +76,7 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
   cache = prepare_cache_mp(
     sentences=words,
     annotation_split_symbol="/",
-    chunksize=chunk_size,
+    chunksize=chunksize,
     consider_annotation=consider_annotations,
     get_pronunciation=get_eng_to_arpa_lookup_method(),
     ignore_case=True,

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from functools import partial
+from logging import getLogger
 from pathlib import Path
 from typing import List, Optional, Set
 
@@ -10,6 +11,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument)
 from textgrid_tools.app.tier.common import process_grids
+from textgrid_tools.app.validation import FileNotExistsError
 from textgrid_tools.core import map_arpa_to_ipa
 
 
