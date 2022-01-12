@@ -63,7 +63,7 @@ def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], tiers_stri
         logger = getLogger(__name__)
         logger.warning(
           f"The duration of interval {get_interval_readable(interval)} ({interval.duration()}s) is bigger than {max_duration_s}!")
-
+    # todo fix bug
     for chunk in chunk_intervals(tier.intervals, max_duration_s, include_empty_intervals):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
       if not check_intervals_are_equal(chunk, [merged_interval]):
