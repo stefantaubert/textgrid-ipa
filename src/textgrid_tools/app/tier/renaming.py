@@ -4,7 +4,11 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS, ExecutionResult
+from textgrid_tools.app.globals import ExecutionResult
+from textgrid_tools.app.helper import (add_grid_directory_argument,
+                                       add_n_digits_argument,
+                                       add_output_directory_argument,
+                                       add_overwrite_argument)
 from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import rename_tier
 from textgrid_tools.core.validation import (InvalidTierNameError,
@@ -13,12 +17,14 @@ from textgrid_tools.core.validation import (InvalidTierNameError,
 
 def init_files_rename_tier_parser(parser: ArgumentParser):
   parser.description = "This command renames a tier."
-  parser.add_argument("--grid_folder_in", type=Path, required=True)
-  parser.add_argument("--tier", type=str, required=True)
-  parser.add_argument("--new_name", type=str, required=True)
-  parser.add_argument("--n_digits", type=int, default=DEFAULT_N_DIGITS)
-  parser.add_argument("--grid_folder_out", type=Path, required=True)
-  parser.add_argument("--overwrite", action="store_true")
+  add_grid_directory_argument(parser)
+  parser.add_argument("tier", type=str, metavar="tier",
+                      help="tier which should be renamed")
+  parser.add_argument("name", type=str, metavar="tier",
+                      help="new name of tier")
+  add_n_digits_argument(parser)
+  add_output_directory_argument(parser)
+  add_overwrite_argument(parser)
   return files_rename_tier
 
 

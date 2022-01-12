@@ -8,10 +8,13 @@ from pronunciation_dict_parser.export import export
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
-from textgrid_tools.app.helper import (add_n_digits_argument,
+from textgrid_tools.app.helper import (add_grid_directory_argument,
+                                       add_interval_format_argument,
+                                       add_n_digits_argument,
                                        add_n_jobs_argument,
-                                       add_overwrite_argument, get_grid_files,
-                                       load_grid)
+                                       add_overwrite_argument,
+                                       add_string_format_argument,
+                                       get_grid_files, load_grid)
 from textgrid_tools.app.validation import (DirectoryNotExistsError,
                                            FileAlreadyExistsError)
 from textgrid_tools.core import get_arpa_pronunciation_dictionary
@@ -26,13 +29,12 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
     PublicDictType.PROSODYLAB_ARPA,
   ]
   parser.description = "This command creates an ARPA pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
-  parser.add_argument("input_directory", type=Path, metavar="input-directory",
-                      help="the directory containing the grid files")
-  parser.add_argument("tier", type=str, help="the tier that contains the words")
-  parser.add_argument("output_file", type=Path, metavar="output-file",
-                      help="the file containing the generated pronunciation dictionary")
+  add_grid_directory_argument(parser)
+  parser.add_argument("tiers", type=str, nargs="+", help="tiers that contains the English text")
+  parser.add_argument("dictionary", type=Path, metavar="dictionary",
+                      help="path to write the generated pronunciation dictionary")
   parser.add_argument("--punctuation", type=str, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
-                      help="Trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary.")
+                      help="trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary")
   add_n_digits_argument(parser)
   parser.add_argument("--consider-annotations", action="store_true",
                       help="consider /.../-styled annotations")
@@ -42,21 +44,25 @@ def init_convert_texts_to_dicts_parser(parser: ArgumentParser) -> Callable:
                       help="include punctuation in the words")
   parser.add_argument("--split-on-hyphen", action="store_true",
                       help="split words on hyphen symbol before lookup")
-  # parser.add_argument("--dictionary", metavar='PATH', choices=arpa_dicts,
+  # parser.add_argument("--ref-dictionary", metavar='PATH', choices=arpa_dicts,
   #                     type=PublicDictType.__getitem__, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur then its pronunciation will be estimated)")
   add_n_jobs_argument(parser)
+  parser.add_argument("--chunksize", type=int, metavar="NUMBER",
+                      help="amount of words to chunk into one job", default=500)
+  add_string_format_argument(parser, "--tiers-format", "format of tiers")
+  add_interval_format_argument(parser, "--tiers-type", "type of tiers")
   add_overwrite_argument(parser)
   return convert_texts_to_arpa_dicts
 
 
-def convert_texts_to_arpa_dicts(directory: Path, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, output_file: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
+def convert_texts_to_arpa_dicts(directory: Path, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, dictionary: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
     logger.error(error.default_message)
     return False, False
 
-  if not overwrite and (error := FileAlreadyExistsError(output_file)):
+  if not overwrite and (error := FileAlreadyExistsError(dictionary)):
     logger.error(error.default_message)
     return False, False
 
@@ -94,7 +100,7 @@ def convert_texts_to_arpa_dicts(directory: Path, tiers: List[str], punctuation: 
   logger.info("Saving dictionary...")
   export(
     include_counter=True,
-    path=output_file,
+    path=dictionary,
     pronunciation_dict=pronunciation_dict,
     symbol_sep=" ",
     word_pronunciation_sep="  ",

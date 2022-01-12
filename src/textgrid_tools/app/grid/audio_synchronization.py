@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_n_digits_argument,
+from textgrid_tools.app.helper import (add_grid_directory_argument,
+                                       add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_audio_files, get_grid_files,
@@ -15,8 +16,7 @@ from textgrid_tools.core import sync_grid_to_audio as main
 
 def get_sync_grid_to_audio_parser(parser: ArgumentParser):
   parser.description = "This command synchronizes the grids minTime and maxTime according to the audio, i.e. if minTime is not zero, then the first interval will be set to start at zero and if the last interval is not ending at the total duration of the audio, it will be adjusted to it."
-  parser.add_argument("directory", type=Path, metavar="directory",
-                      help="directory containing the grid files")
+  add_grid_directory_argument(parser)
   parser.add_argument("--audio-directory", type=Path, metavar="PATH",
                       help="directory containing the audio files if not the same directory")
   add_n_digits_argument(parser)

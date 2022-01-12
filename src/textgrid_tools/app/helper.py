@@ -10,8 +10,11 @@ from typing import Set, Tuple
 import numpy as np
 from general_utils.main import get_files_dict
 from scipy.io.wavfile import read, write
+from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import DEFAULT_N_DIGITS, DEFAULT_N_JOBS
+from textgrid_tools.app.globals import (DEFAULT_ENCODING, DEFAULT_N_DIGITS,
+                                        DEFAULT_N_JOBS)
+from textgrid_tools.core.interval_format import IntervalFormat
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
@@ -21,7 +24,22 @@ MP3_FILE_TYPE = ".mp3"
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
   parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='N',
-                      choices=range(17), help="precision of the grid files (max count of digits after the comma)")
+                      choices=range(17), help="precision of the grids (max count of digits after the comma)")
+
+
+def add_string_format_argument(parser: ArgumentParser, name: str = '--tier-format', help_str: str = "format of tier") -> None:
+  parser.add_argument(name, choices=StringFormat,
+                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help=help_str)
+
+
+def add_interval_format_argument(parser: ArgumentParser, name: str, help_str: str) -> None:
+  parser.add_argument(name, choices=IntervalFormat,
+                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help=help_str)
+
+
+def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:
+  parser.add_argument("--encoding", type=str, metavar='ENCODING',
+                      help=help_str, default=DEFAULT_ENCODING)
 
 
 def add_overwrite_argument(parser: ArgumentParser) -> None:
@@ -39,9 +57,9 @@ def add_grid_directory_argument(parser: ArgumentParser) -> None:
                       help="directory containing the grids")
 
 
-def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("-ot", "--overwrite-tier", action="store_true",
-                      help="overwrite existing tiers")
+# def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
+#   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
+#                       help="overwrite existing tiers")
 
 
 def add_n_jobs_argument(parser: ArgumentParser) -> None:

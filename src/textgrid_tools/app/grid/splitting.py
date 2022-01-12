@@ -6,7 +6,6 @@ from typing import Optional
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_output_directory_argument,
                                        add_overwrite_argument, get_audio_files,
                                        get_grid_files, load_grid, save_audio,
                                        save_grid)
@@ -18,35 +17,49 @@ from tqdm import tqdm
 def init_files_split_grid_parser(parser: ArgumentParser):
   parser.description = "This command splits a grid into multiple grids."
   parser.add_argument("directory", type=Path, metavar="directory",
-                      help="directory containing grid files, from which intervals should be removed")
-  parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")
-  parser.add_argument("--audio-directory", type=Path, metavar='',
-                      help="directory containing audio files")
+                      help="directory containing the grids and audios")
+  parser.add_argument("tier", type=str, metavar="tier",
+                      help="tier on which intervals should be removed")
+  parser.add_argument("--audio-directory", type=Path, metavar='PATH',
+                      help="directory containing the audios if not directory")
   parser.add_argument("--include-pauses", action="store_true",
                       help="include pause intervals")
-  add_output_directory_argument(parser)
+  parser.add_argument("--ignore-audio", action="store_true",
+                      help="ignore audios")
+  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+                      help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
-                      help="the directory where to output the modified audio files if not to audio-directory.")
+                      help="the directory where to output the modified audios if not to directory/audio-directory.")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return split_grid_on_intervals
 
 
-def split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_pauses: bool, n_digits: int, output_directory: Path, output_audio_directory: Path, overwrite: bool) -> None:
+def split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_pauses: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> None:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
     logger.error(error.default_message)
     return False, False
 
-  if audio_directory is not None and (error := DirectoryNotExistsError.validate(audio_directory)):
+  if not ignore_audio and audio_directory is not None and (error := DirectoryNotExistsError.validate(audio_directory)):
     logger.error(error.default_message)
     return False, False
+
+  if audio_directory is None and not ignore_audio:
+    audio_directory = directory
+
+  if output_directory is None:
+    output_directory = directory
+
+  if output_audio_directory is None:
+    output_audio_directory = audio_directory
 
   grid_files = get_grid_files(directory)
 
   audio_files = {}
-  if audio_directory is not None:
+  if not ignore_audio:
+    assert audio_directory is not None
     audio_files = get_audio_files(audio_directory)
 
     missing_grid_files = set(audio_files.keys()).difference(grid_files.keys())

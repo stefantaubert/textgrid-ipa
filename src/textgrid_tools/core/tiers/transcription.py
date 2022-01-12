@@ -15,7 +15,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError)
 
 
-def transcribe_eng_text_to_arpa(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, pronunciation_dictionary: PronunciationDict, n_jobs: int, chunksize: int) -> ExecutionResult:
+def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, pronunciation_dictionary: PronunciationDict, n_jobs: int, chunksize: int) -> ExecutionResult:
   """
   chunksize: amount of intervals at once
   """
@@ -36,7 +36,7 @@ def transcribe_eng_text_to_arpa(grid: TextGrid, tier_names: Set[str], tiers_stri
   intervals_symbols = list(get_mark_symbols_intervals(intervals, tiers_string_format))
 
   logger = getLogger(__name__)
-  logger.debug("Transcibing to ARPA...")
+  logger.debug("Transcibing...")
   intervals_symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=convert_pronunciation_dict_to_cache(pronunciation_dictionary),
     sentences=set(intervals_symbols),

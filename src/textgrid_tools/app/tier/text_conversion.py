@@ -5,9 +5,13 @@ from typing import Optional
 
 from text_utils import StringFormat
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_overwrite_argument, get_grid_files,
-                                       load_grid, save_text)
+from textgrid_tools.app.helper import (add_encoding_argument,
+                                       add_grid_directory_argument,
+                                       add_interval_format_argument,
+                                       add_n_digits_argument,
+                                       add_overwrite_argument,
+                                       add_string_format_argument,
+                                       get_grid_files, load_grid, save_text)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import convert_tier_to_text
 from textgrid_tools.core.interval_format import IntervalFormat
@@ -16,15 +20,11 @@ from textgrid_tools.core.interval_format import IntervalFormat
 def init_files_convert_grid_to_text_parser(parser: ArgumentParser):
   parser.description = "This command writes the content of a tier into a text file."
 
-  parser.add_argument("directory", type=Path, metavar="directory",
-                      help="directory containing the grids")
-  parser.add_argument("tier", type=str, help="tier from which the text should be written")
-  parser.add_argument('--tier-format', choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="format of tier")
-  parser.add_argument('--tier-type', choices=IntervalFormat,
-                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help="type of tier")
-  parser.add_argument("--encoding", type=str, metavar='',
-                      help="encoding of text files", default="UTF-8")
+  add_grid_directory_argument(parser)
+  parser.add_argument("tier", type=str, help="tier from which the content should be written")
+  add_string_format_argument(parser, "--tier-format", "format of tier")
+  add_interval_format_argument(parser, "--tier-type", "type of tier")
+  add_encoding_argument(parser, "encoding of text files")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the text files if not to the same directory")
   add_n_digits_argument(parser)

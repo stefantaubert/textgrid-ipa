@@ -7,11 +7,13 @@ from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_overwrite_argument,
-                                       add_overwrite_tier_argument)
+                                       add_output_directory_argument,
+                                       add_overwrite_argument)
 from textgrid_tools.app.tier.common import process_grids
 from textgrid_tools.core import split_intervals
 from textgrid_tools.core.interval_format import IntervalFormat
+
+# TODO tiers support
 
 
 def init_files_split_intervals_parser(parser: ArgumentParser):
@@ -31,9 +33,7 @@ def init_files_split_intervals_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
                       help="tier on which the mapped content should be written if not to target-tier.")
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
-                      help="the directory where to output the modified grid files if not to input-directory")
-  add_overwrite_tier_argument(parser)
+  add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return files_split_intervals_tier
 

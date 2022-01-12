@@ -5,6 +5,7 @@ from ordered_set import OrderedSet
 from textgrid_tools.core.globals import ChangedAnything
 
 DEFAULT_N_DIGITS = 16
+DEFAULT_ENCODING = "UTF-8"
 DEFAULT_N_JOBS = cpu_count()
 DEFAULT_PUNCTUATION = list(OrderedSet(sorted((
   "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "{", "}", "~", "`",

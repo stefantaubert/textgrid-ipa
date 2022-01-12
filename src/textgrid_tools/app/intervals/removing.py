@@ -7,7 +7,6 @@ from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_output_directory_argument,
                                        add_overwrite_argument, copy_audio,
                                        copy_grid, get_audio_files,
                                        get_grid_files, load_grid, save_audio,
@@ -16,40 +15,48 @@ from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import remove_intervals as main
 from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
 
+# TODO tiers support
+
 
 def get_remove_intervals_parser(parser: ArgumentParser):
   parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
   parser.add_argument("directory", type=Path, metavar="directory",
-                      help="directory containing grid files, from which intervals should be removed")
-  parser.add_argument("tier", type=str, help="the tier on which intervals should be removed")
-  parser.add_argument("--audio-directory", type=Path, metavar='',
-                      help="directory containing audio files")
-  parser.add_argument("--marks", type=str, nargs='*',
-                      help="remove intervals containing these marks")
+                      help="directory containing the grids and the corresponding audios")
+  parser.add_argument("tier", type=str, help="tier on which intervals should be removed")
+  parser.add_argument("--audio-directory", type=Path, metavar='PATH',
+                      help="directory containing the audios if not directory")
+  parser.add_argument("--ignore-audio", action="store_true",
+                      help="ignore audios")
+  parser.add_argument("--marks", type=str, nargs='*', metavar="MARK",
+                      help="remove intervals containing these marks", default=[])
   parser.add_argument("--pauses", action="store_true",
                       help="remove pause intervals")
-  add_output_directory_argument(parser)
+  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+                      help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
-                      help="the directory where to output the modified audio files if not to audio-directory.")
+                      help="the directory where to output the modified audio files if not to directory/audio-directory.")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return remove_intervals
 
 
-def remove_intervals(directory: Path, audio_directory: Optional[Path], tier: str, marks: List[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_audio: bool, tier: str, marks: List[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
     logger.error(error.default_message)
     return False, False
 
-  if audio_directory is not None and (error := DirectoryNotExistsError.validate(audio_directory)):
+  if not ignore_audio and audio_directory is not None and (error := DirectoryNotExistsError.validate(audio_directory)):
     logger.error(error.default_message)
     return False, False
 
   if error := NothingDefinedToRemoveError.validate(set(marks), pauses):
     logger.error(error.default_message)
     return False, False
+
+  if audio_directory is None and not ignore_audio:
+    audio_directory = directory
 
   if output_directory is None:
     output_directory = directory
@@ -60,7 +67,8 @@ def remove_intervals(directory: Path, audio_directory: Optional[Path], tier: str
   grid_files = get_grid_files(directory)
 
   audio_files = {}
-  if audio_directory is not None:
+  if not ignore_audio:
+    assert audio_directory is not None
     audio_files = get_audio_files(audio_directory)
 
     missing_grid_files = set(audio_files.keys()).difference(grid_files.keys())

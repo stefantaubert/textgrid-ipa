@@ -5,8 +5,8 @@ from typing import Optional
 
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_overwrite_argument,
-                                       add_overwrite_tier_argument, copy_grid,
+                                       add_output_directory_argument,
+                                       add_overwrite_argument, copy_grid,
                                        get_grid_files, load_grid, save_grid)
 from textgrid_tools.app.validation import (DirectoryNotExistsError,
                                            ValidationError)
@@ -14,19 +14,17 @@ from textgrid_tools.core import copy_tier_to_grid
 
 
 def init_files_copy_tier_to_grid_parser(parser: ArgumentParser):
-  parser.description = "This command maps the content of a tier in one grid to a tier in another grid."
-  parser.add_argument("reference_input_directory", metavar="reference-input-directory", type=Path,
+  parser.description = "This command copies a tier in one grid to a tier in another grid."
+  parser.add_argument("reference_directory", metavar="reference-directory", type=Path,
                       help="the directory containing the grid files with the content that should be mapped")
   parser.add_argument("reference_tier", metavar="reference-tier", type=str,
-                      help="the tier which should be mapped from")
-  parser.add_argument("input_directory", type=Path, metavar="input-directory",
-                      help="the directory containing the grid files which should be modified")
-  parser.add_argument("--output-tier", metavar="TIER", type=str, default=None,
+                      help="tier which should be copied")
+  parser.add_argument("directory", type=Path, metavar="directory",
+                      help="directory containing the grid files on which the tier should be added")
+  parser.add_argument("--tier", metavar="NAME", type=str, default=None,
                       help="tier on which the mapped content should be written if not to reference-tier.")
   add_n_digits_argument(parser)
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
-                      help="the directory where to output the modified grid files if not to input-directory")
-  add_overwrite_tier_argument(parser)
+  add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return files_copy_tier_to_grid
 
@@ -47,10 +45,10 @@ class DirectoriesAreNotDistinctError(ValidationError):
     return "Directories are not distinct!"
 
 
-def files_copy_tier_to_grid(reference_input_directory: Path, reference_tier: str, directory: Path, output_tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def files_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, output_tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  if error := DirectoryNotExistsError.validate(reference_input_directory):
+  if error := DirectoryNotExistsError.validate(reference_directory):
     logger.error(error.default_message)
     return False, False
 
@@ -58,7 +56,7 @@ def files_copy_tier_to_grid(reference_input_directory: Path, reference_tier: str
     logger.error(error.default_message)
     return False, False
 
-  if error := DirectoriesAreNotDistinctError.validate(directory, reference_input_directory):
+  if error := DirectoriesAreNotDistinctError.validate(directory, reference_directory):
     logger.error(error.default_message)
     return False, False
 
@@ -66,7 +64,7 @@ def files_copy_tier_to_grid(reference_input_directory: Path, reference_tier: str
     output_directory = directory
 
   grid_files = get_grid_files(directory)
-  ref_grid_files = get_grid_files(reference_input_directory)
+  ref_grid_files = get_grid_files(reference_directory)
 
   common_files = set(grid_files.keys()).intersection(ref_grid_files.keys())
   missing_grid_files = set(ref_grid_files.keys()).difference(grid_files.keys())
@@ -91,7 +89,7 @@ def files_copy_tier_to_grid(reference_input_directory: Path, reference_tier: str
       logger.info("Grid already exists. Skipped.")
       continue
 
-    ref_grid_file_in_abs = reference_input_directory / ref_grid_files[file_stem]
+    ref_grid_file_in_abs = reference_directory / ref_grid_files[file_stem]
     ref_grid_in = load_grid(ref_grid_file_in_abs, n_digits)
 
     grid_file_in_abs = directory / grid_files[file_stem]

@@ -3,7 +3,8 @@ from logging import getLogger
 from pathlib import Path
 from typing import List
 
-from textgrid_tools.app.helper import (add_n_digits_argument, get_grid_files,
+from textgrid_tools.app.helper import (add_grid_directory_argument,
+                                       add_n_digits_argument, get_grid_files,
                                        load_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import print_stats
@@ -11,13 +12,11 @@ from textgrid_tools.core import print_stats
 
 def init_files_print_stats_parser(parser: ArgumentParser):
   parser.description = "This command generate statistics about the grid files."
-
-  parser.add_argument("directory", type=Path, metavar="directory",
-                      help="directory containing the grid files")
+  add_grid_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=float, default=0.002,
-                      help="warn at intervals smaller than this duration")
+                      help="warn at intervals smaller than this duration (in seconds)")
   parser.add_argument("--print-symbols-tiers", type=str, nargs='*',
-                      default="tiers with format SYMBOL which symbols should be printed")
+                      help="tiers with format SYMBOL which symbols should be printed", default=[])
   add_n_digits_argument(parser)
   return app_print_stats
 
