@@ -1,9 +1,11 @@
-from typing import Collection, List, Optional, Set
+from typing import (Collection, Generator, Iterable, List, Optional, Set,
+                    Tuple, Union)
 
 from text_utils import StringFormat
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_tools.core.helper import get_mark_symbols_intervals
+from textgrid_tools.core.helper import (get_mark_symbols_intervals,
+                                        interval_is_None_or_whitespace)
 from textgrid_tools.core.interval_format import (IntervalFormat,
                                                  merge_interval_symbols)
 
@@ -42,3 +44,53 @@ def replace_intervals(tier: IntervalTier, intervals: List[Interval], replace_wit
 
   for interval in reversed(replace_with):
     tier.intervals.insert(from_index, interval)
+
+
+def group_adjacent_pauses(intervals: Iterable[Interval]) -> Generator[Union[Interval, List[Interval]], None, None]:
+  pause_group = []
+  for interval in intervals:
+    is_pause = interval_is_None_or_whitespace(interval)
+    if is_pause:
+      pause_group.append(interval)
+    else:
+      if len(pause_group) > 0:
+        yield pause_group
+        pause_group = []
+      yield interval
+
+  if len(pause_group) > 0:
+    yield pause_group
+
+
+def group_adjacent_pauses2(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:
+  pause_group = []
+  for interval in intervals:
+    is_pause = interval_is_None_or_whitespace(interval)
+    if is_pause:
+      pause_group.append(interval)
+    else:
+      if len(pause_group) > 0:
+        yield pause_group, True
+        pause_group = []
+      yield [interval], False
+
+  if len(pause_group) > 0:
+    yield pause_group, True
+
+
+def group_adjacent_content_and_pauses(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:
+  current_group = []
+  current_group_is_pause: Optional[bool] = None
+  for interval in intervals:
+    is_pause = interval_is_None_or_whitespace(interval)
+    same_group = current_group_is_pause is not None and current_group_is_pause == is_pause
+    if not same_group and len(current_group) > 0:
+      assert current_group_is_pause is not None
+      yield current_group, current_group_is_pause
+      current_group = []
+    current_group.append(interval)
+    current_group_is_pause = is_pause
+
+  if len(current_group) > 0:
+    assert current_group_is_pause is not None
+    yield current_group, current_group_is_pause

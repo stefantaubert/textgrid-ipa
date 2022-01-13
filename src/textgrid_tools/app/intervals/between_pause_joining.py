@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from text_utils import StringFormat
+from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_interval_format_argument,
@@ -12,7 +13,6 @@ from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument)
-from textgrid_tools.app.common import process_grids
 from textgrid_tools.core import join_intervals_between_pauses
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -24,7 +24,7 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
                       help="tiers on which the intervals should be joined")
   add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
   add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
-  parser.add_argument('--join-pause', type=float, metavar="SECONDS",
+  parser.add_argument('--pause', type=float, metavar="SECONDS",
                       help="until duration (in seconds) of adjacent pauses that should be merged, i.e., value \'0\' means only adjacent non-pause intervals are joined and \'inf\' means all intervals are joined", default=inf)
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
@@ -32,10 +32,10 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   return app_join_intervals_between_pauses
 
 
-def app_join_intervals_between_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, join_pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_between_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_between_pauses,
-    pause=join_pause,
+    pause=pause,
     tier_names=set(tiers),
     tiers_interval_format=mark_type,
     tiers_string_format=mark_format,

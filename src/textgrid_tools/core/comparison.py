@@ -1,4 +1,4 @@
-from typing import Collection
+from typing import Collection, List
 
 from textgrid import Interval
 from textgrid.textgrid import IntervalTier
@@ -14,7 +14,7 @@ def check_tiers_are_equal(tier1: IntervalTier, tier2: IntervalTier) -> bool:
   return check_intervals_are_equal(tier1.intervals, tier2.intervals)
 
 
-def check_intervals_are_equal(intervals1: Collection[Interval], intervals2: Collection[Interval]) -> bool:
+def check_intervals_are_equal(intervals1: List[Interval], intervals2: List[Interval]) -> bool:
   if len(intervals1) != len(intervals2):
     return False
 

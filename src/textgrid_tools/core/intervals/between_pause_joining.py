@@ -7,7 +7,7 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import (get_all_tiers, get_intervals_duration,
                                         interval_is_None_or_whitespace)
 from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.common import (merge_intervals,
+from textgrid_tools.core.intervals.common import (group_adjacent_pauses, merge_intervals,
                                                   replace_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
@@ -89,18 +89,3 @@ def chunk_intervals(intervals: Iterable[Interval], pause: float) -> Generator[Li
   if len(chunk) > 0:
     yield chunk
 
-
-def group_adjacent_pauses(intervals: Iterable[Interval]) -> Generator[Union[Interval, List[Interval]], None, None]:
-  pause_group = []
-  for interval in intervals:
-    is_pause = interval_is_None_or_whitespace(interval)
-    if is_pause:
-      pause_group.append(interval)
-    else:
-      if len(pause_group) > 0:
-        yield pause_group
-        pause_group = []
-      yield interval
-
-  if len(pause_group) > 0:
-    yield pause_group
