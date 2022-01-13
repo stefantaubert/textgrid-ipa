@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Set, Union
+from typing import Generator, Iterable, List, Set, Union, cast
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
@@ -56,7 +56,8 @@ def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_st
 
   changed_anything = False
   for tier in tiers:
-    for chunk in chunk_intervals(tier.intervals, pause):
+    intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+    for chunk in chunk_intervals(intervals_copy, pause):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])

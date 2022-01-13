@@ -59,8 +59,8 @@ def split(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringForma
   changed_anything = False
 
   for tier in tiers:
-    intervals = cast(Iterable[Interval], list(tier.intervals))
-    for interval in intervals:
+    intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+    for interval in intervals_copy:
       splitted_intervals = list(get_split_intervals(
         interval, tiers_string_format, tiers_interval_format, join_symbols, ignore_join_symbols))
 

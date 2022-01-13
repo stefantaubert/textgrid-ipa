@@ -5,12 +5,11 @@ from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.intervals.common import (merge_intervals,
-                                                  replace_intervals)
-from textgrid_tools.core.helper import (get_all_tiers,
-                                        get_interval_readable,
+from textgrid_tools.core.helper import (get_all_tiers, get_interval_readable,
                                         interval_is_None_or_whitespace)
 from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools.core.intervals.common import (merge_intervals,
+                                                  replace_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
@@ -58,13 +57,14 @@ def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], tiers_stri
 
   changed_anything = False
   for tier in tiers:
-    for interval in cast(Iterable[Interval], tier.intervals):
+    intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+    for interval in intervals_copy:
       if interval.duration() > max_duration_s:
         logger = getLogger(__name__)
         logger.warning(
           f"The duration of interval {get_interval_readable(interval)} ({interval.duration()}s) is bigger than {max_duration_s}!")
     # todo fix bug
-    for chunk in chunk_intervals(tier.intervals, max_duration_s, include_empty_intervals):
+    for chunk in chunk_intervals(intervals_copy, max_duration_s, include_empty_intervals):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
@@ -77,7 +77,7 @@ def chunk_intervals(intervals: Iterable[Interval], max_duration_s: float, includ
   current_intervals_duration = 0
   current_intervals = []
   for interval in intervals:
-    if not include_empty_intervals and interval_is_None_or_whitespace(interval) and len(current_intervals) == 0:
+    if interval_is_None_or_whitespace(interval) and len(current_intervals) == 0 and not include_empty_intervals:
       # do not include empty intervals as first interval in split-group
       yield [interval]
     if current_intervals_duration + interval.duration() <= max_duration_s:

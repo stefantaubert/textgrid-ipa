@@ -1,14 +1,14 @@
-from typing import Generator, List, Set
+from typing import Generator, Iterable, List, Set, cast
 
 from ordered_set import OrderedSet
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import (get_all_tiers,
-                                        get_boundary_timepoints_from_tier,
-                                        get_intervals_part_of_timespan,
-                                        get_single_tier)
+from textgrid_tools.core.helper import (
+    get_all_tiers, get_boundary_timepoints_from_tier,
+    get_intervals_part_of_timespan,
+    get_intervals_part_of_timespan_from_intervals, get_single_tier)
 from textgrid_tools.core.interval_format import IntervalFormat
 from textgrid_tools.core.intervals.common import (merge_intervals,
                                                   replace_intervals)
@@ -55,7 +55,8 @@ def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_n
 
   changed_anything = False
   for tier in tiers:
-    for chunk in chunk_intervals(tier, boundary_tier_timepoints):
+    intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+    for chunk in chunk_intervals(intervals_copy, boundary_tier_timepoints):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
@@ -64,10 +65,10 @@ def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_n
   return None, changed_anything
 
 
-def chunk_intervals(tier: IntervalTier, synchronize_timepoints: OrderedSet[float]) -> Generator[List[Interval], None, None]:
+def chunk_intervals(intervals: Iterable[Interval], synchronize_timepoints: OrderedSet[float]) -> Generator[List[Interval], None, None]:
   for i in range(1, len(synchronize_timepoints)):
     last_timepoint = synchronize_timepoints[i - 1]
     current_timepoint = synchronize_timepoints[i]
-    tier_intervals_in_range = list(get_intervals_part_of_timespan(
-      tier, last_timepoint, current_timepoint))
+    tier_intervals_in_range = list(get_intervals_part_of_timespan_from_intervals(
+      intervals, last_timepoint, current_timepoint))
     yield tier_intervals_in_range

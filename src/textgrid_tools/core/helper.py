@@ -177,9 +177,13 @@ def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interv
 
 
 def get_intervals_part_of_timespan(tier: IntervalTier, min_time: float, max_time: float) -> Generator[Interval, None, None]:
+  return get_intervals_part_of_timespan_from_intervals(tier.intervals, min_time, max_time)
+
+
+def get_intervals_part_of_timespan_from_intervals(intervals: Iterable[Interval], min_time: float, max_time: float) -> Generator[Interval, None, None]:
   # intervals where interval.maxTime = minTime were not considered
   # intervals where interval.minTime = maxTime were not considered
-  for interval in cast(Iterable[Interval], tier.intervals):
+  for interval in intervals:
     min_time_lies_in_span = min_time <= interval.minTime and interval.minTime < max_time
     max_time_lies_in_span = min_time < interval.maxTime and interval.maxTime <= max_time
     if min_time_lies_in_span or max_time_lies_in_span:

@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Set
+from typing import Generator, Iterable, List, Set, cast
 
 from text_utils import StringFormat, symbols_endswith, symbols_strip
 from textgrid.textgrid import Interval, TextGrid
@@ -36,7 +36,8 @@ def join_intervals_on_sentences(grid: TextGrid, tier_names: Set[str], tiers_stri
 
   changed_anything = False
   for tier in tiers:
-    for chunk in chunk_intervals(tier.intervals, tiers_string_format, strip_symbols, punctuation_symbols):
+    intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+    for chunk in chunk_intervals(intervals_copy, tiers_string_format, strip_symbols, punctuation_symbols):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
