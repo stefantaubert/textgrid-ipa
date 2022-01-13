@@ -19,10 +19,10 @@ from textgrid_tools.core.interval_format import IntervalFormat
 def get_boundary_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier according to the interval boundaries of another tier."
   add_grid_directory_argument(parser)
-  parser.add_argument("tiers", type=str, nargs="+",
-                      help="tiers on which the intervals should be joined")
   parser.add_argument("boundary_tier", metavar="boundary-tier", type=str,
                       help="tier from which the boundaries should be considered")
+  parser.add_argument("tiers", type=str, nargs="+",
+                      help="tiers on which the intervals should be joined")
   add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
   add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
   add_n_digits_argument(parser)

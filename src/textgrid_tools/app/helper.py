@@ -96,7 +96,7 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
 
 def save_grid(path: Path, grid: TextGrid) -> None:
   logger = getLogger(__name__)
-  logger.info("Saving grid...")
+  #logger.info("Saving grid...")
   assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)
@@ -104,13 +104,13 @@ def save_grid(path: Path, grid: TextGrid) -> None:
 
 def copy_grid(grid_in: Path, grid_out: Path) -> None:
   logger = getLogger(__name__)
-  logger.info("Copying grid...")
+  #logger.info("Copying grid...")
   copy_file(grid_in, grid_out)
 
 
 def copy_audio(audio_in: Path, audio_out: Path) -> None:
   logger = getLogger(__name__)
-  logger.info("Copying audio...")
+  #logger.info("Copying audio...")
   copy_file(audio_in, audio_out)
 
 
@@ -121,7 +121,7 @@ def copy_file(file_in: Path, file_out: Path) -> None:
 
 def save_text(path: Path, text: str, encoding: str) -> None:
   logger = getLogger(__name__)
-  logger.info("Saving text...")
+  #logger.info("Saving text...")
   path.parent.mkdir(parents=True, exist_ok=True)
   path.write_text(text, encoding=encoding)
 
