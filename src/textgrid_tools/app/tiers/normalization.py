@@ -6,11 +6,13 @@ from typing import List, Optional
 from text_utils.language import Language
 from text_utils.string_format import StringFormat
 from text_utils.symbol_format import SymbolFormat
-from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument)
 from textgrid_tools.app.common import process_grids
+from textgrid_tools.app.globals import ExecutionResult
+from textgrid_tools.app.helper import (add_interval_format_argument,
+                                       add_n_digits_argument,
+                                       add_output_directory_argument,
+                                       add_overwrite_argument,
+                                       add_string_format_argument)
 from textgrid_tools.core import normalize_tiers
 
 
@@ -24,8 +26,7 @@ def get_normalization_parser(parser: ArgumentParser):
                       type=Language.__getitem__, default=Language.ENG, help="language of tiers")
   parser.add_argument('--text-format', choices=SymbolFormat,
                       type=SymbolFormat.__getitem__, default=SymbolFormat.GRAPHEMES, help="format of text")
-  parser.add_argument('--tier-format', choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help="format of tier")
+  add_string_format_argument(parser, "--tier-format", "format of tier")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

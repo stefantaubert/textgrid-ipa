@@ -1,4 +1,5 @@
 import argparse
+import logging
 from argparse import ArgumentParser
 from logging import getLogger
 from typing import Callable, Dict, Generator, Tuple
@@ -86,7 +87,34 @@ def _init_parser():
   return main_parser
 
 
+def configure_logger():
+  loglevel = logging.DEBUG if __debug__ else logging.INFO
+  main_logger = getLogger()
+  main_logger.setLevel(loglevel)
+  main_logger.manager.disable = logging.NOTSET
+  if len(main_logger.handlers) > 0:
+    console = main_logger.handlers[0]
+  else:
+    console = logging.StreamHandler()
+    main_logger.addHandler(console)
+
+  logging_formatter = logging.Formatter(
+    '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
+    '%Y/%m/%d %H:%M:%S',
+  )
+  console.setFormatter(logging_formatter)
+  console.setLevel(loglevel)
+
+  # logger = getLogger(__name__)
+  # logger.debug("debug logging")
+  # logger.info("info")
+  # logger.warning("warning")
+  # logger.error("error")
+  # logger.exception("exception")
+
+
 def main():
+  configure_logger()
   parser = _init_parser()
   received_args = parser.parse_args()
   params = vars(received_args)

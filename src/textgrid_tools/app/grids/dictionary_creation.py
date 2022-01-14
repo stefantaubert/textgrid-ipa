@@ -70,6 +70,9 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
 
   grid_files = get_grid_files(directory)
 
+  logger.debug(f"Chosen dictionary type: {dictionary!r}")
+  logger.debug(f"Punctuation symbols: {' '.join(sorted(punctuation))} (#{len(punctuation)})")
+
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")

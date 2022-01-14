@@ -64,14 +64,10 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], dictionary: PublicD
     all_tiers.extend(tiers)
 
   logger = getLogger(__name__)
-  # logger.debug(f"Chosen dictionary type: {dict_type}")
-
-  # logger.info(f"Punctuation symbols: {' '.join(sorted(punctuation))} (#{len(punctuation)})")
-
   words = get_word_symbols_from_tiers(all_tiers, tiers_string_format)
   logger.debug(f"Retrieved {len(words)} unique words.")
-  
-  logger.info(f"Getting {dictionary!r} dictionary...")
+
+  logger.debug(f"Getting {dictionary!r} dictionary...")
   arpa_dict = parse_public_dict(dictionary)
 
   global PROCESS_OOV_MODEL
@@ -120,6 +116,8 @@ def __get_arpa_oov(model: G2p, word: Pronunciation) -> Pronunciation:
 def process_lookup_dict(word: Pronunciation) -> Pronunciation:
   global PROCESS_OOV_MODEL
   global PROCESS_DICTIONARY
+  assert PROCESS_OOV_MODEL is not None
+  assert PROCESS_DICTIONARY is not None
   return lookup_dict(word, PROCESS_DICTIONARY, PROCESS_OOV_MODEL)
 
 
