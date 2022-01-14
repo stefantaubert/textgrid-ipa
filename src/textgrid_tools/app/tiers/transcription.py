@@ -4,7 +4,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional, Set
 
-from pronunciation_dict_parser.parser import parse_file
+from pronunciation_dict_parser import parse_dictionary_from_txt
 from text_utils.string_format import StringFormat
 from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
@@ -43,7 +43,7 @@ def app_transcribe_text(directory: Path, tiers: Set[str], tiers_format: StringFo
     logger.error(error.default_message)
     return False, False
 
-  pronunciation_dictionary = parse_file(dictionary, encoding)
+  pronunciation_dictionary = parse_dictionary_from_txt(dictionary, encoding)
 
   method = partial(
     transcribe_text,

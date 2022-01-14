@@ -3,12 +3,12 @@ from pathlib import Path
 from typing import Dict
 
 from general_utils.main import get_all_files_in_all_subfolders
-from pronunciation_dict_parser.parser import parse_file
+from pronunciation_dict_parser import parse_dictionary_from_txt
 from scipy.io.wavfile import read
 from text_utils.language import Language
 from text_utils.symbol_format import SymbolFormat
 from textgrid.textgrid import TextGrid
-from textgrid_tools.core.mfa import *
+from textgrid_tools.core import *
 from textgrid_tools.utils import get_filepaths
 from tqdm import tqdm
 

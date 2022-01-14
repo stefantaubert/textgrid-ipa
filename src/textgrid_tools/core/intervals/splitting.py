@@ -1,7 +1,6 @@
 from typing import Generator, Iterable, Optional, Set, cast
 
-from pronunciation_dict_parser.parser import Symbol
-from text_utils import StringFormat
+from text_utils import StringFormat, Symbol
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
@@ -87,7 +86,7 @@ def get_split_intervals(interval: Interval, tier_string_format: StringFormat, ti
 
     duration = interval_duration * (len(symbols) / count_of_symbols)
     string = tier_string_format.convert_symbols_to_string(symbols)
-    
+
     min_time = current_timepoint
     is_last = i == len(split_mark_symbols) - 1
     if is_last:

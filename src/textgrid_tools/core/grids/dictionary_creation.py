@@ -1,17 +1,16 @@
 from logging import getLogger
-from typing import Iterable, List, Optional, Set, Tuple, cast
+from typing import Dict, Iterable, List, Optional, Set, Tuple, cast
 
+from g2p_en import G2p
 from ordered_set import OrderedSet
-from pronunciation_dict_parser import PronunciationDict
-from pronunciation_dict_parser.parser import Pronunciation
+from pronunciation_dict_parser import (Pronunciation, PronunciationDict,
+                                       PublicDictType, parse_public_dict)
 from sentence2pronunciation.lookup_cache import LookupCache
 from sentence2pronunciation.multiprocessing import prepare_cache_mp
-from text_utils.pronunciation.main import get_eng_to_arpa_lookup_method
-from text_utils.string_format import StringFormat
-from text_utils.types import Symbol, Symbols
-from text_utils.utils import symbols_ignore, symbols_split
-from textgrid import TextGrid
-from textgrid.textgrid import Interval, IntervalTier
+from text_utils import StringFormat, Symbol, Symbols, symbols_to_upper
+from text_utils.utils import (pronunciation_dict_to_tuple_dict, symbols_ignore,
+                              symbols_split)
+from textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.grids.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
 from textgrid_tools.core.helper import (get_all_tiers,
@@ -37,7 +36,7 @@ class PunctuationFormatNotSupportedError(ValidationError):
     return "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too."
 
 
-def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunksize: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
+def get_arpa_pronunciation_dictionary(grids: List[TextGrid], dictionary: PublicDictType, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunksize: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
   assert tiers_interval_format in (IntervalFormat.WORD, IntervalFormat.WORDS)
@@ -71,6 +70,14 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
 
   words = get_word_symbols_from_tiers(all_tiers, tiers_string_format)
   logger.debug(f"Retrieved {len(words)} unique words.")
+  
+  logger.info(f"Getting {dictionary!r} dictionary...")
+  arpa_dict = parse_public_dict(dictionary)
+
+  global PROCESS_OOV_MODEL
+  global PROCESS_DICTIONARY
+  PROCESS_DICTIONARY = pronunciation_dict_to_tuple_dict(arpa_dict)
+  PROCESS_OOV_MODEL = G2p()
 
   logger.debug("Converting all words to ARPA...")
   cache = prepare_cache_mp(
@@ -78,7 +85,7 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
     annotation_split_symbol="/",
     chunksize=chunksize,
     consider_annotation=consider_annotations,
-    get_pronunciation=get_eng_to_arpa_lookup_method(),
+    get_pronunciation=process_lookup_dict,
     ignore_case=True,
     n_jobs=n_jobs,
     split_on_hyphen=split_on_hyphen,
@@ -96,6 +103,31 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], tier_names: Set[str
     check_pronunciation_dictionary_for_invalid_mfa_symbols(result)
 
   return (None, True), result
+
+
+PROCESS_OOV_MODEL: Optional[G2p] = None
+PROCESS_DICTIONARY: Optional[Dict[Pronunciation, Pronunciation]] = None
+
+
+def __get_arpa_oov(model: G2p, word: Pronunciation) -> Pronunciation:
+  word_str = ''.join(word)
+  oov_arpa = model.predict(word_str)
+  logger = getLogger(__name__)
+  logger.info(f"Transliterated OOV word \"{word_str}\" to \"{' '.join(oov_arpa)}\".")
+  return oov_arpa
+
+
+def process_lookup_dict(word: Pronunciation) -> Pronunciation:
+  global PROCESS_OOV_MODEL
+  global PROCESS_DICTIONARY
+  return lookup_dict(word, PROCESS_DICTIONARY, PROCESS_OOV_MODEL)
+
+
+def lookup_dict(word: Pronunciation, dictionary: Dict[Symbols, Symbols], model: G2p) -> Pronunciation:
+  word_upper = symbols_to_upper(word)
+  if word_upper in dictionary:
+    return dictionary[word_upper][0]
+  return __get_arpa_oov(model, word)
 
 
 def check_pronunciation_dictionary_for_silence(result: PronunciationDict) -> None:
@@ -170,6 +202,16 @@ def get_word_symbols_from_tiers(tiers: Iterable[IntervalTier], tiers_string_form
   }
 
   return words
+
+
+def get_eng_pronunciation_dict_arpa() -> PronunciationDict:
+  # pylint: disable=global-statement
+  global CACHE
+  if CACHE is None:
+    arpa_dict = parse_public_dict(PublicDictType.LIBRISPEECH_ARPA)
+    arpa_dict_tuple_based = pronunciation_dict_to_tuple_dict(arpa_dict)
+    CACHE = arpa_dict_tuple_based
+  return CACHE
 
 
 # def get_arpa_pronunciation_dicts_from_texts(grids: List[TextGrid], tier: str, punctuation: Set[Symbol], dict_type: PublicDictType, ignore_case: bool, n_jobs: int, split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool) -> PronunciationDict:

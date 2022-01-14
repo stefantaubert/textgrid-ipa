@@ -21,7 +21,6 @@ def get_cloning_parser(parser: ArgumentParser):
                       help="tier which should be cloned")
   parser.add_argument("tiers", type=str, nargs="+", metavar="tiers",
                       help="tiers to clone to")
-
   parser.add_argument("--ignore-marks", action="store_true",
                       help="ignore marks while cloning")
   add_n_digits_argument(parser)
