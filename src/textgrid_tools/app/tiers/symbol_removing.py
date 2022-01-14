@@ -20,7 +20,7 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
                       help="tiers which should be transcribed")
-  add_string_format_argument(parser, "--tiers-format", "format of tiers")
+  add_string_format_argument(parser, "tiers")
   parser.add_argument("symbols", type=str, nargs='+', help="remove these symbols")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
@@ -28,11 +28,11 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   return app_remove_symbols
 
 
-def app_remove_symbols(directory: Path, tiers: List[str], tiers_format: StringFormat, symbols: List[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_remove_symbols(directory: Path, tiers: List[str], formatting: StringFormat, symbols: List[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     remove_symbols,
     tier_names=set(tiers),
-    tiers_string_format=tiers_format,
+    tiers_string_format=formatting,
     symbols=set(symbols),
   )
 

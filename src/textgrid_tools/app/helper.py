@@ -1,8 +1,10 @@
 from argparse import ArgumentParser
+from collections import OrderedDict
 from logging import getLogger
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
+from typing import Generator
 from typing import OrderedDict as OrderedDictType
 from typing import Tuple
 
@@ -27,19 +29,55 @@ def add_n_digits_argument(parser: ArgumentParser) -> None:
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
 
 
-def add_string_format_argument(parser: ArgumentParser, name: str = '--tier-format', help_str: str = "format of tier") -> None:
-  parser.add_argument(name, choices=StringFormat,
-                      type=StringFormat.__getitem__, default=StringFormat.TEXT, help=help_str)
+def add_string_format_argument(parser: ArgumentParser, target: str, short_name: str = "-f", name: str = '--formatting') -> None:
+  names = OrderedDict((
+    (StringFormat.TEXT, "Normal"),
+    (StringFormat.SYMBOLS, "Spaced"),
+  ))
+
+  values_to_names = dict(zip(
+    names.values(),
+    names.keys()
+  ))
+
+  help_str = f"formatting of text in {target}; use \'{names[StringFormat.TEXT]}\' for normal text and \'{names[StringFormat.SYMBOLS]}\' for space separated symbols, i.e., words are separated by two spaces and characters are separated by one space"
+  parser.add_argument(
+    short_name, name,
+    metavar=list(names.values()),
+    choices=StringFormat,
+    type=values_to_names.get,
+    default=names[StringFormat.TEXT],
+    help=help_str,
+  )
 
 
-def add_interval_format_argument(parser: ArgumentParser, name: str, help_str: str) -> None:
-  parser.add_argument(name, choices=IntervalFormat,
-                      type=IntervalFormat.__getitem__, default=IntervalFormat.WORD, help=help_str)
+def add_interval_format_argument(parser: ArgumentParser, target: str, short_name: str = "-c", name: str = '--content') -> None:
+  names = OrderedDict((
+    (IntervalFormat.SYMBOL, "Symbol"),
+    (IntervalFormat.SYMBOLS, "Symbols"),
+    (IntervalFormat.WORD, "Word"),
+    (IntervalFormat.WORDS, "Words"),
+  ))
+
+  values_to_names = dict(zip(
+    names.values(),
+    names.keys()
+  ))
+
+  help_str = f"type of intervals content in {target}, i.e., what does one interval contain if it is not a pause-interval?"
+  parser.add_argument(
+    short_name, name,
+    metavar=list(names.values()),
+    choices=IntervalFormat,
+    type=values_to_names.get,
+    default=names[IntervalFormat.WORDS],
+    help=help_str,
+  )
 
 
 def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("--encoding", type=str, metavar='ENCODING',
-                      help=help_str, default=DEFAULT_ENCODING)
+  parser.add_argument("--encoding", type=str, metavar='CODEC',
+                      help=help_str + "; see all available codecs at https://docs.python.org/3.8/library/codecs.html#standard-encodings", default=DEFAULT_ENCODING)
 
 
 def add_overwrite_argument(parser: ArgumentParser) -> None:
@@ -48,7 +86,7 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
 
 
 def add_output_directory_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the grids if not to the same directory")
 
 

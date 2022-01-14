@@ -23,21 +23,21 @@ def get_boundary_joining_parser(parser: ArgumentParser):
                       help="tier from which the boundaries should be considered")
   parser.add_argument("tiers", type=str, nargs="+",
                       help="tiers on which the intervals should be joined")
-  add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
-  add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
+  add_string_format_argument(parser, "tiers")
+  add_interval_format_argument(parser, "tiers")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_join_intervals_on_boundaries
 
 
-def app_join_intervals_on_boundaries(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, boundary_tier: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_on_boundaries(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, boundary_tier: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_on_boundaries,
     boundary_tier_name=boundary_tier,
     tier_names=set(tiers),
-    tiers_interval_format=mark_type,
-    tiers_string_format=mark_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import OrderedDict
 from logging import getLogger
 from pathlib import Path
 from typing import Callable, List
@@ -22,20 +23,37 @@ from textgrid_tools.core import get_arpa_pronunciation_dictionary
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
+def add_dictionary_argument(parser: ArgumentParser) -> None:
+  names = OrderedDict((
+    (PublicDictType.MFA_ARPA, "MFA"),
+    (PublicDictType.CMU_ARPA, "CMU"),
+    (PublicDictType.LIBRISPEECH_ARPA, "LibriSpeech"),
+    (PublicDictType.PROSODYLAB_ARPA, "Prosodylab"),
+  ))
+
+  values_to_names = dict(zip(
+    names.values(),
+    names.keys()
+  ))
+
+  help_str = "pronunciation dictionary (ARPAbet) which should be used to look up the words; if a pronunciation is not available it will be estimated"
+  parser.add_argument(
+    "-d", "--dictionary",
+    metavar=list(names.values()),
+    choices=PublicDictType,
+    type=values_to_names.get,
+    default=names[PublicDictType.MFA_ARPA],
+    help=help_str,
+  )
+
+
 def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
-  arpa_dicts = [
-    PublicDictType.MFA_ARPA,
-    PublicDictType.CMU_ARPA,
-    PublicDictType.LIBRISPEECH_ARPA,
-    PublicDictType.PROSODYLAB_ARPA,
-  ]
   parser.description = "This command creates an ARPA pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
   add_grid_directory_argument(parser)
-  parser.add_argument("tiers", type=str, nargs="+", help="tiers that contains the English text")
   parser.add_argument("output", type=Path, metavar="output",
                       help="path to write the generated pronunciation dictionary")
-  parser.add_argument("--dictionary", choices=arpa_dicts,
-                      type=get_dict_from_name, default=PublicDictType.MFA_ARPA, help="the pronunciation dictionary on which the words should be looked up (if a word does not occur then its pronunciation will be estimated)")
+  parser.add_argument("tiers", type=str, nargs="+", help="tiers that contains the English text")
+  add_dictionary_argument(parser)
   parser.add_argument("--punctuation", type=str, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
                       help="trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary")
   add_n_digits_argument(parser)
@@ -51,13 +69,13 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   parser.add_argument("--chunksize", type=int, metavar="NUMBER",
                       help="amount of words to chunk into one job", default=500)
   add_encoding_argument(parser, "output encoding")
-  add_string_format_argument(parser, "--tiers-format", "format of tiers")
-  add_interval_format_argument(parser, "--tiers-type", "type of tiers")
+  add_string_format_argument(parser, "tiers")
+  add_interval_format_argument(parser, "tiers")
   add_overwrite_argument(parser)
   return app_get_arpa_pronunciation_dictionary
 
 
-def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, tiers_type: IntervalFormat, tiers_format: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -92,8 +110,8 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
     include_punctuation_in_words=include_punctuation_in_words,
     chunksize=chunksize,
     tier_names=set(tiers),
-    tiers_interval_format=tiers_type,
-    tiers_string_format=tiers_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   assert not changed_anything

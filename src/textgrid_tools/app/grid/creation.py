@@ -34,15 +34,14 @@ def get_creation_parser(parser: ArgumentParser):
   add_encoding_argument(parser, "encoding of text and meta files")
   parser.add_argument("--speech-rate", type=float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
-  add_string_format_argument(
-    parser, '--text-format', "format of the text; use TEXT for normal text and SYMBOLS for symbols separated by space")
+  add_string_format_argument(parser, "text files")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_create_grid_from_text
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, text_format: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, formatting: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -104,7 +103,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     else:
       logger.info("No meta file found.")
 
-    (error, _), grid = create_grid_from_text(text, text_format, meta, audio_in,
+    (error, _), grid = create_grid_from_text(text, formatting, meta, audio_in,
                                              sample_rate, name, tier, speech_rate, n_digits)
 
     success = error is None

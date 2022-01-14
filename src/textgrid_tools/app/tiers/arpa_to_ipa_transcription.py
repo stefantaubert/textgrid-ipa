@@ -20,7 +20,7 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
                       help="tiers which should be transcribed")
-  add_string_format_argument(parser, "--tiers-format", "format of tiers")
+  add_string_format_argument(parser, "tiers")
   parser.add_argument("--replace-unknown", action="store_true",
                       help="replace unknown ARPA symbols with a custom symbol")
   parser.add_argument("--symbol", metavar="SYMBOL", type=str,
@@ -33,14 +33,14 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   return app_map_arpa_to_ipa
 
 
-def app_map_arpa_to_ipa(directory: Path, tiers: List[str], tiers_format: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_map_arpa_to_ipa(directory: Path, tiers: List[str], formatting: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     map_arpa_to_ipa,
     ignore=set(ignore),
     replace_unknown=replace_unknown,
     replace_unknown_with=replace_unknown_with,
     tier_names=set(tiers),
-    tiers_string_format=tiers_format,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

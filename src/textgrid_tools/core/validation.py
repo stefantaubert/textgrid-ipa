@@ -138,6 +138,7 @@ class BoundaryError(ValidationError):
       msg += f"- {boundary}\n"
     return msg
 
+
 class AudioAndGridLengthMismatchError(ValidationError):
   def __init__(self, grid: TextGrid, audio: np.ndarray, sample_rate: int) -> None:
     super().__init__()
@@ -217,7 +218,7 @@ class InvalidStringFormatIntervalError(ValidationError):
     if self.tier is not None:
       msg += f"\n@{get_tier_readable(self.tier)}"
     msg += "\n"
-    msg += f"Format: {str(self.string_format)}\n"
+    msg += f"Format: {self.string_format!r}\n"
     msg += f"String:\n\n```\n{self.string}\n```"
     return msg
 
@@ -255,7 +256,7 @@ class NotMatchingIntervalFormatError(ValidationError):
 
   @property
   def default_message(self) -> str:
-    msg = f"Interval marks format does not match {self.tier_interval_format}!\n"
+    msg = f"Interval marks format does not match {self.tier_interval_format!r}!\n"
     if self.tier_interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
       if self.string_format == StringFormat.TEXT:
         msg += "Spaces are not allowed:\n"

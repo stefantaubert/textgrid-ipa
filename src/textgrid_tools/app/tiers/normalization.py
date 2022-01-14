@@ -26,20 +26,20 @@ def get_normalization_parser(parser: ArgumentParser):
                       type=Language.__getitem__, default=Language.ENG, help="language of tiers")
   parser.add_argument('--text-format', choices=SymbolFormat,
                       type=SymbolFormat.__getitem__, default=SymbolFormat.GRAPHEMES, help="format of text")
-  add_string_format_argument(parser, "--tier-format", "format of tier")
+  add_string_format_argument(parser, "tiers")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_normalize_tiers
 
 
-def app_normalize_tiers(directory: Path, tiers: List[str], tier_format: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_normalize_tiers(directory: Path, tiers: List[str], formatting: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     normalize_tiers,
     language=language,
     text_format=text_format,
     tier_names=set(tiers),
-    tiers_string_format=tier_format,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

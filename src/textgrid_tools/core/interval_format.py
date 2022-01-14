@@ -4,8 +4,7 @@ from typing import Generator, Iterable, Optional, Set
 from text_utils.pronunciation.ipa2symb import merge_left, merge_right
 from text_utils.string_format import convert_symbols_string_to_symbols
 from text_utils.types import Symbol, Symbols
-from text_utils.utils import (symbols_ignore, symbols_join,
-                              symbols_split_iterable)
+from text_utils.utils import symbols_join, symbols_split_iterable
 from textgrid_tools.core.helper import symbols_are_empty_or_whitespace
 
 
@@ -15,18 +14,18 @@ class IntervalFormat(IntEnum):
   WORD = 2
   WORDS = 3
 
-  def __str__(self) -> str:
+  def __repr__(self) -> str:
     if self == self.SYMBOL:
-      return "SYMBOL"
+      return "Symbol"
 
     if self == self.SYMBOLS:
-      return "SYMBOLS"
+      return "Symbols"
 
     if self == self.WORD:
-      return "WORD"
+      return "Word"
 
     if self == self.WORDS:
-      return "WORDS"
+      return "Words"
 
     assert False
 

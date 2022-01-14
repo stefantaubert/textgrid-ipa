@@ -22,8 +22,8 @@ def get_sentence_joining_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
                       help="tiers on which the intervals should be joined")
-  add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
-  add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
+  add_string_format_argument(parser, "tiers")
+  add_interval_format_argument(parser, "tiers")
   parser.add_argument("--ignore", metavar="SYMBOL", type=str, nargs='*',
                       default=list(sorted(("\"", "'", "″", ",⟩", "›", "»", "′", "“", "”"))), help="symbols which should be temporary ignored on word endings for sentence detection")
   parser.add_argument("--punctuation", metavar="SYMBOL", type=str, nargs='*',
@@ -34,14 +34,14 @@ def get_sentence_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_sentences
 
 
-def app_join_intervals_on_sentences(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, ignore: List[str], punctuation: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_on_sentences(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, ignore: List[str], punctuation: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_on_sentences,
     punctuation_symbols=set(punctuation),
     strip_symbols=ignore,
     tier_names=set(tiers),
-    tiers_interval_format=mark_type,
-    tiers_string_format=mark_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

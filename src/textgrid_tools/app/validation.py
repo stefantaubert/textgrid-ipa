@@ -21,7 +21,7 @@ class DirectoryNotExistsError(ValidationError):
 
   @property
   def default_message(self) -> str:
-    return f"Directory \"{str(self.directory)}\" does not exist!"
+    return f"Directory \"{str(self.directory.absolute())}\" does not exist!"
 
 
 class FileAlreadyExistsError(ValidationError):
@@ -31,13 +31,13 @@ class FileAlreadyExistsError(ValidationError):
 
   @classmethod
   def validate(cls, path: Path):
-    if not path.exists():
+    if path.exists():
       return cls(path)
     return None
 
   @property
   def default_message(self) -> str:
-    return f"File \"{str(self.path)}\" does already exist!"
+    return f"File \"{str(self.path.absolute())}\" does already exist!"
 
 
 class FileNotExistsError(ValidationError):
@@ -53,4 +53,4 @@ class FileNotExistsError(ValidationError):
 
   @property
   def default_message(self) -> str:
-    return f"File \"{str(self.path)}\" does not exist!"
+    return f"File \"{str(self.path.absolute())}\" does not exist!"

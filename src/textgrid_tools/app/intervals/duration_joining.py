@@ -22,8 +22,8 @@ def get_duration_joining_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
                       help="tiers on which the intervals should be joined")
-  add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
-  add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
+  add_string_format_argument(parser,  "tiers")
+  add_interval_format_argument(parser, "tiers")
   parser.add_argument("--duration", metavar="SECONDS", type=float,
                       help="maximum duration until intervals should be joined (in seconds)", default=10)
   parser.add_argument("--include-pauses", action="store_true",
@@ -34,14 +34,14 @@ def get_duration_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_durations
 
 
-def app_join_intervals_on_durations(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_on_durations(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_on_durations,
     tier_names=set(tiers),
     include_empty_intervals=include_pauses,
     max_duration_s=duration,
-    tiers_interval_format=mark_type,
-    tiers_string_format=mark_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

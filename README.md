@@ -139,7 +139,7 @@ Don't use ' instead of ˈ for primary stress.
 Don't use / in IPA transcriptions
 Don't insert line breaks in any transcription
 
-### Create executable
+### Deploy
 
 ```sh
 # install
@@ -153,7 +153,11 @@ pipenv run cxfreeze \
   --bin-includes="libffi.so" \
   --target-name="textgrid-tools" \
   src/cli.py
-cp dist/* -r ~/data/MFA/test_playground/textgrid-tools
+  
+# copy to local apps folder
+mkdir -p /home/mi/apps/textgrid-tools
+cp dist/* -r /home/mi/apps/textgrid-tools
+
 # zip files
 cd dist
 zip textgrid-tools-linux.zip ./ -r

@@ -26,7 +26,7 @@ def get_transcription_parser(parser: ArgumentParser):
                       help="path to the pronunciation dictionary")
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
                       help="tiers which should be transcribed")
-  add_string_format_argument(parser, "--tiers-format", "format of tiers")
+  add_string_format_argument(parser, "tiers")
   add_encoding_argument(parser, "encoding of the dictionary")
   add_n_jobs_argument(parser)
   parser.add_argument("--chunksize", type=int, metavar="NUMBER",
@@ -37,7 +37,7 @@ def get_transcription_parser(parser: ArgumentParser):
   return app_transcribe_text
 
 
-def app_transcribe_text(directory: Path, tiers: Set[str], tiers_format: StringFormat, dictionary: Path, encoding: str, chunksize: int, n_jobs: int, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_transcribe_text(directory: Path, tiers: Set[str], formatting: StringFormat, dictionary: Path, encoding: str, chunksize: int, n_jobs: int, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   if error := FileNotExistsError.validate(dictionary):
     logger = getLogger(__name__)
     logger.error(error.default_message)
@@ -51,7 +51,7 @@ def app_transcribe_text(directory: Path, tiers: Set[str], tiers_format: StringFo
     n_jobs=n_jobs,
     pronunciation_dictionary=pronunciation_dictionary,
     tier_names=set(tiers),
-    tiers_string_format=tiers_format,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

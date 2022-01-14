@@ -22,8 +22,8 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", type=str, nargs="+",
                       help="tiers on which the intervals should be joined")
-  add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
-  add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
+  add_string_format_argument(parser, "tiers")
+  add_interval_format_argument(parser, "tiers")
   parser.add_argument('--pause', type=float, metavar="SECONDS",
                       help="until duration (in seconds) of adjacent pauses that should be merged, i.e., value \'0\' means only adjacent non-pause intervals are joined and \'inf\' means all intervals are joined", default=inf)
   add_output_directory_argument(parser)
@@ -32,13 +32,13 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   return app_join_intervals_between_pauses
 
 
-def app_join_intervals_between_pauses(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_join_intervals_between_pauses(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, pause: float, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     join_intervals_between_pauses,
     pause=pause,
     tier_names=set(tiers),
-    tiers_interval_format=mark_type,
-    tiers_string_format=mark_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

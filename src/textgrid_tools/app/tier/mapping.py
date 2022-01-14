@@ -22,8 +22,8 @@ def get_mapping_parser(parser: ArgumentParser):
                       help="tier which should be mapped")
   parser.add_argument("target_tiers", metavar="target-tiers",
                       type=str, nargs="+", help="tiers to which the content should be mapped")
-  add_string_format_argument(parser, "--tier-format", "format of tier and target-tiers")
-  add_string_format_argument(parser, "--target-tiers-format", "format of target-tiers")
+  add_string_format_argument(parser, "tier")
+  add_string_format_argument(parser, "target-tiers", "-tf", "--target-formatting")
   parser.add_argument("--include-pauses", action="store_true",
                       help="include mapping from and to pause intervals, i.e., those which contain nothing or only whitespace")
   parser.add_argument("--ignore", type=str, nargs="*",
@@ -36,16 +36,16 @@ def get_mapping_parser(parser: ArgumentParser):
   return app_map_tier
 
 
-def app_map_tier(directory: Path, tier: str, tier_format: StringFormat, target_tiers: Set[str], target_tiers_format: StringFormat, include_pauses: bool, ignore: Set[str], ignore_symbols: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_map_tier(directory: Path, tier: str, formatting: StringFormat, target_tiers: Set[str], target_formatting: StringFormat, include_pauses: bool, ignore: Set[str], ignore_symbols: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     map_tier,
     ignore_marks=ignore,
     include_pauses=include_pauses,
     only_symbols=ignore_symbols,
     target_tier_names=set(target_tiers),
-    targets_string_format=target_tiers_format,
+    targets_string_format=target_formatting,
     tier_name=tier,
-    tier_string_format=tier_format,
+    tier_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

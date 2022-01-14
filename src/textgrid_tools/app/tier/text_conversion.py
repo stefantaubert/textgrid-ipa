@@ -22,8 +22,8 @@ def get_text_conversion_parser(parser: ArgumentParser):
 
   add_grid_directory_argument(parser)
   parser.add_argument("tier", type=str, help="tier from which the content should be written")
-  add_string_format_argument(parser, "--tier-format", "format of tier")
-  add_interval_format_argument(parser, "--tier-type", "type of tier")
+  add_string_format_argument(parser, "tier")
+  add_interval_format_argument(parser, "tier")
   add_encoding_argument(parser, "encoding of text files")
   parser.add_argument("--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the text files if not to the same directory")
@@ -32,7 +32,7 @@ def get_text_conversion_parser(parser: ArgumentParser):
   return app_convert_tier_to_text
 
 
-def app_convert_tier_to_text(directory: Path, tier: str, tier_format: StringFormat, tier_type: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_convert_tier_to_text(directory: Path, tier: str, formatting: StringFormat, content: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := DirectoryNotExistsError.validate(directory):
@@ -55,7 +55,7 @@ def app_convert_tier_to_text(directory: Path, tier: str, tier_format: StringForm
     grid_file_in_abs = directory / rel_path
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    (error, _), text = convert_tier_to_text(grid_in, tier, tier_format, tier_type)
+    (error, _), text = convert_tier_to_text(grid_in, tier, formatting, content)
 
     success = error is None
     total_success &= success

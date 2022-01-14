@@ -19,18 +19,18 @@ def get_string_format_switching_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
                       help="tiers which formats should be switched")
-  add_string_format_argument(parser, "--tiers-format", "format of tiers")
+  add_string_format_argument(parser, "tiers")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_switch_string_format
 
 
-def app_switch_string_format(directory: Path, tiers: Set[str], tiers_format: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_switch_string_format(directory: Path, tiers: Set[str], formatting: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     switch_string_format,
     tier_names=set(tiers),
-    tiers_string_format=tiers_format,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

@@ -22,8 +22,8 @@ def get_splitting_parser(parser: ArgumentParser):
                       help="directory containing the grid files which should be modified")
   parser.add_argument("tiers", metavar="tiers", nargs="+", type=str,
                       help="tiers which should be split")
-  add_string_format_argument(parser, '--mark-format', "format of marks in tiers")
-  add_interval_format_argument(parser, '--mark-type', "type of marks in tiers")
+  add_string_format_argument(parser, "tiers")
+  add_interval_format_argument(parser, "tiers")
   parser.add_argument('--join-symbols', type=str, nargs="*",
                       help="join these symbols while splitting WORD to SYMBOLS", default=DEFAULT_PUNCTUATION)
   parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
@@ -34,14 +34,14 @@ def get_splitting_parser(parser: ArgumentParser):
   return app_split
 
 
-def app_split(directory: Path, tiers: List[str], mark_format: StringFormat, mark_type: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_split(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     split,
     ignore_join_symbols=ignore_join_symbols,
     join_symbols=join_symbols,
     tier_names=set(tiers),
-    tiers_interval_format=mark_type,
-    tiers_string_format=mark_format,
+    tiers_interval_format=content,
+    tiers_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)
