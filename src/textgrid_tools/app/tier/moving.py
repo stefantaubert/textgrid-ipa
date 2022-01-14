@@ -18,7 +18,7 @@ def get_moving_parser(parser: ArgumentParser):
   parser.add_argument("tier", type=str, metavar="tier",
                       help="tier which should be moved")
   parser.add_argument("position", type=int, metavar="position",
-                      help="move tier to this position (1 = first tier)")
+                      help="move tier to this position (0 = first tier)")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

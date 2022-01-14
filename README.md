@@ -5,7 +5,6 @@
 
 This program provides methods to modify TextGrids (.TextGrid) and their corresponding audio files (.wav).
 
-
 ## Usage
 
 Currently there is only linux supported.
