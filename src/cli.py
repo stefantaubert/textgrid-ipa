@@ -87,7 +87,7 @@ def _init_parser():
   return main_parser
 
 
-def configure_logger():
+def configure_logger() -> None:
   loglevel = logging.DEBUG if __debug__ else logging.INFO
   main_logger = getLogger()
   main_logger.setLevel(loglevel)
@@ -104,13 +104,6 @@ def configure_logger():
   )
   console.setFormatter(logging_formatter)
   console.setLevel(loglevel)
-
-  # logger = getLogger(__name__)
-  # logger.debug("debug logging")
-  # logger.info("info")
-  # logger.warning("warning")
-  # logger.error("error")
-  # logger.exception("exception")
 
 
 def main():
