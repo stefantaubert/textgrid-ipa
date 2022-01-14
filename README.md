@@ -173,3 +173,9 @@ du -h | sort -rh
 # unzip
 unzip textgrid-tools-linux.zip -d target_folder
 ```
+
+```sh
+# Convert audio files to wav
+sudo apt-get install ffmpeg -y
+ffmpeg -i *.mp3 -acodec pcm_s16le -ar 22050 *.wav
+```

@@ -29,7 +29,7 @@ def remove_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_format: St
     return error, False
 
   logger = getLogger(__name__)
-  # logger.info(f"Removing symbols: {' '.join(sorted(symbols))} ...")
+  logger.debug(f"Removing symbols: {' '.join(sorted(symbols))}...")
 
   changed_anything = False
 

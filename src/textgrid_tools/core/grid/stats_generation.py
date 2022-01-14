@@ -7,6 +7,11 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError)
 
+# warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "] 
+# f"{x!r}"[1:-1]
+# warn_symbols_ipa = warn_symbols_general + ["/", "'"]
+# f"Interval [{interval.minTime}, {interval.maxTime}] ({interval.mark!r} -> {''.join(symbols)!r}) contains at least one of these undesired symbols (incl. space): {warn_symbols_str}")
+# Content duration vs silence duration in min and percent
 
 def print_stats(grid: TextGrid, duration_threshold: float, print_symbols_tier_names: Set[str]) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
