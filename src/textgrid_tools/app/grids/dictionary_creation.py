@@ -48,7 +48,7 @@ def add_dictionary_argument(parser: ArgumentParser) -> None:
 
 
 def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
-  parser.description = "This command creates an ARPA pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with the Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
+  parser.description = "This command creates an ARPAbet pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
   add_grid_directory_argument(parser)
   parser.add_argument("output", type=Path, metavar="output",
                       help="path to write the generated pronunciation dictionary")

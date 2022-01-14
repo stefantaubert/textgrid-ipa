@@ -1,8 +1,9 @@
 from logging import getLogger
+from math import ceil
 from typing import Optional, Tuple
 
 import numpy as np
-from audio_utils.audio import samples_to_s
+from audio_utils.audio import s_to_samples, samples_to_s
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
@@ -144,8 +145,12 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
+
+
 def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
+  logger = getLogger(__name__)
+
   if audio is not None:
     assert sample_rate is not None
 
@@ -167,6 +172,18 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
 
     start, end = parse_meta_content(meta)
 
+    # if start is not None and sample_rate is not None:
+    #   new_start = get_closest_sample_rate_s(start, sample_rate)
+    #   if start != new_start:
+    #     logger.debug(f"Adjusted start to: {new_start}")
+    #     start = new_start
+
+    # if end is not None and sample_rate is not None:
+    #   new_end = get_closest_sample_rate_s(end, sample_rate)
+    #   if end != new_end:
+    #     logger.debug(f"Adjusted start to: {new_end}")
+    #     end = new_end
+
     if start is not None and (error := StartTooSmallError.validate(start)):
       return error, False
 
@@ -185,20 +202,21 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
 
       if end is not None and (error := EndTooBigError.validate(end, duration_s)):
         return error, False
+  else:
+    start = None
+    end = None
 
   text_symbols = text_string_format.convert_string_to_symbols(text)
   assert len(text_symbols) > 0
 
   duration_s: float = None
 
-  logger = getLogger(__name__)
-
-  if audio is not None:
-    duration_s = samples_to_s(audio.shape[0], sample_rate)
-    logger.debug(f"Total grid duration is {duration_s}s.")
-  else:
+  if audio is None:
     duration_s = len(text_symbols) / characters_per_second
     logger.debug(f"Estimated grid duration to {duration_s}s.")
+  else:
+    duration_s = samples_to_s(audio.shape[0], sample_rate)
+    logger.debug(f"Total grid duration is {duration_s}s.")
 
   min_time = 0
   max_time = round(duration_s, n_digits)
