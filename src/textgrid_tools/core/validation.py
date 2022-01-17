@@ -125,7 +125,7 @@ class BoundaryError(ValidationError):
   @classmethod
   def validate(cls, timepoints: OrderedSet[float], tiers: Iterable[IntervalTier]):
     all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
-      timepoints, tiers)
+      timepoints, list(tiers))
     if not all_tiers_share_timepoints:
       return cls(timepoints, tiers)
     return None

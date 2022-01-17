@@ -10,6 +10,9 @@ textgrid-tools tier {clone,move,copy,rename,map,export-to-txt}
 textgrid-tools intervals {join-between-pause,join-by-boundary,join-by-duration,join-by-sentence,split,remove,fix-boundaries}
 ```
 
+- export vocabulary -> export all words from tiers into file
+  - 
+
 - provide windows and mac version
 - use local dictionary for create-dict-from-grids
 - make map on phoneme level word based!

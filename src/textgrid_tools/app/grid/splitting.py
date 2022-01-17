@@ -26,7 +26,7 @@ def get_splitting_parser(parser: ArgumentParser):
                       help="include pause intervals")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="ignore audios")
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
                       help="the directory where to output the modified audios if not to directory/audio-directory.")

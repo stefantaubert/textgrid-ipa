@@ -25,7 +25,7 @@ def get_text_conversion_parser(parser: ArgumentParser):
   add_string_format_argument(parser, "tier")
   add_interval_format_argument(parser, "tier")
   add_encoding_argument(parser, "encoding of text files")
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the text files if not to the same directory")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)

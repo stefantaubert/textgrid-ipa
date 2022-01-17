@@ -31,7 +31,7 @@ def get_removing_parser(parser: ArgumentParser):
                       help="remove intervals containing these marks", default=[])
   parser.add_argument("--pauses", action="store_true",
                       help="remove pause intervals")
-  parser.add_argument("--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
                       help="the directory where to output the modified audio files if not to directory/audio-directory.")
@@ -64,6 +64,7 @@ def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignor
   if output_audio_directory is None:
     output_audio_directory = audio_directory
 
+  logger.debug(f"Marks: {'|'.join(OrderedSet(marks))}")
   grid_files = get_grid_files(directory)
 
   audio_files = {}

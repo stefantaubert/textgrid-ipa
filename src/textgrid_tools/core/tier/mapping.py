@@ -43,6 +43,7 @@ def map_tier(grid: TextGrid, tier_name: str, tier_string_format: StringFormat, t
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """
+  # ignore_marks and only_symbols can be removed because it is in symbol_removing
 
   if error := InvalidGridError.validate(grid):
     return error, False
