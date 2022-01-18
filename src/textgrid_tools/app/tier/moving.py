@@ -6,7 +6,7 @@ from typing import Optional
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -19,7 +19,7 @@ from textgrid_tools.core import move_tier
 
 def get_moving_parser(parser: ArgumentParser):
   parser.description = "This commands moves a tier to another position in the grid."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be moved")
   parser.add_argument("position", type=parse_non_negative_integer, metavar="position",
                       help="move tier to this position (0 = first tier)")

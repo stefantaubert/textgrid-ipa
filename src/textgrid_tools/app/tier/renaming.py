@@ -7,7 +7,7 @@ from typing import Optional
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -20,7 +20,7 @@ from textgrid_tools.core.validation import (                                    
 
 def get_renaming_parser(parser: ArgumentParser):
   parser.description = "This command renames a tier."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be renamed")
   parser.add_argument("name", type=parse_non_empty_or_whitespace, metavar="tier",
                       help="new name of tier")

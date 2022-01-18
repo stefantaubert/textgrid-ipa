@@ -7,7 +7,7 @@ from ordered_set import OrderedSet
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -19,7 +19,7 @@ from textgrid_tools.core import remove_tiers
 
 def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes tiers from a grid."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tiers_argument(parser, "the tiers which should be removed")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)

@@ -5,7 +5,7 @@ from pathlib import Path
 from ordered_set import OrderedSet
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_n_digits_argument, get_grid_files,
                                        load_grid,
                                        parse_non_empty_or_whitespace,
@@ -15,7 +15,7 @@ from textgrid_tools.core import print_stats
 
 def get_stats_generation_parser(parser: ArgumentParser):
   parser.description = "This command generate statistics about the grid files."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002,
                       help="warn at intervals smaller than this duration (in seconds)")
   parser.add_argument("--print-symbols-tiers", type=parse_non_empty_or_whitespace, nargs='*',

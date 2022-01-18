@@ -7,7 +7,7 @@ from ordered_set import OrderedSet
 from text_utils import StringFormat
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_interval_format_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
@@ -24,7 +24,7 @@ from textgrid_tools.core.interval_format import IntervalFormat
 
 def get_boundary_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier according to the interval boundaries of another tier."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   parser.add_argument("boundary_tier", metavar="boundary-tier", type=parse_non_empty_or_whitespace,
                       help="tier from which the boundaries should be considered")
   add_tiers_argument(parser, "tiers on which the intervals should be joined")

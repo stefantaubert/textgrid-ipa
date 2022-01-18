@@ -7,7 +7,7 @@ from ordered_set import OrderedSet
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -21,7 +21,7 @@ from textgrid_tools.core import fix_interval_boundaries
 
 def get_boundary_fixing_parser(parser: ArgumentParser):
   parser.description = "This command set the closest boundaries of tiers to those of a reference tier."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tier_argument(parser, "tier with contains the right boundaries")
   add_tiers_argument(parser, "tiers that should be fixed")
   parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005,

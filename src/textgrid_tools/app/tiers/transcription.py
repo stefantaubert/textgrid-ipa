@@ -11,7 +11,7 @@ from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_encoding_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -24,7 +24,7 @@ from textgrid_tools.core import transcribe_text
 
 def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   parser.add_argument("dictionary", metavar="dictionary", type=parse_existing_file,
                       help="path to the pronunciation dictionary")
   add_tiers_argument(parser, "tiers which should be transcribed")

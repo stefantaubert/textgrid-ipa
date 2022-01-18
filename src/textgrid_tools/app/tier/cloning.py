@@ -6,7 +6,7 @@ from typing import List, Optional
 from ordered_set import OrderedSet
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.helper import (add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -20,7 +20,7 @@ from textgrid_tools.core.globals import ExecutionResult
 def get_cloning_parser(parser: ArgumentParser):
   parser.description = "This command clones a tier."
 
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be cloned")
   add_tiers_argument(parser, "tiers which should be cloned to")
   parser.add_argument("--ignore-marks", action="store_true",

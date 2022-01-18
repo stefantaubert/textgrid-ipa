@@ -96,7 +96,7 @@ def add_interval_format_argument(parser: ArgumentParser, target: str, short_name
 
 
 def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("--encoding", type=str, metavar='CODEC',
+  parser.add_argument("--encoding", type=parse_non_empty_or_whitespace, metavar='CODEC',
                       help=help_str + "; see all available codecs at https://docs.python.org/3.8/library/codecs.html#standard-encodings", default=DEFAULT_ENCODING)
 
 
@@ -110,9 +110,9 @@ def add_output_directory_argument(parser: ArgumentParser) -> None:
                       help="directory where to output the grids if not to the same directory")
 
 
-def add_grid_directory_argument(parser: ArgumentParser) -> None:
+def add_directory_argument(parser: ArgumentParser, help_str: str = "directory containing the grids") -> None:
   parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
-                      help="directory containing the grids")
+                      help=help_str)
 
 
 def add_tiers_argument(parser: ArgumentParser, help_str: str) -> None:

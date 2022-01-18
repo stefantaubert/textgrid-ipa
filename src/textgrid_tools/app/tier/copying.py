@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_n_digits_argument,
+from textgrid_tools.app.helper import (add_directory_argument,
+                                       add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_grid_files, get_optional, load_grid,
@@ -21,8 +22,8 @@ def get_copying_parser(parser: ArgumentParser):
                       help="the directory containing the grid files with the content that should be mapped")
   parser.add_argument("reference_tier", metavar="reference-tier", type=parse_non_empty_or_whitespace,
                       help="tier which should be copied")
-  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
-                      help="directory containing the grid files on which the tier should be added")
+  add_directory_argument(
+    parser, "directory containing the grid files on which the tier should be added")
   parser.add_argument("--tier", metavar="NAME", type=get_optional(parse_non_empty_or_whitespace), default=None,
                       help="tier on which the mapped content should be written if not to reference-tier.")
   add_n_digits_argument(parser)

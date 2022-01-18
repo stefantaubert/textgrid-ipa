@@ -12,7 +12,7 @@ from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
 from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_chunksize_argument,
                                        add_encoding_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_interval_format_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -51,7 +51,7 @@ def add_dictionary_argument(parser: ArgumentParser) -> None:
 
 def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command creates an ARPAbet pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated pronunciation dictionary")
   add_tiers_argument(parser, "tiers that contains the English text")

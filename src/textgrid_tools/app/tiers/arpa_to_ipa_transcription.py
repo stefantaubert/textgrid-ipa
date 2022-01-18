@@ -10,7 +10,7 @@ from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_chunksize_argument,
-                                       add_grid_directory_argument,
+                                       add_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -24,7 +24,7 @@ from textgrid_tools.core import map_arpa_to_ipa
 
 def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   parser.description = "This command maps ARPA transcriptions to IPA."
-  add_grid_directory_argument(parser)
+  add_directory_argument(parser)
   add_tiers_argument(parser, "tiers which should be transcribed")
   add_string_format_argument(parser, "tiers")
   parser.add_argument("--replace-unknown", action="store_true",
