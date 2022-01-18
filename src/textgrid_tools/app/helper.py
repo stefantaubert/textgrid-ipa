@@ -13,7 +13,10 @@ from general_utils.main import get_files_dict
 from scipy.io.wavfile import read, write
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.globals import (DEFAULT_ENCODING, DEFAULT_N_DIGITS,
+from textgrid_tools.app.globals import (DEFAULT_ENCODING,
+                                        DEFAULT_MAXTASKSPERCHILD,
+                                        DEFAULT_N_DIGITS,
+                                        DEFAULT_N_FILE_CHUNKSIZE,
                                         DEFAULT_N_JOBS)
 from textgrid_tools.core.helper import check_is_valid_grid
 from textgrid_tools.core.interval_format import IntervalFormat
@@ -105,6 +108,16 @@ def add_n_jobs_argument(parser: ArgumentParser) -> None:
                       choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="amount of parallel cpu jobs")
 
 
+def add_chunksize_argument(parser: ArgumentParser, target: str = "files", default: int = DEFAULT_N_FILE_CHUNKSIZE) -> None:
+  parser.add_argument("-c", "--chunksize", type=int, metavar="NUMBER",
+                      help=f"amount of {target} to chunk into one job", default=default)
+
+
+def add_maxtaskperchild_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-m", "--max-tasks-per-child", type=int, metavar="NUMBER",
+                      help="amount of tasks per child", default=DEFAULT_MAXTASKSPERCHILD)
+
+
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:
   result = get_files_dict(folder, filetypes={GRID_FILE_TYPE})
   logger = getLogger(__name__)
@@ -142,13 +155,13 @@ def save_grid(path: Path, grid: TextGrid) -> None:
 
 def copy_grid(grid_in: Path, grid_out: Path) -> None:
   logger = getLogger(__name__)
-  #logger.info("Copying grid...")
+  logger.debug("Copying grid...")
   copy_file(grid_in, grid_out)
 
 
 def copy_audio(audio_in: Path, audio_out: Path) -> None:
   logger = getLogger(__name__)
-  #logger.info("Copying audio...")
+  logger.debug("Copying audio...")
   copy_file(audio_in, audio_out)
 
 
@@ -159,7 +172,7 @@ def copy_file(file_in: Path, file_out: Path) -> None:
 
 def save_text(path: Path, text: str, encoding: str) -> None:
   logger = getLogger(__name__)
-  #logger.info("Saving text...")
+  logger.debug("Saving text...")
   path.parent.mkdir(parents=True, exist_ok=True)
   path.write_text(text, encoding=encoding)
 

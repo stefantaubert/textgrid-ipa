@@ -7,6 +7,8 @@ from textgrid_tools.core.globals import ChangedAnything
 DEFAULT_N_DIGITS = 16
 DEFAULT_ENCODING = "utf-8"
 DEFAULT_N_JOBS = cpu_count()
+DEFAULT_N_FILE_CHUNKSIZE = 2
+DEFAULT_MAXTASKSPERCHILD = None
 DEFAULT_PUNCTUATION = list(OrderedSet(sorted((
   "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "{", "}", "~", "`",
   "、", "。", "？", "！", "：", "；", "।", "¿", "¡", "【", "】", "，", "…", "‥", "「", "」", "『", "』", "〝", "〟", "″", "⟨", "⟩", "♪", "・", "‹", "›", "«", "»", "～", "′", "“", "”"

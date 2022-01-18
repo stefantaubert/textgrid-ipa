@@ -226,11 +226,11 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
 
   if start is not None:
     min_time_text_interval = round(start, n_digits)
-    logger.info(f"Set start of grid to {start}.")
+    logger.debug(f"Set start of grid to {start}.")
 
   if end is not None:
     max_time_text_interval = round(end, n_digits)
-    logger.info(f"Set end of grid to {end}.")
+    logger.debug(f"Set end of grid to {end}.")
 
   mark = text_string_format.convert_symbols_to_string(text_symbols)
   result = get_grid(grid_name, tier_name, min_time, min_time_text_interval,
