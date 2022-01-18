@@ -4,12 +4,15 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
+from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_grid_directory_argument,
+from textgrid_tools.app.helper import (add_chunksize_argument,
+                                       add_grid_directory_argument,
+                                       add_maxtaskperchild_argument,
                                        add_n_digits_argument,
+                                       add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument)
-from textgrid_tools.app.common import process_grids
 from textgrid_tools.core import rename_tier
 from textgrid_tools.core.validation import (InvalidTierNameError,
                                             NonDistinctTiersError)
@@ -25,10 +28,13 @@ def get_renaming_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
+  add_n_jobs_argument(parser)
+  add_chunksize_argument(parser)
+  add_maxtaskperchild_argument(parser)
   return app_rename_tier
 
 
-def app_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if error := NonDistinctTiersError.validate(tier, name):
@@ -45,4 +51,4 @@ def app_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output
     output_tier_name=name,
   )
 
-  return process_grids(directory, n_digits, output_directory, overwrite, method)
+  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)

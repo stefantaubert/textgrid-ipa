@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Set
 
 from pronunciation_dict_parser import PronunciationDict
-from sentence2pronunciation import (LookupCache,
+from sentence2pronunciation import (LookupCache, sentence2pronunciation_cached,
                                     sentences2pronunciations_from_cache_mp)
 from text_utils.string_format import (StringFormat,
                                       convert_symbols_to_symbols_string)
@@ -15,7 +15,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError)
 
 
-def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, pronunciation_dictionary: PronunciationDict, n_jobs: int, chunksize: int) -> ExecutionResult:
+def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, pronunciation_dictionary: PronunciationDict) -> ExecutionResult:
   """
   chunksize: amount of intervals at once
   """
@@ -41,11 +41,11 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
   intervals_symbols_arpa = sentences2pronunciations_from_cache_mp(
     cache=convert_pronunciation_dict_to_cache(pronunciation_dictionary),
     sentences=all_symbols,
-    chunksize=chunksize,
+    chunksize=len(all_symbols),
     consider_annotation=False,  # was decided in dictionary creation
     annotation_split_symbol=None,
     ignore_case=True,
-    n_jobs=n_jobs,
+    n_jobs=1,
   )
 
   changed_anything = False

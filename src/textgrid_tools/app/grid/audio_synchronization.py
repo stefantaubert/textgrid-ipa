@@ -15,7 +15,7 @@ from textgrid_tools.core import sync_grid_to_audio
 
 
 def get_audio_synchronization_parser(parser: ArgumentParser):
-  parser.description = "This command synchronizes the grids minTime and maxTime according to the audio, i.e. if minTime is not zero, then the first interval will be set to start at zero and if the last interval is not ending at the total duration of the audio, it will be adjusted to it."
+  parser.description = "This command synchronizes the grids minTime and maxTime according to the audio, i.e., if minTime is not zero, then the first interval will be set to start at zero and if the last interval is not ending at the total duration of the audio, it will be adjusted to it."
   add_grid_directory_argument(parser)
   parser.add_argument("--audio-directory", type=Path, metavar="PATH",
                       help="directory containing the audio files if not the same directory")
