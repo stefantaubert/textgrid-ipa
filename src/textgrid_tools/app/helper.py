@@ -42,12 +42,12 @@ def add_n_digits_argument(parser: ArgumentParser) -> None:
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
 
 
-class CheckFileAlreadyExistNoOverride(argparse._StoreAction):
-  def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[Path], option_string: Optional[str] = None):
-    if values is not None:
-      if not namespace.overwrite and values.is_file():
-        raise ArgumentTypeError("File already exists!")
-    super().__call__(parser, namespace, values, option_string)
+# class CheckFileAlreadyExistNoOverride(argparse._StoreAction):
+#   def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[Path], option_string: Optional[str] = None):
+#     if values is not None:
+#       if not namespace.overwrite and values.is_file():
+#         raise ArgumentTypeError("File already exists!")
+#     super().__call__(parser, namespace, values, option_string)
 
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
