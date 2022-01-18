@@ -312,8 +312,7 @@ def save_audio(path: Path, audio: np.ndarray, sampling_rate: int) -> None:
 
 
 def read_audio(path: Path) -> Tuple[int, np.ndarray]:
-  if MP3_FILE_TYPE in path.name:
-    raise Exception()
+  # assert not MP3_FILE_TYPE in path.name:
     #audio_in, sample_rate = librosa.load(audio_file_in_abs)
     # with audioread.audio_open(audio_file_in_abs) as f:
     #   sample_rate = f.samplerate
@@ -321,7 +320,6 @@ def read_audio(path: Path) -> Tuple[int, np.ndarray]:
     #   import numpy as np
     #   y = np.frombuffer(x)
     #   audio_in = f
-  else:
-    assert WAV_FILE_TYPE in path.name
-    sample_rate, audio_in = read(path)
-    return sample_rate, audio_in
+  assert WAV_FILE_TYPE.lower() == path.suffix.lower()
+  sample_rate, audio_in = read(path)
+  return sample_rate, audio_in
