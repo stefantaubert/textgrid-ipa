@@ -1,13 +1,13 @@
-from typing import Generator, Iterable, List, Set, Union, cast
+from typing import Generator, Iterable, List, Set, cast
 
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import (get_all_tiers, get_intervals_duration,
-                                        interval_is_None_or_whitespace)
+from textgrid_tools.core.helper import get_all_tiers, get_intervals_duration
 from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.common import (group_adjacent_pauses, merge_intervals,
+from textgrid_tools.core.intervals.common import (group_adjacent_pauses,
+                                                  merge_intervals,
                                                   replace_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
@@ -88,4 +88,3 @@ def chunk_intervals(intervals: Iterable[Interval], pause: float) -> Generator[Li
 
   if len(chunk) > 0:
     yield chunk
-

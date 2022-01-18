@@ -14,7 +14,8 @@ from textgrid_tools.core.helper import (
     set_precision_interval)
 from textgrid_tools.core.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
-                                            BoundaryError, InvalidGridError,
+                                            BoundaryError, InternalError,
+                                            InvalidGridError,
                                             MultipleTiersWithThatNameError,
                                             NotExistingTierError,
                                             ValidationError)
@@ -45,7 +46,7 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
     return (error, False), None
 
   if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
-    return error, False
+    return (error, False), None
 
   if audio is not None:
     assert sample_rate is not None
@@ -101,8 +102,8 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
 
     # after multiple removals in audio some difference occurs
     if error := LastIntervalToShortError.validate(grid, res_audio, sample_rate, n_digits):
-      raise Exception("Internal error.")
-      # return error, False
+      internal_error = InternalError()
+      return (internal_error, False), None
 
     set_end_to_audio_len(grid, res_audio, sample_rate, n_digits)
 

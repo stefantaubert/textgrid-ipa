@@ -31,6 +31,11 @@ class ValidationError():
 #   def default_message(self) -> str:
 #     return "No tiers were defined!"
 
+class InternalError(ValidationError):
+  @property
+  def default_message(self) -> str:
+    return "Internal error!"
+
 
 class NotExistingTierError(ValidationError):
   def __init__(self, grid: TextGrid, tier_name: str) -> None:
