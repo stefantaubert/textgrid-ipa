@@ -11,8 +11,11 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        get_audio_files, get_files_dict,
-                                       get_text_files, read_audio, save_grid)
-from textgrid_tools.app.validation import DirectoryNotExistsError
+                                       get_optional, get_text_files,
+                                       parse_existing_directory,
+                                       parse_non_whitespace,
+                                       parse_positive_float, read_audio,
+                                       save_grid)
 from textgrid_tools.core import create_grid_from_text
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
@@ -21,18 +24,18 @@ META_FILE_TYPE = ".meta"
 
 def get_creation_parser(parser: ArgumentParser):
   parser.description = f"This command converts text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
-  parser.add_argument("directory", type=Path, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing text, audio and meta files")
-  parser.add_argument("--tier", type=str, metavar='NAME',
+  parser.add_argument("--tier", type=parse_non_whitespace, metavar='NAME',
                       help="the name of the tier containing the text content", default="transcript")
-  parser.add_argument("--audio-directory", type=Path, metavar='PATH',
+  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing audio files if not directory")
-  parser.add_argument("--meta-directory", type=Path, metavar='PATH',
+  parser.add_argument("--meta-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing meta files if not directory")
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")
   add_encoding_argument(parser, "encoding of text and meta files")
-  parser.add_argument("--speech-rate", type=float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
+  parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
   add_string_format_argument(parser, "text files")
   add_n_digits_argument(parser)
@@ -43,18 +46,6 @@ def get_creation_parser(parser: ArgumentParser):
 
 def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, formatting: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
-
-  if audio_directory is not None and (error := DirectoryNotExistsError.validate(audio_directory)):
-    logger.error(error.default_message)
-    return False, False
-
-  if meta_directory is not None and (error := DirectoryNotExistsError.validate(meta_directory)):
-    logger.error(error.default_message)
-    return False, False
 
   if audio_directory is None:
     audio_directory = directory

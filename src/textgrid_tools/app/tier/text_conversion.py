@@ -11,7 +11,10 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
-                                       get_grid_files, load_grid, save_text)
+                                       add_tier_argument, get_grid_files,
+                                       get_optional, load_grid,
+                                       parse_non_whitespace, parse_path,
+                                       save_text)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import convert_tier_to_text
 from textgrid_tools.core.interval_format import IntervalFormat
@@ -21,12 +24,12 @@ def get_text_conversion_parser(parser: ArgumentParser):
   parser.description = "This command writes the content of a tier into a text file."
 
   add_grid_directory_argument(parser)
-  parser.add_argument("tier", type=str, help="tier from which the content should be written")
+  add_tier_argument(parser, "tier from which the content should be written")
   add_string_format_argument(parser, "tier")
   add_interval_format_argument(parser, "tier")
   add_encoding_argument(parser, "encoding of text files")
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
-                      help="directory where to output the text files if not to the same directory")
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+                      help="directory where to output the text files if not to the same directory", default=None)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_convert_tier_to_text

@@ -6,20 +6,20 @@ from typing import List, Optional
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
+                                       add_grid_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
-                                       add_overwrite_argument)
+                                       add_overwrite_argument,
+                                       add_tiers_argument)
 from textgrid_tools.core import remove_tiers
 
 
 def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes tiers from a grid."
-  parser.add_argument("directory", type=Path, metavar="directory",
-                      help="the directory containing the grid files")
-  parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
-                      help="the tiers which should be removed")
+  add_grid_directory_argument(parser)
+  add_tiers_argument(parser, "the tiers which should be removed")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

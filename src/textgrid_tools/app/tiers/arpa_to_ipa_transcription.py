@@ -5,28 +5,31 @@ from typing import List, Optional, Set
 
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
+from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_chunksize_argument, add_grid_directory_argument, add_maxtaskperchild_argument,
-                                       add_n_digits_argument, add_n_jobs_argument,
+from textgrid_tools.app.helper import (add_chunksize_argument,
+                                       add_grid_directory_argument,
+                                       add_maxtaskperchild_argument,
+                                       add_n_digits_argument,
+                                       add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
-from textgrid_tools.app.common import process_grids_mp
+                                       add_string_format_argument, add_tiers_argument,
+                                       parse_non_whitespace, parse_required)
 from textgrid_tools.core import map_arpa_to_ipa
 
 
 def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   parser.description = "This command maps ARPA transcriptions to IPA."
   add_grid_directory_argument(parser)
-  parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
-                      help="tiers which should be transcribed")
+  add_tiers_argument(parser, "tiers which should be transcribed")
   add_string_format_argument(parser, "tiers")
   parser.add_argument("--replace-unknown", action="store_true",
                       help="replace unknown ARPA symbols with a custom symbol")
-  parser.add_argument("--symbol", metavar="SYMBOL", type=str,
+  parser.add_argument("--symbol", metavar="SYMBOL", type=parse_required,
                       help="custom symbol to replace unknown ARPA symbols")
-  parser.add_argument("--ignore", metavar="SYMBOL", type=str, nargs="*",
-                      help="ignore these symbols while mapping, i.e., keep them as they are")
+  parser.add_argument("--ignore", metavar="SYMBOL", type=parse_required, nargs="*",
+                      help="ignore these symbols while transcription, i.e., keep them as they are")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

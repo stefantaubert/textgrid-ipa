@@ -15,7 +15,7 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_string_format_argument, add_tiers_argument, parse_non_whitespace, parse_positive_float)
 from textgrid_tools.core import join_intervals_on_durations
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -23,11 +23,10 @@ from textgrid_tools.core.interval_format import IntervalFormat
 def get_duration_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
   add_grid_directory_argument(parser)
-  parser.add_argument("tiers", type=str, nargs="+",
-                      help="tiers on which the intervals should be joined")
+  add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_string_format_argument(parser, "tiers")
   add_interval_format_argument(parser, "tiers")
-  parser.add_argument("--duration", metavar="SECONDS", type=float,
+  parser.add_argument("--duration", metavar="SECONDS", type=parse_positive_float,
                       help="maximum duration until intervals should be joined (in seconds)", default=10)
   parser.add_argument("--include-pauses", action="store_true",
                       help="include pauses at the beginning/ending while joining")

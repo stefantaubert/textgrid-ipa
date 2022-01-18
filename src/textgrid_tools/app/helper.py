@@ -1,12 +1,13 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
+from functools import partial
 from logging import getLogger
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from typing import Generator
+from typing import Callable, Generator, Optional
 from typing import OrderedDict as OrderedDictType
-from typing import Tuple
+from typing import Tuple, TypeVar
 
 import numpy as np
 from general_utils.main import get_files_dict
@@ -89,14 +90,20 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
 
 
 def add_output_directory_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids if not to the same directory")
 
 
 def add_grid_directory_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("directory", type=Path, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing the grids")
 
+
+def add_tiers_argument(parser: ArgumentParser, help_str: str) -> None:
+  parser.add_argument("tiers", metavar="tiers", type=parse_non_whitespace, nargs="+", help=help_str)
+
+def add_tier_argument(parser: ArgumentParser, help_str: str) -> None:
+  parser.add_argument("tier", metavar="tier", type=parse_non_whitespace, help=help_str)
 
 # def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
 #   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
@@ -108,13 +115,110 @@ def add_n_jobs_argument(parser: ArgumentParser) -> None:
                       choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="amount of parallel cpu jobs")
 
 
+T = TypeVar("T")
+
+
+def parse_path(value: str) -> Path:
+  value = parse_required(value)
+  try:
+    path = Path(value)
+  except Exception as ex:
+    raise ArgumentTypeError("Value needs to be a path!") from ex
+  return path
+
+
+def parse_optional_value(value: str, method: Callable[[str], T]) -> Optional[T]:
+  if value is None or value == "":
+    return None
+  return method(value)
+
+
+def get_optional(method: Callable[[str], T]) -> Callable[[str], Optional[T]]:
+  result = partial(
+    parse_optional_value,
+    method=method,
+  )
+  return result
+
+
+def parse_existing_file(value: str) -> Path:
+  path = parse_path(value)
+  if not path.is_file():
+    raise ArgumentTypeError("File was not found!")
+  return path
+
+
+def parse_existing_directory(value: str) -> Path:
+  path = parse_path(value)
+  if not path.is_dir():
+    raise ArgumentTypeError("Directory was not found!")
+  return path
+
+
+def parse_required(value: str) -> Path:
+  if value is None or value == "":
+    raise ArgumentTypeError("Value must not be empty!")
+  return value
+
+
+def parse_non_whitespace(value: str) -> str:
+  value = parse_required(value)
+  if value.strip() == "":
+    raise ArgumentTypeError("Value must not be whitespace!")
+  return value
+
+
+def parse_float(value: str) -> float:
+  value = parse_required(value)
+  if not value.isdecimal():
+    raise ArgumentTypeError("Value needs to be a decimal number!")
+  value = float(value)
+  return value
+
+
+def parse_positive_float(value: str) -> float:
+  value = parse_float(value)
+  if not value > 0:
+    raise ArgumentTypeError("Value needs to be greater than zero!")
+  return value
+
+
+def parse_non_negative_float(value: str) -> float:
+  value = parse_float(value)
+  if not value >= 0:
+    raise ArgumentTypeError("Value needs to be greater than or equal to zero!")
+  return value
+
+
+def parse_integer(value: str) -> int:
+  value = parse_required(value)
+  if not value.isdigit():
+    raise ArgumentTypeError("Value needs to be an integer!")
+  value = int(value)
+  return value
+
+
+def parse_positive_integer(value: str) -> int:
+  value = parse_integer(value)
+  if not value > 0:
+    raise ArgumentTypeError("Value needs to be greater than zero!")
+  return value
+
+
+def parse_non_negative_integer(value: str) -> int:
+  value = parse_integer(value)
+  if not value >= 0:
+    raise ArgumentTypeError("Value needs to be greater than or equal to zero!")
+  return value
+
+
 def add_chunksize_argument(parser: ArgumentParser, target: str = "files", default: int = DEFAULT_N_FILE_CHUNKSIZE) -> None:
-  parser.add_argument("-c", "--chunksize", type=int, metavar="NUMBER",
+  parser.add_argument("-s", "--chunksize", type=parse_positive_integer, metavar="NUMBER",
                       help=f"amount of {target} to chunk into one job", default=default)
 
 
 def add_maxtaskperchild_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("-m", "--max-tasks-per-child", type=int, metavar="NUMBER",
+  parser.add_argument("-m", "--maxtasksperchild", type=get_optional(parse_positive_integer), metavar="NUMBER",
                       help="amount of tasks per child", default=DEFAULT_MAXTASKSPERCHILD)
 
 
@@ -147,7 +251,7 @@ def load_grid(path: Path, n_digits: int) -> TextGrid:
 
 def save_grid(path: Path, grid: TextGrid) -> None:
   logger = getLogger(__name__)
-  #logger.info("Saving grid...")
+  logger.debug("Saving grid...")
   assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)

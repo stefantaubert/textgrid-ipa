@@ -7,26 +7,31 @@ from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
-from textgrid_tools.app.helper import (add_chunksize_argument, add_interval_format_argument, add_maxtaskperchild_argument,
-                                       add_n_digits_argument, add_n_jobs_argument,
+from textgrid_tools.app.helper import (add_chunksize_argument,
+                                       add_interval_format_argument,
+                                       add_maxtaskperchild_argument,
+                                       add_n_digits_argument,
+                                       add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_string_format_argument,
+                                       add_tiers_argument,
+                                       parse_existing_directory,
+                                       parse_required)
 from textgrid_tools.core import split
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
 def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits the content of a tier."
-  parser.add_argument("directory", type=Path, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing the grid files which should be modified")
-  parser.add_argument("tiers", metavar="tiers", nargs="+", type=str,
-                      help="tiers which should be split")
+  add_tiers_argument(parser, "tiers which should be split")
   add_string_format_argument(parser, "tiers")
   add_interval_format_argument(parser, "tiers")
-  parser.add_argument('--join-symbols', type=str, nargs="*",
+  parser.add_argument('--join-symbols', type=parse_required, nargs="*",
                       help="join these symbols while splitting WORD to SYMBOLS", default=DEFAULT_PUNCTUATION)
-  parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
+  parser.add_argument('--ignore-join-symbols', type=parse_required, nargs="*",
                       help="don't join to these symbols while splitting WORD to SYMBOLS", default=[])
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)

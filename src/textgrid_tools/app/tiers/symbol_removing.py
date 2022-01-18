@@ -14,21 +14,21 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_string_format_argument,
+                                       add_tiers_argument, parse_required)
 from textgrid_tools.core import remove_symbols
 
 
 def get_symbol_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes symbols from tiers."
   add_grid_directory_argument(parser)
-  parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
-                      help="tiers which should be transcribed")
+  add_tiers_argument(parser, "tiers which should be transcribed")
   add_string_format_argument(parser, "tiers")
-  parser.add_argument("--symbols", type=str, nargs='*',
+  parser.add_argument("--symbols", type=parse_required, nargs='*',
                       help="remove these symbols from intervals", default=[])
-  parser.add_argument("--marks", type=str, nargs='*', metavar="MARK",
+  parser.add_argument("--marks", type=parse_required, nargs='*', metavar="MARK",
                       help="replace these marks with nothing", default=[])
-  parser.add_argument("--marks-symbols", type=str, nargs='*',
+  parser.add_argument("--marks-symbols", type=parse_required, nargs='*',
                       help="remove these symbols from intervals if the mark consists only these symbols", default=[])
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)

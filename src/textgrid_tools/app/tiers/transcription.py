@@ -16,7 +16,8 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_string_format_argument,
+                                       add_tiers_argument, parse_existing_file)
 from textgrid_tools.app.validation import FileNotExistsError
 from textgrid_tools.core import transcribe_text
 
@@ -24,10 +25,9 @@ from textgrid_tools.core import transcribe_text
 def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
   add_grid_directory_argument(parser)
-  parser.add_argument("dictionary", metavar="dictionary", type=Path,
+  parser.add_argument("dictionary", metavar="dictionary", type=parse_existing_file,
                       help="path to the pronunciation dictionary")
-  parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
-                      help="tiers which should be transcribed")
+  add_tiers_argument(parser, "tiers which should be transcribed")
   add_string_format_argument(parser, "tiers")
   add_encoding_argument(parser, "encoding of the dictionary")
   # add_n_jobs_argument(parser)

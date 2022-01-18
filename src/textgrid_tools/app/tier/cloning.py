@@ -11,7 +11,8 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
-                                       add_overwrite_argument)
+                                       add_overwrite_argument,
+                                       add_tier_argument, add_tiers_argument)
 from textgrid_tools.core import clone_tier
 from textgrid_tools.core.globals import ExecutionResult
 
@@ -20,10 +21,8 @@ def get_cloning_parser(parser: ArgumentParser):
   parser.description = "This command clones a tier."
 
   add_grid_directory_argument(parser)
-  parser.add_argument("tier", type=str, metavar="tier",
-                      help="tier which should be cloned")
-  parser.add_argument("tiers", type=str, nargs="+", metavar="tiers",
-                      help="tiers to clone to")
+  add_tier_argument(parser, "tier which should be cloned")
+  add_tiers_argument(parser, "tiers which should be cloned to")
   parser.add_argument("--ignore-marks", action="store_true",
                       help="ignore marks while cloning")
   add_n_digits_argument(parser)

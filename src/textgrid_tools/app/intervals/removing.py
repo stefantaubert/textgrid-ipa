@@ -7,10 +7,13 @@ from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_n_digits_argument,
-                                       add_overwrite_argument, copy_audio,
+                                       add_overwrite_argument,
+                                       add_tier_argument, copy_audio,
                                        copy_grid, get_audio_files,
-                                       get_grid_files, load_grid, save_audio,
-                                       save_grid)
+                                       get_grid_files, get_optional, load_grid,
+                                       parse_existing_directory,
+                                       parse_non_whitespace, parse_path,
+                                       parse_required, save_audio, save_grid)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import remove_intervals
 from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
@@ -20,20 +23,20 @@ from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
 
 def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
-  parser.add_argument("directory", type=Path, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing the grids and the corresponding audios")
-  parser.add_argument("tier", type=str, help="tier on which intervals should be removed")
-  parser.add_argument("--audio-directory", type=Path, metavar='PATH',
+  add_tier_argument(parser, "tier on which intervals should be removed")
+  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing the audios if not directory")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="ignore audios")
-  parser.add_argument("--marks", type=str, nargs='*', metavar="MARK",
+  parser.add_argument("--marks", type=parse_required, nargs='*', metavar="MARK",
                       help="remove intervals containing these marks", default=[])
   parser.add_argument("--pauses", action="store_true",
                       help="remove pause intervals")
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=Path,
+  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
-  parser.add_argument("--output-audio-directory", metavar='PATH', type=Path,
+  parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
                       help="the directory where to output the modified audio files if not to directory/audio-directory.")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)

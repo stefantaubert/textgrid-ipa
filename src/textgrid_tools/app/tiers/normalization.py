@@ -14,16 +14,17 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_string_format_argument,
+                                       add_tiers_argument,
+                                       parse_existing_directory)
 from textgrid_tools.core import normalize_tiers
 
 
 def get_normalization_parser(parser: ArgumentParser):
   parser.description = "This command normalizes text on multiple tiers."
-  parser.add_argument("directory", type=Path, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing the grid files")
-  parser.add_argument("tiers", metavar="tiers", type=str, nargs="+",
-                      help="tiers which should be normalized")
+  add_tiers_argument(parser, "tiers which should be normalized")
   parser.add_argument('--language', choices=Language,
                       type=Language.__getitem__, default=Language.ENG, help="language of tiers")
   parser.add_argument('--text-format', choices=SymbolFormat,

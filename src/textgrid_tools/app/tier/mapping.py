@@ -11,17 +11,17 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
-                                       add_overwrite_argument)
+                                       add_overwrite_argument,
+                                       add_tier_argument, parse_non_whitespace)
 from textgrid_tools.core import map_tier
 
 
 def get_mapping_parser(parser: ArgumentParser):
   parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals."
   add_grid_directory_argument(parser)
-  parser.add_argument("tier", metavar="tier", type=str,
-                      help="tier which should be mapped")
+  add_tier_argument(parser, "tier which should be mapped")
   parser.add_argument("target_tiers", metavar="target-tiers",
-                      type=str, nargs="+", help="tiers to which the content should be mapped")
+                      type=parse_non_whitespace, nargs="+", help="tiers to which the content should be mapped")
   parser.add_argument("--include-pauses", action="store_true",
                       help="include mapping from and to pause intervals, i.e., those which contain nothing or only whitespace")
   add_output_directory_argument(parser)
