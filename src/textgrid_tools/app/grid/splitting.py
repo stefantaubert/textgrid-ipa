@@ -11,10 +11,11 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_tier_argument, get_audio_files,
                                        get_grid_files, get_optional, load_grid,
                                        parse_existing_directory,
-                                       parse_non_whitespace, parse_path,
+                                       parse_non_empty_or_whitespace, parse_path,
                                        save_audio, save_grid)
 from textgrid_tools.core import split_grid_on_intervals
 from tqdm import tqdm
+
 
 
 def get_splitting_parser(parser: ArgumentParser):
@@ -31,7 +32,7 @@ def get_splitting_parser(parser: ArgumentParser):
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
-                      help="the directory where to output the modified audios if not to directory/audio-directory.")
+                      help="directory where to output the modified audios if not to directory")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_split_grid_on_intervals
@@ -48,7 +49,7 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
     output_directory = directory
 
   if output_audio_directory is None:
-    output_audio_directory = audio_directory
+    output_audio_directory = directory
 
   grid_files = get_grid_files(directory)
 

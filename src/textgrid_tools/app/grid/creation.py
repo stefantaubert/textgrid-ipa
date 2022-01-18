@@ -13,7 +13,7 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        get_audio_files, get_files_dict,
                                        get_optional, get_text_files,
                                        parse_existing_directory,
-                                       parse_non_whitespace,
+                                       parse_non_empty_or_whitespace,
                                        parse_positive_float, read_audio,
                                        save_grid)
 from textgrid_tools.core import create_grid_from_text
@@ -26,7 +26,7 @@ def get_creation_parser(parser: ArgumentParser):
   parser.description = f"This command converts text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
   parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing text, audio and meta files")
-  parser.add_argument("--tier", type=parse_non_whitespace, metavar='NAME',
+  parser.add_argument("--tier", type=parse_non_empty_or_whitespace, metavar='NAME',
                       help="the name of the tier containing the text content", default="transcript")
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing audio files if not directory")

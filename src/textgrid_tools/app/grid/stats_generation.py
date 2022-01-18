@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import List
 
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_grid_directory_argument,
+from textgrid_tools.app.helper import (ConvertToOrderedSetAction, add_grid_directory_argument,
                                        add_n_digits_argument, get_grid_files,
-                                       load_grid, parse_non_whitespace,
+                                       load_grid, parse_non_empty_or_whitespace,
                                        parse_positive_float)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import print_stats
@@ -17,15 +17,15 @@ def get_stats_generation_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002,
                       help="warn at intervals smaller than this duration (in seconds)")
-  parser.add_argument("--print-symbols-tiers", type=parse_non_whitespace, nargs='*',
-                      help="tiers with format SYMBOL which symbols should be printed", default=[])
+  parser.add_argument("--print-symbols-tiers", type=parse_non_empty_or_whitespace, nargs='*',
+                      help="tiers with format SYMBOL which symbols should be printed", default=[], action=ConvertToOrderedSetAction)
   add_n_digits_argument(parser)
   return app_print_stats
 
 
 def app_print_stats(directory: Path, duration_threshold: float, print_symbols_tiers: List[str], n_digits: int) -> ExecutionResult:
   logger = getLogger(__name__)
-  assert directory.is_dir()
+
   grid_files = get_grid_files(directory)
 
   total_success = True

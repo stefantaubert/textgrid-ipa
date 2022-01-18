@@ -43,7 +43,7 @@ def app_join_intervals_between_pauses(directory: Path, tiers: List[str], formatt
   method = partial(
     join_intervals_between_pauses,
     pause=pause,
-    tier_names=set(tiers),
+    tier_names=tiers,
     tiers_interval_format=content,
     tiers_string_format=formatting,
   )

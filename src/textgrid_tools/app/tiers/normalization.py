@@ -44,7 +44,7 @@ def app_normalize_tiers(directory: Path, tiers: List[str], formatting: StringFor
     normalize_tiers,
     language=language,
     text_format=text_format,
-    tier_names=set(tiers),
+    tier_names=tiers,
     tiers_string_format=formatting,
   )
 

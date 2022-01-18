@@ -1,3 +1,4 @@
+import argparse
 from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
 from functools import partial
@@ -5,12 +6,13 @@ from logging import getLogger
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from typing import Callable, Generator, Optional
+from typing import Callable, Optional
 from typing import OrderedDict as OrderedDictType
 from typing import Tuple, TypeVar
 
 import numpy as np
 from general_utils.main import get_files_dict
+from ordered_set import OrderedSet
 from scipy.io.wavfile import read, write
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
@@ -26,6 +28,12 @@ GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
 WAV_FILE_TYPE = ".wav"
 MP3_FILE_TYPE = ".mp3"
+
+
+class ConvertToOrderedSetAction(argparse._StoreAction):
+  def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[Path], option_string: Optional[str] = None):
+    values = OrderedSet(values)
+    super().__call__(parser, namespace, values, option_string)
 
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
@@ -100,10 +108,12 @@ def add_grid_directory_argument(parser: ArgumentParser) -> None:
 
 
 def add_tiers_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tiers", metavar="tiers", type=parse_non_whitespace, nargs="+", help=help_str)
+  parser.add_argument("tiers", metavar="tiers", type=parse_non_empty_or_whitespace,
+                      nargs="+", help=help_str, action=ConvertToOrderedSetAction)
+
 
 def add_tier_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tier", metavar="tier", type=parse_non_whitespace, help=help_str)
+  parser.add_argument("tier", metavar="tier", type=parse_non_empty_or_whitespace, help=help_str)
 
 # def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
 #   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
@@ -128,7 +138,7 @@ def parse_path(value: str) -> Path:
 
 
 def parse_optional_value(value: str, method: Callable[[str], T]) -> Optional[T]:
-  if value is None or value == "":
+  if value is None:
     return None
   return method(value)
 
@@ -155,16 +165,24 @@ def parse_existing_directory(value: str) -> Path:
   return path
 
 
-def parse_required(value: str) -> Path:
-  if value is None or value == "":
+def parse_required(value: Optional[str]) -> str:
+  if value is None:
+    raise ArgumentTypeError("Value must not be None!")
+  return value
+
+
+def parse_non_empty(value: Optional[str]) -> str:
+  value = parse_required(value)
+  if value == "":
     raise ArgumentTypeError("Value must not be empty!")
   return value
 
 
-def parse_non_whitespace(value: str) -> str:
+
+def parse_non_empty_or_whitespace(value: str) -> str:
   value = parse_required(value)
   if value.strip() == "":
-    raise ArgumentTypeError("Value must not be whitespace!")
+    raise ArgumentTypeError("Value must not be empty or whitespace!")
   return value
 
 

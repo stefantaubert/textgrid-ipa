@@ -13,7 +13,7 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_string_format_argument,
                                        add_tier_argument, get_grid_files,
                                        get_optional, load_grid,
-                                       parse_non_whitespace, parse_path,
+                                       parse_non_empty_or_whitespace, parse_path,
                                        save_text)
 from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import convert_tier_to_text

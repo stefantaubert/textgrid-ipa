@@ -32,7 +32,7 @@ def get_removing_parser(parser: ArgumentParser):
 def app_remove_tiers(directory: Path, tiers: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     remove_tiers,
-    tier_names=set(tiers),
+    tier_names=tiers,
   )
 
   return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)

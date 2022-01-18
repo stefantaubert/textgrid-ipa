@@ -10,9 +10,8 @@ from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_audio_files, get_grid_files,
                                        get_optional, load_grid,
-                                       parse_existing_directory,
-                                       read_audio, save_grid)
-from textgrid_tools.app.validation import DirectoryNotExistsError
+                                       parse_existing_directory, read_audio,
+                                       save_grid)
 from textgrid_tools.core import sync_grid_to_audio
 
 
@@ -30,15 +29,7 @@ def get_audio_synchronization_parser(parser: ArgumentParser):
 def app_sync_grid_to_audio(directory: Path, audio_directory: Optional[Path], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
-
-  if audio_directory is not None:
-    if error := DirectoryNotExistsError.validate(audio_directory):
-      logger.error(error.default_message)
-      return False, False
-  else:
+  if audio_directory is None:
     audio_directory = directory
 
   if output_directory is None:

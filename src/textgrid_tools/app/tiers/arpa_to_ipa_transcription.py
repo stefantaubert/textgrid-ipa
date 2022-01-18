@@ -7,15 +7,17 @@ from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (add_chunksize_argument,
+from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
+                                       add_chunksize_argument,
                                        add_grid_directory_argument,
                                        add_maxtaskperchild_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument,
-                                       parse_non_whitespace, parse_required)
+                                       add_string_format_argument,
+                                       add_tiers_argument, get_optional,
+                                       parse_non_empty)
 from textgrid_tools.core import map_arpa_to_ipa
 
 
@@ -26,10 +28,10 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   add_string_format_argument(parser, "tiers")
   parser.add_argument("--replace-unknown", action="store_true",
                       help="replace unknown ARPA symbols with a custom symbol")
-  parser.add_argument("--symbol", metavar="SYMBOL", type=parse_required,
+  parser.add_argument("--symbol", metavar="SYMBOL", type=get_optional(parse_non_empty),
                       help="custom symbol to replace unknown ARPA symbols")
-  parser.add_argument("--ignore", metavar="SYMBOL", type=parse_required, nargs="*",
-                      help="ignore these symbols while transcription, i.e., keep them as they are")
+  parser.add_argument("--ignore", metavar="SYMBOL", type=parse_non_empty, nargs="*",
+                      help="ignore these symbols while transcription, i.e., keep them as they are", action=ConvertToOrderedSetAction)
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
@@ -39,13 +41,13 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   return app_map_arpa_to_ipa
 
 
-def app_map_arpa_to_ipa(directory: Path, tiers: List[str], formatting: StringFormat, replace_unknown: bool, replace_unknown_with: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_map_arpa_to_ipa(directory: Path, tiers: List[str], formatting: StringFormat, replace_unknown: bool, symbol: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     map_arpa_to_ipa,
     ignore=set(ignore),
     replace_unknown=replace_unknown,
-    replace_unknown_with=replace_unknown_with,
-    tier_names=set(tiers),
+    replace_unknown_with=symbol,
+    tier_names=tiers,
     tiers_string_format=formatting,
   )
 

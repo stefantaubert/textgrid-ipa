@@ -9,17 +9,17 @@ from pronunciation_dict_parser import (PublicDictType, get_dict_from_name,
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
-from textgrid_tools.app.helper import (add_chunksize_argument,
+from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
+                                       add_chunksize_argument,
                                        add_encoding_argument,
                                        add_grid_directory_argument,
                                        add_interval_format_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument,
-                                       get_grid_files, load_grid,
-                                       parse_non_whitespace, parse_path,
-                                       parse_required)
+                                       add_string_format_argument,
+                                       add_tiers_argument, get_grid_files,
+                                       load_grid, parse_non_empty, parse_path)
 from textgrid_tools.app.validation import (DirectoryNotExistsError,
                                            FileAlreadyExistsError)
 from textgrid_tools.core import get_arpa_pronunciation_dictionary
@@ -57,8 +57,8 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
                       help="path to write the generated pronunciation dictionary")
   add_tiers_argument(parser, "tiers that contains the English text")
   add_dictionary_argument(parser)
-  parser.add_argument("--punctuation", type=parse_required, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
-                      help="trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary")
+  parser.add_argument("--punctuation", type=parse_non_empty, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
+                      help="trim these punctuation symbols from the start and end of a word before looking it up in the reference pronunciation dictionary", action=ConvertToOrderedSetAction)
   add_n_digits_argument(parser)
   parser.add_argument("--consider-annotations", action="store_true",
                       help="consider /.../-styled annotations")
@@ -79,10 +79,6 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
 
 def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
 
   if not overwrite and (error := FileAlreadyExistsError(output)):
     logger.error(error.default_message)
@@ -111,7 +107,7 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
     include_punctuation_in_pronunciations=include_punctuation_in_pronunciations,
     include_punctuation_in_words=include_punctuation_in_words,
     chunksize=chunksize,
-    tier_names=set(tiers),
+    tier_names=tiers,
     tiers_interval_format=content,
     tiers_string_format=formatting,
   )

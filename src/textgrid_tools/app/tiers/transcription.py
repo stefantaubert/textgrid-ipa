@@ -53,7 +53,7 @@ def app_transcribe_text(directory: Path, tiers: Set[str], formatting: StringForm
   method = partial(
     transcribe_text,
     pronunciation_dictionary=pronunciation_dictionary,
-    tier_names=set(tiers),
+    tier_names=tiers,
     tiers_string_format=formatting,
   )
 

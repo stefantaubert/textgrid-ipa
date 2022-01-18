@@ -35,7 +35,7 @@ def get_string_format_switching_parser(parser: ArgumentParser):
 def app_switch_string_format(directory: Path, tiers: Set[str], formatting: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     switch_string_format,
-    tier_names=set(tiers),
+    tier_names=tiers,
     tiers_string_format=formatting,
   )
 

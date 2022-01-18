@@ -15,7 +15,7 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument, parse_non_whitespace, parse_positive_float)
+                                       add_string_format_argument, add_tiers_argument, parse_non_empty_or_whitespace, parse_positive_float)
 from textgrid_tools.core import join_intervals_on_durations
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -40,9 +40,10 @@ def get_duration_joining_parser(parser: ArgumentParser):
 
 
 def app_join_intervals_on_durations(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+  print(tiers)
   method = partial(
     join_intervals_on_durations,
-    tier_names=set(tiers),
+    tier_names=tiers,
     include_empty_intervals=include_pauses,
     max_duration_s=duration,
     tiers_interval_format=content,

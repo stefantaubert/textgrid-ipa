@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_grid_files, get_optional, load_grid,
                                        parse_existing_directory,
-                                       parse_non_whitespace, save_grid)
+                                       parse_non_empty_or_whitespace, save_grid)
 from textgrid_tools.app.validation import (DirectoryNotExistsError,
                                            ValidationError)
 from textgrid_tools.core import copy_tier_to_grid
@@ -19,11 +19,11 @@ def get_copying_parser(parser: ArgumentParser):
   parser.description = "This command copies a tier in one grid to a tier in another grid."
   parser.add_argument("reference_directory", metavar="reference-directory", type=parse_existing_directory,
                       help="the directory containing the grid files with the content that should be mapped")
-  parser.add_argument("reference_tier", metavar="reference-tier", type=parse_non_whitespace,
+  parser.add_argument("reference_tier", metavar="reference-tier", type=parse_non_empty_or_whitespace,
                       help="tier which should be copied")
   parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
                       help="directory containing the grid files on which the tier should be added")
-  parser.add_argument("--tier", metavar="NAME", type=get_optional(parse_non_whitespace), default=None,
+  parser.add_argument("--tier", metavar="NAME", type=get_optional(parse_non_empty_or_whitespace), default=None,
                       help="tier on which the mapped content should be written if not to reference-tier.")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)

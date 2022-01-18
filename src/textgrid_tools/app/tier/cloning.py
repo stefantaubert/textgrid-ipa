@@ -38,7 +38,7 @@ def app_clone_tier(directory: Path, tier: str, tiers: List[str], n_digits: int, 
   method = partial(
     clone_tier,
     tier_name=tier,
-    output_tier_names=OrderedSet(tiers),
+    output_tier_names=tiers,
     ignore_marks=ignore_marks,
   )
 
