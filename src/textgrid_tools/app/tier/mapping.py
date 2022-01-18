@@ -3,15 +3,12 @@ from functools import partial
 from pathlib import Path
 from typing import Optional, Set
 
-from text_utils.string_format import StringFormat
-from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_grid_directory_argument,
                                        add_n_digits_argument,
                                        add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_string_format_argument)
+                                       add_overwrite_argument)
 from textgrid_tools.core import map_tier
 
 
@@ -22,30 +19,20 @@ def get_mapping_parser(parser: ArgumentParser):
                       help="tier which should be mapped")
   parser.add_argument("target_tiers", metavar="target-tiers",
                       type=str, nargs="+", help="tiers to which the content should be mapped")
-  add_string_format_argument(parser, "tier")
-  add_string_format_argument(parser, "target-tiers", "-tf", "--target-formatting")
   parser.add_argument("--include-pauses", action="store_true",
                       help="include mapping from and to pause intervals, i.e., those which contain nothing or only whitespace")
-  parser.add_argument("--ignore", type=str, nargs="*",
-                      metavar="MARK", help="ignore these marks", default=[])
-  parser.add_argument("--ignore-symbols", type=str, nargs="*",
-                      metavar="SYMBOL", help="ignore marks that contain only these symbols", default=[])
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_map_tier
 
 
-def app_map_tier(directory: Path, tier: str, formatting: StringFormat, target_tiers: Set[str], target_formatting: StringFormat, include_pauses: bool, ignore: Set[str], ignore_symbols: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_map_tier(directory: Path, tier: str, target_tiers: Set[str], include_pauses: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   method = partial(
     map_tier,
-    ignore_marks=ignore,
     include_pauses=include_pauses,
-    only_symbols=ignore_symbols,
     target_tier_names=set(target_tiers),
-    targets_string_format=target_formatting,
     tier_name=tier,
-    tier_string_format=formatting,
   )
 
   return process_grids(directory, n_digits, output_directory, overwrite, method)

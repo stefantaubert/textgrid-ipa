@@ -1,15 +1,13 @@
 from logging import getLogger
 from typing import Set
 
-from pandas import Interval
 from text_utils import Symbols
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from text_utils.utils import symbols_ignore
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import (get_all_intervals, get_mark,
-                                        get_mark_symbols)
+from textgrid_tools.core.helper import get_all_intervals, get_mark
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
@@ -83,3 +81,21 @@ def replace_only_symbols(mark_symbols: Symbols, only_symbols: Set[Symbol]) -> Sy
   if mark_contains_only_marks_symbols:
     return tuple()
   return mark_symbols
+
+
+# def remove_intervals_with_marks(intervals: Iterable[Interval], ignore_marks: Set[str]) -> Generator[Interval, None, None]:
+#   result = (
+#     interval
+#     for interval in intervals
+#     if get_mark(interval) not in ignore_marks
+#   )
+#   return result
+
+
+# def remove_intervals_with_only_symbols(intervals: Iterable[Interval], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
+#   result = (
+#     interval
+#     for interval in intervals
+#     if len(symbols_ignore(get_mark_symbols(interval, string_format), only_symbols)) > 0
+#   )
+#   return result
