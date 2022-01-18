@@ -15,8 +15,7 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, parse_non_empty_or_whitespace)
 from textgrid_tools.core import rename_tier
-from textgrid_tools.core.validation import (InvalidTierNameError,
-                                            NonDistinctTiersError)
+from textgrid_tools.core.validation import (                                            NonDistinctTiersError)
 
 
 def get_renaming_parser(parser: ArgumentParser):
@@ -35,16 +34,14 @@ def get_renaming_parser(parser: ArgumentParser):
 
 
 def app_rename_tier(directory: Path, tier: str, name: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+  assert len(name.strip()) > 0
+  
   logger = getLogger(__name__)
 
   if error := NonDistinctTiersError.validate(tier, name):
     logger.error(error.default_message)
     return False, False
-
-  if error := InvalidTierNameError.validate(name):
-    logger.error(error.default_message)
-    return False, False
-
+  
   method = partial(
     rename_tier,
     tier_name=tier,

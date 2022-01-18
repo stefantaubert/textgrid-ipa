@@ -14,7 +14,8 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, add_tiers_argument,
-                                       parse_non_negative_float)
+                                       parse_non_negative_float,
+                                       parse_positive_float)
 from textgrid_tools.core import fix_interval_boundaries
 
 
@@ -23,8 +24,8 @@ def get_boundary_fixing_parser(parser: ArgumentParser):
   add_grid_directory_argument(parser)
   add_tier_argument(parser, "tier with contains the right boundaries")
   add_tiers_argument(parser, "tiers that should be fixed")
-  parser.add_argument("--difference-threshold", type=parse_non_negative_float, default=0.005,
-                      help="difference threshold to which boundaries should be fixed")
+  parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005,
+                      help="difference threshold to which boundaries should be fixed; needs to be greater than zero")
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)

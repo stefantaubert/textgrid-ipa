@@ -49,12 +49,6 @@ def add_n_digits_argument(parser: ArgumentParser) -> None:
 #         raise ArgumentTypeError("File already exists!")
 #     super().__call__(parser, namespace, values, option_string)
 
-
-def add_n_digits_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='COUNT',
-                      choices=range(17), help="precision of the grids (max count of digits after the comma)")
-
-
 def add_string_format_argument(parser: ArgumentParser, target: str, short_name: str = "-f", name: str = '--formatting') -> None:
   names = OrderedDict((
     (StringFormat.TEXT, "Normal"),

@@ -5,7 +5,6 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
-                                            InvalidTierNameError,
                                             MultipleTiersWithThatNameError,
                                             NonDistinctTiersError,
                                             NotExistingTierError)
@@ -24,13 +23,12 @@ def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str
     return error, False
 
   for output_tier_name in output_tier_names:
+    assert len(output_tier_name.strip()) > 0
+    
     if error := NonDistinctTiersError.validate(tier_name, output_tier_name):
       return error, False
 
     if error := ExistingTierError.validate(grid, output_tier_name):
-      return error, False
-
-    if error := InvalidTierNameError.validate(output_tier_name):
       return error, False
 
   tier = get_single_tier(grid, tier_name)

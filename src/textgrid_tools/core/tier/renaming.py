@@ -3,7 +3,6 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
-                                            InvalidTierNameError,
                                             MultipleTiersWithThatNameError,
                                             NonDistinctTiersError,
                                             NotExistingTierError)
@@ -24,10 +23,9 @@ def rename_tier(grid: TextGrid, tier_name: str, output_tier_name: str) -> Execut
 
   if error := ExistingTierError.validate(grid, output_tier_name):
     return error, False
-
-  if error := InvalidTierNameError.validate(output_tier_name):
-    return error, False
-
+  
+  assert len(output_tier_name.strip()) > 0
+  
   tier = get_single_tier(grid, tier_name)
   tier.name = output_tier_name
 

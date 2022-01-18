@@ -6,7 +6,6 @@ from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import check_is_valid_grid, get_single_tier
 from textgrid_tools.core.validation import (ExistingTierError,
                                             InvalidGridError,
-                                            InvalidTierNameError,
                                             MultipleTiersWithThatNameError,
                                             NotExistingTierError,
                                             ValidationError)
@@ -53,9 +52,8 @@ def copy_tier_to_grid(reference_grid: TextGrid, reference_tier_name: str, grid: 
 
   if error := ExistingTierError.validate(grid, output_tier_name):
     return error, False
-
-  if error := InvalidTierNameError.validate(output_tier_name):
-    return error, False
+    
+  assert len(output_tier_name.strip()) > 0
 
   reference_tier = get_single_tier(reference_grid, reference_tier_name)
 

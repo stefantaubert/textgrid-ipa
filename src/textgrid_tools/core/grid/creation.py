@@ -1,32 +1,14 @@
 from logging import getLogger
-from math import ceil
 from typing import Optional, Tuple
 
 import numpy as np
-from audio_utils.audio import s_to_samples, samples_to_s
+from audio_utils.audio import samples_to_s
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import can_parse_float, check_is_valid_grid
 from textgrid_tools.core.validation import (InvalidStringFormatIntervalError,
-                                            InvalidTierNameError,
                                             ValidationError)
-
-
-class InvalidReadingSpeedError(ValidationError):
-  def __init__(self, speed: float) -> None:
-    super().__init__()
-    self.speed = speed
-
-  @classmethod
-  def validate(cls, speed: float):
-    if not speed > 0:
-      return cls(speed)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"Speed needs to be greater than zero but was \"{self.speed}\"!"
 
 
 class StartNotSmallerThanEndError(ValidationError):
@@ -145,10 +127,10 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-
-
 def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
+  assert len(tier_name.strip()) > 0
+  assert characters_per_second > 0
   logger = getLogger(__name__)
 
   if audio is not None:
@@ -158,12 +140,6 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     return error, False
 
   if error := InvalidStringFormatIntervalError.validate(text, text_string_format):
-    return error, False
-
-  if error := InvalidTierNameError.validate(tier_name):
-    return error, False
-
-  if error := InvalidReadingSpeedError.validate(characters_per_second):
     return error, False
 
   if meta is not None:

@@ -72,22 +72,6 @@ class ExistingTierError(ValidationError):
     return f"Tier \"{self.tier_name}\" already exists!"
 
 
-class InvalidTierNameError(ValidationError):
-  def __init__(self, tier_name: str) -> None:
-    super().__init__()
-    self.tier_name = tier_name
-
-  @classmethod
-  def validate(cls, tier_name: str):
-    if tier_name.strip() == "":
-      return cls(tier_name)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"The tier name is invalid: \"{self.tier_name}\"!"
-
-
 class MultipleTiersWithThatNameError(ValidationError):
   def __init__(self, grid: TextGrid, tier_name: str) -> None:
     super().__init__()

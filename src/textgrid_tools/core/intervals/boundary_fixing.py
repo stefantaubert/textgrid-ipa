@@ -7,34 +7,17 @@ from textgrid_tools.core.helper import (check_is_valid_grid, get_all_tiers,
                                         get_boundary_timepoints_from_tier,
                                         get_interval_from_maxTime,
                                         get_interval_from_minTime,
-                                        get_single_tier,
-                                        timepoint_is_boundary)
+                                        get_single_tier, timepoint_is_boundary)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             MultipleTiersWithThatNameError,
                                             NonDistinctTiersError,
-                                            NotExistingTierError,
-                                            ValidationError)
+                                            NotExistingTierError)
 from tqdm import tqdm
-
-
-class ThresholdTooLowError(ValidationError):
-  def __init__(self, threshold: float) -> None:
-    super().__init__()
-    self.threshold = threshold
-
-  @classmethod
-  def validate(cls, threshold: float):
-    if not threshold > 0:
-      return cls(threshold)
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return f"Threshold needs to be greater than zero but was \"{self.threshold}\"!"
 
 
 def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float) -> ExecutionResult:
   assert len(tier_names) > 0
+  assert difference_threshold > 0
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -43,9 +26,6 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
     return error, False
 
   if error := MultipleTiersWithThatNameError.validate(grid, reference_tier_name):
-    return error, False
-
-  if error := ThresholdTooLowError.validate(difference_threshold):
     return error, False
 
   for tier_name in tier_names:
