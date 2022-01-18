@@ -4,12 +4,13 @@ from logging import getLogger
 from pathlib import Path
 from typing import Callable, List
 
+from ordered_set import OrderedSet
 from pronunciation_dict_parser import (PublicDictType, get_dict_from_name,
                                        save_dictionary_as_txt)
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
-from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
+from textgrid_tools.app.helper import (CheckFileAlreadyExistNoOverride, ConvertToOrderedSetAction,
                                        add_chunksize_argument,
                                        add_encoding_argument,
                                        add_grid_directory_argument,
@@ -20,8 +21,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_string_format_argument,
                                        add_tiers_argument, get_grid_files,
                                        load_grid, parse_non_empty, parse_path)
-from textgrid_tools.app.validation import (DirectoryNotExistsError,
-                                           FileAlreadyExistsError)
+from textgrid_tools.app.validation import FileAlreadyExistsError
 from textgrid_tools.core import get_arpa_pronunciation_dictionary
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -54,7 +54,7 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command creates an ARPAbet pronunciation dictionary out of all words from a tier in the grid files. This dictionary can then be used for alignment with Montreal Forced Aligner (MFA). The words are determined by splitting the text on the tiers with the space symbol."
   add_grid_directory_argument(parser)
   parser.add_argument("output", type=parse_path, metavar="output",
-                      help="path to write the generated pronunciation dictionary")
+                      help="path to write the generated pronunciation dictionary", action=CheckFileAlreadyExistNoOverride)
   add_tiers_argument(parser, "tiers that contains the English text")
   add_dictionary_argument(parser)
   parser.add_argument("--punctuation", type=parse_non_empty, metavar='SYMBOL', nargs='*', default=DEFAULT_PUNCTUATION,
@@ -77,7 +77,7 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   return app_get_arpa_pronunciation_dictionary
 
 
-def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: List[str], punctuation: List[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: OrderedSet[str], punctuation: OrderedSet[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if not overwrite and (error := FileAlreadyExistsError(output)):
@@ -100,7 +100,7 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
   (error, changed_anything), pronunciation_dict = get_arpa_pronunciation_dictionary(
     grids=grids,
     dictionary=dictionary,
-    punctuation=set(punctuation),
+    punctuation=punctuation,
     consider_annotations=consider_annotations,
     n_jobs=n_jobs,
     split_on_hyphen=split_on_hyphen,

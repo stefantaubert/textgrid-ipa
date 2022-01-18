@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional, Set
 
+from ordered_set import OrderedSet
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids_mp
@@ -41,10 +42,10 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   return app_map_arpa_to_ipa
 
 
-def app_map_arpa_to_ipa(directory: Path, tiers: List[str], formatting: StringFormat, replace_unknown: bool, symbol: Optional[Symbol], ignore: Set[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_map_arpa_to_ipa(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, replace_unknown: bool, symbol: Optional[Symbol], ignore: OrderedSet[Symbol], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     map_arpa_to_ipa,
-    ignore=set(ignore),
+    ignore=ignore,
     replace_unknown=replace_unknown,
     replace_unknown_with=symbol,
     tier_names=tiers,

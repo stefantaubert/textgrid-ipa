@@ -15,7 +15,6 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        parse_existing_directory,
                                        parse_non_empty, parse_path, save_audio,
                                        save_grid)
-from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import remove_intervals
 from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
 
@@ -44,10 +43,10 @@ def get_removing_parser(parser: ArgumentParser):
   return app_remove_intervals
 
 
-def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_audio: bool, tier: str, marks: List[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignore_audio: bool, tier: str, marks: OrderedSet[str], pauses: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  if error := NothingDefinedToRemoveError.validate(set(marks), pauses):
+  if error := NothingDefinedToRemoveError.validate(marks, pauses):
     logger.error(error.default_message)
     return False, False
 
@@ -109,7 +108,7 @@ def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignor
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), new_audio = remove_intervals(grid, audio, sample_rate, tier,
-                                                            set(marks), pauses, n_digits)
+                                                            marks, pauses, n_digits)
 
     success = error is None
     total_success &= success

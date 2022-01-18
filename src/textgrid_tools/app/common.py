@@ -7,16 +7,11 @@ from typing import Callable, List, Optional, OrderedDict, Tuple
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.helper import (copy_grid, get_grid_files, load_grid,
                                        save_grid)
-from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core.globals import ExecutionResult
 
 
 def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
 
   if output_directory is None:
     output_directory = directory
@@ -57,10 +52,6 @@ def process_grids(directory: Path, n_digits: int, output_directory: Optional[Pat
 
 def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
 
   if output_directory is None:
     output_directory = directory

@@ -1,3 +1,4 @@
+from ordered_set import OrderedSet
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
@@ -13,7 +14,8 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_tier_argument, parse_non_empty_or_whitespace)
+                                       add_tier_argument,
+                                       parse_non_empty_or_whitespace)
 from textgrid_tools.core import map_tier
 
 
@@ -34,11 +36,11 @@ def get_mapping_parser(parser: ArgumentParser):
   return app_map_tier
 
 
-def app_map_tier(directory: Path, tier: str, target_tiers: Set[str], include_pauses: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_map_tier(directory: Path, tier: str, target_tiers: OrderedSet[str], include_pauses: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     map_tier,
     include_pauses=include_pauses,
-    target_tier_names=set(target_tiers),
+    target_tier_names=target_tiers,
     tier_name=tier,
   )
 

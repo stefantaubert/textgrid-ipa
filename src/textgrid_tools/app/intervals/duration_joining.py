@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from ordered_set import OrderedSet
 from text_utils import StringFormat
 from text_utils.string_format import StringFormat
 from textgrid_tools.app.common import process_grids_mp
@@ -15,7 +16,10 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_n_jobs_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument, parse_non_empty_or_whitespace, parse_positive_float)
+                                       add_string_format_argument,
+                                       add_tiers_argument,
+                                       parse_non_empty_or_whitespace,
+                                       parse_positive_float)
 from textgrid_tools.core import join_intervals_on_durations
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -39,7 +43,7 @@ def get_duration_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_durations
 
 
-def app_join_intervals_on_durations(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_on_durations(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, content: IntervalFormat, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   print(tiers)
   method = partial(
     join_intervals_on_durations,

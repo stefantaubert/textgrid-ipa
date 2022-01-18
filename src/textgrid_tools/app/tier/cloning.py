@@ -34,7 +34,7 @@ def get_cloning_parser(parser: ArgumentParser):
   return app_clone_tier
 
 
-def app_clone_tier(directory: Path, tier: str, tiers: List[str], n_digits: int, output_directory: Optional[Path], ignore_marks: bool, overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_clone_tier(directory: Path, tier: str, tiers: OrderedSet[str], n_digits: int, output_directory: Optional[Path], ignore_marks: bool, overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     clone_tier,
     tier_name=tier,

@@ -4,6 +4,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional, Set
 
+from ordered_set import OrderedSet
 from pronunciation_dict_parser import parse_dictionary_from_txt
 from text_utils.string_format import StringFormat
 from textgrid_tools.app.common import process_grids_mp
@@ -18,7 +19,6 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, parse_existing_file)
-from textgrid_tools.app.validation import FileNotExistsError
 from textgrid_tools.core import transcribe_text
 
 
@@ -42,12 +42,7 @@ def get_transcription_parser(parser: ArgumentParser):
   return app_transcribe_text
 
 
-def app_transcribe_text(directory: Path, tiers: Set[str], formatting: StringFormat, dictionary: Path, encoding: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  if error := FileNotExistsError.validate(dictionary):
-    logger = getLogger(__name__)
-    logger.error(error.default_message)
-    return False, False
-
+def app_transcribe_text(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, dictionary: Path, encoding: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   pronunciation_dictionary = parse_dictionary_from_txt(dictionary, encoding)
 
   method = partial(

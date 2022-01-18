@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from ordered_set import OrderedSet
 from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 from textgrid_tools.app.common import process_grids_mp
@@ -43,7 +44,7 @@ def get_splitting_parser(parser: ArgumentParser):
   return app_split
 
 
-def app_split(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_split(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, content: IntervalFormat, join_symbols: Optional[List[Symbol]], ignore_join_symbols: Optional[List[Symbol]], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     split,
     ignore_join_symbols=ignore_join_symbols,

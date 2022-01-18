@@ -9,9 +9,9 @@ from textgrid_tools.app.helper import (add_n_digits_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_grid_files, get_optional, load_grid,
                                        parse_existing_directory,
-                                       parse_non_empty_or_whitespace, save_grid)
-from textgrid_tools.app.validation import (DirectoryNotExistsError,
-                                           ValidationError)
+                                       parse_non_empty_or_whitespace,
+                                       save_grid)
+from textgrid_tools.app.validation import ValidationError
 from textgrid_tools.core import copy_tier_to_grid
 
 
@@ -49,14 +49,6 @@ class DirectoriesAreNotDistinctError(ValidationError):
 
 def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, directory: Path, tier: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(reference_directory):
-    logger.error(error.default_message)
-    return False, False
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
 
   if error := DirectoriesAreNotDistinctError.validate(directory, reference_directory):
     logger.error(error.default_message)

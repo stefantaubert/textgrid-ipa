@@ -12,10 +12,8 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tier_argument, get_grid_files,
-                                       get_optional, load_grid,
-                                       parse_non_empty_or_whitespace, parse_path,
+                                       get_optional, load_grid, parse_path,
                                        save_text)
-from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import convert_tier_to_text
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -37,10 +35,6 @@ def get_text_conversion_parser(parser: ArgumentParser):
 
 def app_convert_tier_to_text(directory: Path, tier: str, formatting: StringFormat, content: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
-
-  if error := DirectoryNotExistsError.validate(directory):
-    logger.error(error.default_message)
-    return False, False
 
   if output_directory is None:
     output_directory = directory

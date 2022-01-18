@@ -1,3 +1,4 @@
+from ordered_set import OrderedSet
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
@@ -40,14 +41,14 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   return app_remove_symbols
 
 
-def app_remove_symbols(directory: Path, tiers: List[str], formatting: StringFormat, symbols: List[Symbol], marks_symbols: List[Symbol], marks: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_remove_symbols(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, symbols: OrderedSet[Symbol], marks_symbols: OrderedSet[Symbol], marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     remove_symbols,
     tier_names=tiers,
     tiers_string_format=formatting,
-    symbols=set(symbols),
-    marks_symbols=set(marks_symbols),
-    marks=set(marks),
+    symbols=symbols,
+    marks_symbols=marks_symbols,
+    marks=marks,
   )
 
   return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)

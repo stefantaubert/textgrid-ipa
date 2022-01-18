@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from ordered_set import OrderedSet
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (add_chunksize_argument,
@@ -33,7 +34,7 @@ def get_boundary_fixing_parser(parser: ArgumentParser):
   return app_fix_interval_boundaries
 
 
-def app_fix_interval_boundaries(directory: Path, tier: str, tiers: List[str], difference_threshold: float, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_fix_interval_boundaries(directory: Path, tier: str, tiers: OrderedSet[str], difference_threshold: float, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     fix_interval_boundaries,
     difference_threshold=difference_threshold,

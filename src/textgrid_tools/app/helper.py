@@ -6,7 +6,7 @@ from logging import getLogger
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 from typing import OrderedDict as OrderedDictType
 from typing import Tuple, TypeVar
 
@@ -31,8 +31,22 @@ MP3_FILE_TYPE = ".mp3"
 
 
 class ConvertToOrderedSetAction(argparse._StoreAction):
+  def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[List], option_string: Optional[str] = None):
+    if values is not None:
+      values = OrderedSet(values)
+    super().__call__(parser, namespace, values, option_string)
+
+
+def add_n_digits_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='COUNT',
+                      choices=range(17), help="precision of the grids (max count of digits after the comma)")
+
+
+class CheckFileAlreadyExistNoOverride(argparse._StoreAction):
   def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[Path], option_string: Optional[str] = None):
-    values = OrderedSet(values)
+    if values is not None:
+      if not namespace.overwrite and values.is_file():
+        raise ArgumentTypeError("File already exists!")
     super().__call__(parser, namespace, values, option_string)
 
 
@@ -176,7 +190,6 @@ def parse_non_empty(value: Optional[str]) -> str:
   if value == "":
     raise ArgumentTypeError("Value must not be empty!")
   return value
-
 
 
 def parse_non_empty_or_whitespace(value: str) -> str:

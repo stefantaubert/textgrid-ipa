@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from ordered_set import OrderedSet
 from text_utils.language import Language
 from text_utils.string_format import StringFormat
 from text_utils.symbol_format import SymbolFormat
@@ -39,7 +40,7 @@ def get_normalization_parser(parser: ArgumentParser):
   return app_normalize_tiers
 
 
-def app_normalize_tiers(directory: Path, tiers: List[str], formatting: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_normalize_tiers(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, text_format: SymbolFormat, language: Language, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     normalize_tiers,
     language=language,

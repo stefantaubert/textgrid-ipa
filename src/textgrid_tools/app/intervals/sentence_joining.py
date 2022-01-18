@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
+from ordered_set import OrderedSet
 from text_utils import StringFormat
 from text_utils.string_format import StringFormat
 from textgrid_tools.app.common import process_grids_mp
@@ -41,10 +42,10 @@ def get_sentence_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_sentences
 
 
-def app_join_intervals_on_sentences(directory: Path, tiers: List[str], formatting: StringFormat, content: IntervalFormat, ignore: List[str], punctuation: List[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_on_sentences(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, content: IntervalFormat, ignore: OrderedSet[str], punctuation: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     join_intervals_on_sentences,
-    punctuation_symbols=set(punctuation),
+    punctuation_symbols=punctuation,
     strip_symbols=ignore,
     tier_names=tiers,
     tiers_interval_format=content,

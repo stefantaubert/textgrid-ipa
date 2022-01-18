@@ -1,3 +1,4 @@
+from ordered_set import OrderedSet
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
@@ -32,7 +33,7 @@ def get_string_format_switching_parser(parser: ArgumentParser):
   return app_switch_string_format
 
 
-def app_switch_string_format(directory: Path, tiers: Set[str], formatting: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_switch_string_format(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     switch_string_format,
     tier_names=tiers,

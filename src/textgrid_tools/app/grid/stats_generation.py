@@ -1,14 +1,15 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
-from typing import List
 
+from ordered_set import OrderedSet
 from textgrid_tools.app.globals import ExecutionResult
-from textgrid_tools.app.helper import (ConvertToOrderedSetAction, add_grid_directory_argument,
+from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
+                                       add_grid_directory_argument,
                                        add_n_digits_argument, get_grid_files,
-                                       load_grid, parse_non_empty_or_whitespace,
+                                       load_grid,
+                                       parse_non_empty_or_whitespace,
                                        parse_positive_float)
-from textgrid_tools.app.validation import DirectoryNotExistsError
 from textgrid_tools.core import print_stats
 
 
@@ -23,7 +24,7 @@ def get_stats_generation_parser(parser: ArgumentParser):
   return app_print_stats
 
 
-def app_print_stats(directory: Path, duration_threshold: float, print_symbols_tiers: List[str], n_digits: int) -> ExecutionResult:
+def app_print_stats(directory: Path, duration_threshold: float, print_symbols_tiers: OrderedSet[str], n_digits: int) -> ExecutionResult:
   logger = getLogger(__name__)
 
   grid_files = get_grid_files(directory)
@@ -35,7 +36,7 @@ def app_print_stats(directory: Path, duration_threshold: float, print_symbols_ti
     grid_file_in_abs = directory / rel_path
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = print_stats(grid_in, duration_threshold, set(print_symbols_tiers))
+    error, changed_anything = print_stats(grid_in, duration_threshold, print_symbols_tiers)
     logger.info("")
     assert not changed_anything
     success = error is None
