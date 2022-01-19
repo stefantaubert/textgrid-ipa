@@ -8,7 +8,7 @@ pipenv run cxfreeze \
   --bin-includes="libffi.so" \
   --target-name="textgrid-tools" \
   src/cli.py
-  
+
 echo "compiled."
 # copy to local apps folder
 mkdir -p /home/mi/apps/textgrid-tools

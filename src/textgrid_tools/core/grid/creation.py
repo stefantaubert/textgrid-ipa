@@ -137,14 +137,14 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     assert sample_rate is not None
 
   if error := TextEmptyError.validate(text):
-    return error, False
+    return (error, False), None
 
   if error := InvalidStringFormatIntervalError.validate(text, text_string_format):
-    return error, False
+    return (error, False), None
 
   if meta is not None:
     if error := InvalidMetaFormatError.validate(meta):
-      return error, False
+      return (error, False), None
 
     start, end = parse_meta_content(meta)
 
@@ -161,23 +161,23 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     #     end = new_end
 
     if start is not None and (error := StartTooSmallError.validate(start)):
-      return error, False
+      return (error, False), None
 
     if end is not None and (error := EndTooSmallError.validate(end)):
-      return error, False
+      return (error, False), None
 
     if start is not None and end is not None:
       if error := StartNotSmallerThanEndError.validate(start, end):
-        return error, False
+        return (error, False), None
 
     if audio is not None:
       duration_s = samples_to_s(audio.shape[0], sample_rate)
 
       if start is not None and (error := StartTooBigError.validate(start, duration_s)):
-        return error, False
+        return (error, False), None
 
       if end is not None and (error := EndTooBigError.validate(end, duration_s)):
-        return error, False
+        return (error, False), None
   else:
     start = None
     end = None
