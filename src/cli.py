@@ -88,7 +88,7 @@ def _init_parser():
 
 
 def configure_logger() -> None:
-  loglevel = logging.DEBUG  # if __debug__ else logging.INFO
+  loglevel = logging.DEBUG if __debug__ else logging.INFO
   main_logger = getLogger()
   main_logger.setLevel(loglevel)
   main_logger.manager.disable = logging.NOTSET
