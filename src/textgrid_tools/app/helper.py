@@ -14,6 +14,7 @@ import numpy as np
 from general_utils.main import get_files_dict
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read, write
+from text_utils import Language, SymbolFormat
 from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import (DEFAULT_ENCODING,
@@ -91,6 +92,53 @@ def add_interval_format_argument(parser: ArgumentParser, target: str, short_name
     choices=IntervalFormat,
     type=values_to_names.get,
     default=names[IntervalFormat.WORDS],
+    help=help_str,
+  )
+
+
+def add_language_argument(parser: ArgumentParser, target: str, short_name: str = "-l", name: str = '--language') -> None:
+  names = OrderedDict((
+    (Language.ENG, "en"),
+    (Language.GER, "de"),
+    (Language.CHN, "zh"),
+  ))
+
+  values_to_names = dict(zip(
+    names.values(),
+    names.keys()
+  ))
+
+  help_str = f"language of {target} (ISO 639-1 Code)"
+  parser.add_argument(
+    short_name, name,
+    metavar=list(names.values()),
+    choices=Language,
+    type=values_to_names.get,
+    default=names[Language.ENG],
+    help=help_str,
+  )
+
+
+def add_symbol_format(parser: ArgumentParser, target: str, short_name: str = "-sf", name: str = '--symbol-format') -> None:
+  names = OrderedDict((
+    (SymbolFormat.GRAPHEMES, "Graphemes"),
+    (SymbolFormat.PHONEMES_ARPA, "ARPA-Phonemes"),
+    (SymbolFormat.PHONEMES_IPA, "IPA-Phonemes"),
+    (SymbolFormat.PHONES_IPA, "IPA-Phones"),
+  ))
+
+  values_to_names = dict(zip(
+    names.values(),
+    names.keys()
+  ))
+
+  help_str = f"format of symbols in {target}"
+  parser.add_argument(
+    short_name, name,
+    metavar=list(names.values()),
+    choices=SymbolFormat,
+    type=values_to_names.get,
+    default=names[SymbolFormat.GRAPHEMES],
     help=help_str,
   )
 
@@ -195,9 +243,10 @@ def parse_non_empty_or_whitespace(value: str) -> str:
 
 def parse_float(value: str) -> float:
   value = parse_required(value)
-  if not value.isdecimal():
-    raise ArgumentTypeError("Value needs to be a decimal number!")
-  value = float(value)
+  try:
+    value = float(value)
+  except ValueError as error:
+    raise ArgumentTypeError("Value needs to be a decimal number!") from error
   return value
 
 

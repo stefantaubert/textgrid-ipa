@@ -14,7 +14,6 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, add_tiers_argument,
-                                       parse_non_negative_float,
                                        parse_positive_float)
 from textgrid_tools.core import fix_interval_boundaries
 
