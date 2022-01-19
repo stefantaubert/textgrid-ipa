@@ -1,4 +1,5 @@
 from logging import getLogger
+import math
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
@@ -76,7 +77,7 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
     if tier == ref_tier:
       continue
     for timepoint in sync_timepoints:
-      fix_timepoint(timepoint, tier, threshold=None)
+      fix_timepoint(timepoint, tier, threshold=math.inf)
 
   all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
     sync_timepoints, grid.tiers)

@@ -1,9 +1,11 @@
 from logging import getLogger
 from typing import Set
 
-from pronunciation_dict_parser import PronunciationDict
-from sentence2pronunciation import (LookupCache, sentence2pronunciation_cached,
-                                    sentences2pronunciations_from_cache_mp)
+from ordered_set import OrderedSet
+from pronunciation_dict_parser import Pronunciation, PronunciationDict
+from sentence2pronunciation import (LookupCache, cache_contains_words,
+                                    get_words_from_sentences,
+                                    sentences2pronunciations_from_cache)
 from text_utils.string_format import (StringFormat,
                                       convert_symbols_to_symbols_string)
 from textgrid.textgrid import TextGrid
@@ -12,7 +14,26 @@ from textgrid_tools.core.helper import (get_all_intervals,
                                         get_mark_symbols_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
-                                            NotExistingTierError)
+                                            NotExistingTierError,
+                                            ValidationError)
+
+
+class MissingWordsInCacheError(ValidationError):
+  def __init__(self, cache: LookupCache, words: Set[Pronunciation]) -> None:
+    super().__init__()
+    self.cache = cache
+    self.words = words
+
+  @classmethod
+  def validate(cls, cache: LookupCache, words: Set[Pronunciation]):
+    cache_contains_all_words = cache_contains_words(cache, words, False, None, True)
+    if not cache_contains_all_words:
+      return cls(cache, words)
+    return None
+
+  @property
+  def default_message(self) -> str:
+    return "Some words are missing in the pronunciation dictionary!"
 
 
 def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, pronunciation_dictionary: PronunciationDict) -> ExecutionResult:
@@ -34,20 +55,27 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], tiers_string_format: S
     return error, False
 
   intervals_symbols = list(get_mark_symbols_intervals(intervals, tiers_string_format))
-  all_symbols = set(intervals_symbols)
-  all_symbols.remove(tuple())
+  unique_intervals_symbols = OrderedSet(intervals_symbols)
+  if tuple() in unique_intervals_symbols:
+    unique_intervals_symbols.remove(tuple())
+
+  words = get_words_from_sentences(unique_intervals_symbols)
+  cache = convert_pronunciation_dict_to_cache(pronunciation_dictionary)
+
+  if error := MissingWordsInCacheError.validate(cache, words):
+    return error, False
+
   logger = getLogger(__name__)
   logger.debug("Transcibing...")
-  intervals_symbols_arpa = sentences2pronunciations_from_cache_mp(
-    cache=convert_pronunciation_dict_to_cache(pronunciation_dictionary),
-    sentences=all_symbols,
-    chunksize=len(all_symbols),
+  transcriptions = sentences2pronunciations_from_cache(
+    cache=cache,
+    sentences=unique_intervals_symbols,
     consider_annotation=False,  # was decided in dictionary creation
     annotation_split_symbol=None,
     ignore_case=True,
-    n_jobs=1,
   )
 
+  intervals_symbols_arpa = dict(zip(unique_intervals_symbols, transcriptions))
   changed_anything = False
 
   for interval, interval_symbols in zip(intervals, intervals_symbols):

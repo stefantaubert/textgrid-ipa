@@ -13,7 +13,7 @@ from textgrid_tools.app.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tier_argument,
-                                       parse_non_negative_integer)
+                                       parse_positive_integer)
 from textgrid_tools.core import move_tier
 
 
@@ -21,8 +21,8 @@ def get_moving_parser(parser: ArgumentParser):
   parser.description = "This commands moves a tier to another position in the grid."
   add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be moved")
-  parser.add_argument("position", type=parse_non_negative_integer, metavar="position",
-                      help="move tier to this position (0 = first tier)")
+  parser.add_argument("position", type=parse_positive_integer, metavar="position",
+                      help="move tier to this position (1 = first tier)")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
@@ -36,7 +36,7 @@ def app_move_tier(directory: Path, tier: str, n_digits: int, output_directory: O
   method = partial(
     move_tier,
     tier_name=tier,
-    position=position,
+    position_one_based=position,
   )
 
   return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)

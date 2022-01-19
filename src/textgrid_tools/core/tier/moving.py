@@ -15,16 +15,16 @@ class InvalidPositionError(ValidationError):
 
   @classmethod
   def validate(cls, grid: TextGrid, position: int):
-    if not 0 <= position < len(grid.tiers):
+    if not 1 <= position <= len(grid.tiers):
       return cls(grid, position)
     return None
 
   @property
   def default_message(self) -> str:
-    return f"Position {self.position} is not valid, it needs to be between [0, {len(self.grid.tiers)})."
+    return f"Position {self.position} is not valid, it needs to be between [1, {len(self.grid.tiers)})."
 
 
-def move_tier(grid: TextGrid, tier_name: str, position: int) -> ExecutionResult:
+def move_tier(grid: TextGrid, tier_name: str, position_one_based: int) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 
@@ -34,16 +34,17 @@ def move_tier(grid: TextGrid, tier_name: str, position: int) -> ExecutionResult:
   if error := MultipleTiersWithThatNameError.validate(grid, tier_name):
     return error, False
 
-  if error := InvalidPositionError.validate(grid, position):
+  if error := InvalidPositionError.validate(grid, position_one_based):
     return error, False
 
   changed_anything = False
 
   tier = get_single_tier(grid, tier_name)
 
-  if grid.tiers[position] != tier:
+  position_zero_based = position_one_based - 1
+  if grid.tiers[position_zero_based] != tier:
     grid.tiers.remove(tier)
-    grid.tiers.insert(position, tier)
+    grid.tiers.insert(position_zero_based, tier)
     changed_anything = True
 
   return None, changed_anything

@@ -56,7 +56,7 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
         logger.info("Not all boundaries could be fixed")
 
       if not changed_anything:
-        logger.info("Did not changed anything!")
+        logger.debug("Did not changed anything!")
 
   if total_success:
     logger.info("Successfully fixed all boundaries from all tiers!")
@@ -109,25 +109,25 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
   assert interval.minTime <= timepoint < interval.maxTime
   logger = getLogger(__name__)
 
-  minTime_difference = timepoint - interval.minTime
-  maxTime_difference = interval.maxTime - timepoint
-  assert minTime_difference >= 0
-  assert maxTime_difference > 0
+  min_time_difference = timepoint - interval.minTime
+  max_time_difference = interval.maxTime - timepoint
+  assert min_time_difference >= 0
+  assert max_time_difference > 0
 
-  if minTime_difference == 0:
+  if min_time_difference == 0:
     # logger.info(f"Interval [{interval.minTime}, {interval.maxTime}]: Nothing to change.")
     return True, False
 
   changed_anything = False
   fixed = True
   # minTime is before interval
-  minTime_is_more_near = minTime_difference < maxTime_difference
-  maxTime_is_more_near = maxTime_difference < minTime_difference
-  if minTime_is_more_near:
-    if minTime_difference <= threshold:
+  min_time_is_nearer = min_time_difference < max_time_difference
+  max_time_is_nearer = max_time_difference < min_time_difference
+  if min_time_is_nearer:
+    if min_time_difference <= threshold:
       # move starting forward
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{minTime_difference}).")
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{min_time_difference}).")
       interval.minTime = timepoint
       changed_anything = True
       if prev_interval is not None:
@@ -135,12 +135,12 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
     else:
       fixed = False
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (+{minTime_difference}).")
-  elif maxTime_is_more_near:
-    if maxTime_difference <= threshold:
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (+{min_time_difference}).")
+  elif max_time_is_nearer:
+    if max_time_difference <= threshold:
       # move ending backward, outside of the boundaries
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Set maxTime to {timepoint} (-{maxTime_difference}).")
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Set maxTime to {timepoint} (-{max_time_difference}).")
       interval.maxTime = timepoint
       changed_anything = True
       if next_interval is not None:
@@ -148,13 +148,13 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
     else:
       fixed = False
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set maxTime to {timepoint} (-{maxTime_difference}).")
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set maxTime to {timepoint} (-{max_time_difference}).")
   else:
-    assert minTime_difference == maxTime_difference
-    if minTime_difference <= threshold:
+    assert min_time_difference == max_time_difference
+    if min_time_difference <= threshold:
       # both have same difference, move starting forward
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{minTime_difference}).")
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (+{min_time_difference}).")
       interval.minTime = timepoint
       changed_anything = True
       if prev_interval is not None:
@@ -162,5 +162,5 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
     else:
       fixed = False
       logger.info(
-        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (+{minTime_difference}).")
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (+{min_time_difference}).")
   return fixed, changed_anything

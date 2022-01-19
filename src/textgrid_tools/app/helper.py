@@ -1,4 +1,5 @@
 import argparse
+import codecs
 from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
 from functools import partial
@@ -61,7 +62,7 @@ def add_string_format_argument(parser: ArgumentParser, target: str, short_name: 
     names.keys()
   ))
 
-  help_str = f"formatting of text in {target}; use \'{names[StringFormat.TEXT]}\' for normal text and \'{names[StringFormat.SYMBOLS]}\' for space separated symbols, i.e., words are separated by two spaces and characters are separated by one space"
+  help_str = f"formatting of text in {target}; use \'{names[StringFormat.TEXT]}\' for normal text and \'{names[StringFormat.SYMBOLS]}\' for space separated symbols, i.e., words are separated by two spaces and characters are separated by one space. Example: {names[StringFormat.TEXT]} -> |This text.|; {names[StringFormat.SYMBOLS]} -> |T␣h␣i␣s␣␣t␣e␣x␣t␣.|"
   parser.add_argument(
     short_name, name,
     metavar=list(names.values()),
@@ -85,7 +86,7 @@ def add_interval_format_argument(parser: ArgumentParser, target: str, short_name
     names.keys()
   ))
 
-  help_str = f"type of intervals content in {target}, i.e., what does one interval contain if it is not a pause-interval?"
+  help_str = f"type of intervals content in {target}, i.e., what does one interval contain if it is not a pause-interval? Example: {names[IntervalFormat.SYMBOL]} -> |AA1|B|CH|; {names[IntervalFormat.SYMBOLS]} -> |\"␣AA0|B|CH␣.|; {names[IntervalFormat.WORD]} -> |This|is|a|sentence.|; {names[IntervalFormat.WORDS]} -> |This␣is␣a␣sentence.|And␣another␣one.|"
   parser.add_argument(
     short_name, name,
     metavar=list(names.values()),
@@ -144,7 +145,7 @@ def add_symbol_format(parser: ArgumentParser, target: str, short_name: str = "-s
 
 
 def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("--encoding", type=parse_non_empty_or_whitespace, metavar='CODEC',
+  parser.add_argument("--encoding", type=parse_codec, metavar='CODEC',
                       help=help_str + "; see all available codecs at https://docs.python.org/3.8/library/codecs.html#standard-encodings", default=DEFAULT_ENCODING)
 
 
@@ -184,12 +185,21 @@ def add_n_jobs_argument(parser: ArgumentParser) -> None:
 T = TypeVar("T")
 
 
+def parse_codec(value: str) -> str:
+  value = parse_required(value)
+  try:
+    codecs.lookup(value)
+  except LookupError as error:
+    raise ArgumentTypeError("Codec was not found!") from error
+  return value
+
+
 def parse_path(value: str) -> Path:
   value = parse_required(value)
   try:
     path = Path(value)
-  except Exception as ex:
-    raise ArgumentTypeError("Value needs to be a path!") from ex
+  except ValueError as error:
+    raise ArgumentTypeError("Value needs to be a path!") from error
   return path
 
 

@@ -76,7 +76,7 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
     maxtasksperchild=maxtasksperchild,
   ) as pool:
     result: List[Tuple[bool, bool]] = list(pool.imap_unordered(
-      method_proxy, enumerate(grid_files.keys()), chunksize=chunksize))
+      method_proxy, enumerate(grid_files.keys(), start=1), chunksize=chunksize))
 
   total_success = all(success for success, _ in result)
   total_changed_anything = any(changed_anything for _, changed_anything in result)
@@ -97,7 +97,7 @@ def process_grid(i_file_stem: str, n_digits: int, overwrite: bool, method: Calla
   global process_grid_files
   file_nr, file_stem = i_file_stem
   rel_path = process_grid_files[file_stem]
-  logger_prepend = f"[{file_stem}] "
+  logger_prepend = f"[{file_stem}]"
   logger.info(f"Processing {file_stem} ({file_nr}/{len(process_grid_files)})...")
   grid_file_out_abs = output_directory / rel_path
 

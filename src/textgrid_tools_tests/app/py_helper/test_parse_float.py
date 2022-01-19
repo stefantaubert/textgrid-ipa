@@ -20,10 +20,8 @@ def test_char__raises_error():
 
 
 def test_number__is_returned():
-  result = parse_float("1")
-  assert result == 1.0
+  assert parse_float("1") == 1.0
 
 
 def test_decimalnumber__is_returned():
-  result = parse_float("0.5")
-  assert result == 0.5
+  assert parse_float("0.5") == 0.5

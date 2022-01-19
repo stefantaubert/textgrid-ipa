@@ -20,7 +20,7 @@ from textgrid_tools.core import map_tier
 
 
 def get_mapping_parser(parser: ArgumentParser):
-  parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals."
+  parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals on default."
   add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be mapped")
   parser.add_argument("target_tiers", metavar="target-tiers",
