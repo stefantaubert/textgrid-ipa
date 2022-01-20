@@ -99,18 +99,27 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
       continue
 
     assert grids_audios is not None
-    for i, (new_grid, new_audio) in enumerate(tqdm(grids_audios)):
-      grid_file_out_abs = output_directory / file_stem / f"{i}.TextGrid"
+    for i, (new_grid, new_audio) in enumerate(tqdm(grids_audios), start=1):
+      file_nr = number_prepend_zeros(i, len(grids_audios))
+      grid_file_out_abs = output_directory / file_stem / f"{file_nr}.TextGrid"
       if grid_file_out_abs.exists() and not overwrite:
-        logger.info(f"Grid {i} already exists. Skipped.")
+        logger.info(f"Grid {file_nr} already exists. Skipped.")
       else:
         save_grid(grid_file_out_abs, new_grid)
       if audio_provided:
         assert new_audio is not None
-        audio_file_out_abs = output_audio_directory / file_stem / f"{i}.wav"
+        audio_file_out_abs = output_audio_directory / file_stem / f"{file_nr}.wav"
         if audio_file_out_abs.exists() and not overwrite:
-          logger.info(f"Audio file {i} already exists. Skipped.")
+          logger.info(f"Audio file {file_nr} already exists. Skipped.")
         else:
           save_audio(audio_file_out_abs, new_audio, sample_rate)
 
   return total_success, total_changed_anything
+
+
+def number_prepend_zeros(n: int, max_n: int) -> str:
+  assert n >= 0
+  assert max_n >= 0
+  decimals = len(str(max_n))
+  res = str(n).zfill(decimals)
+  return res

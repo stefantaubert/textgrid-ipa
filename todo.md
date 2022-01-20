@@ -11,7 +11,8 @@ textgrid-tools intervals {join-between-pause,join-by-boundary,join-by-duration,j
 ```
 
 - export vocabulary -> export all words from tiers into file
-  - 
+
+- add text as tier and create new grid if grid not exists
 
 - provide windows and mac version
 - use local dictionary for create-dict-from-grids
