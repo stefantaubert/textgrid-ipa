@@ -17,8 +17,11 @@ def merge_intervals(intervals: Collection[Interval], intervals_string_format: St
     interval_symbols, intervals_interval_format, join_symbols, ignore_join_symbols))
   assert 0 <= len(joined_interval_symbols) <= len(interval_symbols)
 
-  if len(joined_interval_symbols) == 1:
-    mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols[0])
+  if len(joined_interval_symbols) <= 1:
+    if len(joined_interval_symbols) == 0:
+      mark = ""
+    else:
+      mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols[0])
 
     first_interval = intervals[0]
     last_interval = intervals[-1]
@@ -29,7 +32,6 @@ def merge_intervals(intervals: Collection[Interval], intervals_string_format: St
       mark=mark,
     )
     return interval
-  
   raise NotImplementedError()
 
 
