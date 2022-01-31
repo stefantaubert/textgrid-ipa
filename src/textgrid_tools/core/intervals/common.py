@@ -29,7 +29,7 @@ def merge_intervals(intervals: Collection[Interval], intervals_string_format: St
       mark=mark,
     )
     return interval
-
+  
   raise NotImplementedError()
 
 
