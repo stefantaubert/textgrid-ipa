@@ -47,7 +47,6 @@ def merge_interval_symbols(interval_symbols: Iterable[Symbols], intervals_interv
 
   if target_format == IntervalFormat.SYMBOLS:
     if join_symbols is not None:
-
       ignore_merge_symbols = set()
       if ignore_join_symbols is not None:
         ignore_merge_symbols = ignore_join_symbols

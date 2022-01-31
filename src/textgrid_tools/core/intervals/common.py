@@ -10,7 +10,7 @@ from textgrid_tools.core.interval_format import (IntervalFormat,
                                                  merge_interval_symbols)
 
 
-def merge_intervals(intervals: Collection[Interval], intervals_string_format: StringFormat, intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]] = None, ignore_join_symbols: Optional[Set[Symbol]] = None) -> Interval:
+def merge_intervals(intervals: List[Interval], intervals_string_format: StringFormat, intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]] = None, ignore_join_symbols: Optional[Set[Symbol]] = None) -> Interval:
   assert len(intervals) > 0
   interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
   joined_interval_symbols = list(merge_interval_symbols(
