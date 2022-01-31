@@ -30,7 +30,7 @@ class IntervalFormat(IntEnum):
     assert False
 
 
-def merge_interval_symbols_v2(interval_symbols: Iterable[Symbols], intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> Generator[Symbols, None, None]:
+def merge_interval_symbols_v2(interval_symbols: Iterable[Symbols], intervals_interval_format: IntervalFormat) -> Generator[Symbols, None, None]:
   """
   Examples:
   - SYMBOL -> SYMBOLS with join ".": |aa|.| | |b|.|d| -> |aa .|b .|d|
@@ -66,11 +66,11 @@ def merge_interval_symbols_v2(interval_symbols: Iterable[Symbols], intervals_int
         insert_symbol=" ",
       )
 
-      result = (
-        convert_symbols_string_to_symbols(symbol_str)
-        for symbol_str in symbols
-      )
-      return result
+    result = (
+      convert_symbols_string_to_symbols(symbol_str)
+      for symbol_str in symbols
+    )
+    return result
 
   elif target_format == IntervalFormat.WORD:
     yield symbols_join(symbols, join_symbol=None)
