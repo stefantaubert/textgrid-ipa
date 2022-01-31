@@ -30,6 +30,56 @@ class IntervalFormat(IntEnum):
     assert False
 
 
+def merge_interval_symbols_v2(interval_symbols: Iterable[Symbols], intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> Generator[Symbols, None, None]:
+  """
+  Examples:
+  - SYMBOL -> SYMBOLS with join ".": |aa|.| | |b|.|d| -> |aa .|b .|d|
+  - SYMBOLS -> WORD: |aa .| | |b .|d| -> |aa . b . d|
+  - WORD -> WORDS: |aa b| | |b cc .|d| -> |aa b  b cc .  d|
+  """
+
+  non_pause_symbols = (
+    symbols
+    for symbols in interval_symbols if not symbols_are_empty_or_whitespace(symbols)
+  )
+  target_format = get_upper_format(intervals_interval_format)
+  symbols = list(non_pause_symbols)
+
+  if target_format == IntervalFormat.SYMBOLS:
+    if join_symbols is not None:
+
+      ignore_merge_symbols = set()
+      if ignore_join_symbols is not None:
+        ignore_merge_symbols = ignore_join_symbols
+
+      symbols = merge_right(
+        symbols=symbols,
+        ignore_merge_symbols=ignore_merge_symbols,
+        merge_symbols=join_symbols,
+        insert_symbol=" ",
+      )
+
+      symbols = merge_left(
+        symbols=symbols,
+        ignore_merge_symbols=ignore_merge_symbols,
+        merge_symbols=join_symbols,
+        insert_symbol=" ",
+      )
+
+      result = (
+        convert_symbols_string_to_symbols(symbol_str)
+        for symbol_str in symbols
+      )
+      return result
+
+  elif target_format == IntervalFormat.WORD:
+    yield symbols_join(symbols, join_symbol=None)
+  elif target_format == IntervalFormat.WORDS:
+    yield symbols_join(symbols, join_symbol=" ")
+  else:
+    assert False
+
+
 def merge_interval_symbols(interval_symbols: Iterable[Symbols], intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> Generator[Symbols, None, None]:
   """
   Examples:
