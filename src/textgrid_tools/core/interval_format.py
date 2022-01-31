@@ -66,11 +66,11 @@ def merge_interval_symbols(interval_symbols: Iterable[Symbols], intervals_interv
         insert_symbol=" ",
       )
 
-      result = (
-        convert_symbols_string_to_symbols(symbol_str)
-        for symbol_str in symbols
-      )
-      return result
+    result = (
+      convert_symbols_string_to_symbols(symbol_str)
+      for symbol_str in symbols
+    )
+    return result
 
   elif target_format == IntervalFormat.WORD:
     yield symbols_join(symbols, join_symbol=None)
