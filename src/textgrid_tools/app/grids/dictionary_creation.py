@@ -11,8 +11,8 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.app.globals import DEFAULT_PUNCTUATION, ExecutionResult
 from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_chunksize_argument,
-                                       add_encoding_argument,
                                        add_directory_argument,
+                                       add_encoding_argument,
                                        add_interval_format_argument,
                                        add_n_digits_argument,
                                        add_n_jobs_argument,
@@ -67,6 +67,8 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
                       help="include punctuation in the words")
   parser.add_argument("--split-on-hyphen", action="store_true",
                       help="split words on hyphen symbol before lookup")
+  parser.add_argument("--is-already-transcription", action="store_true",
+                      help="don't lookup words because they are already transcribed")
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser, "words", 500)
   add_encoding_argument(parser, "output encoding")
@@ -76,7 +78,7 @@ def get_dictionary_creation_parser(parser: ArgumentParser) -> Callable:
   return app_get_arpa_pronunciation_dictionary
 
 
-def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: OrderedSet[str], punctuation: OrderedSet[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDictType, tiers: OrderedSet[str], punctuation: OrderedSet[str], consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, split_on_hyphen: bool, n_jobs: int, chunksize: int, content: IntervalFormat, formatting: StringFormat, is_already_transcription: bool, output: Path, encoding: str, n_digits: int, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if not overwrite and (error := FileAlreadyExistsError.validate(output)):
@@ -109,6 +111,7 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
     tier_names=tiers,
     tiers_interval_format=content,
     tiers_string_format=formatting,
+    is_already_transcription=is_already_transcription,
   )
 
   success = error is None

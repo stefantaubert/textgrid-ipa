@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Dict, Iterable, List, Optional, Set, Tuple, cast
+from typing import Dict, Generator, Iterable, List, Optional, Set, Tuple, cast
 
 from g2p_en import G2p
 from ordered_set import OrderedSet
@@ -36,7 +36,7 @@ class PunctuationFormatNotSupportedError(ValidationError):
     return "If punctuation should not be included in the words, it needs to be ignored in the pronunciations, too."
 
 
-def get_arpa_pronunciation_dictionary(grids: List[TextGrid], dictionary: PublicDictType, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, n_jobs: int, chunksize: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
+def get_arpa_pronunciation_dictionary(grids: List[TextGrid], dictionary: PublicDictType, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, punctuation: Set[Symbol], split_on_hyphen: bool, consider_annotations: bool, include_punctuation_in_pronunciations: bool, include_punctuation_in_words: bool, is_already_transcription: bool, n_jobs: int, chunksize: int) -> Tuple[ExecutionResult, Optional[PronunciationDict]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
   assert tiers_interval_format in (IntervalFormat.WORD, IntervalFormat.WORDS)
@@ -64,35 +64,61 @@ def get_arpa_pronunciation_dictionary(grids: List[TextGrid], dictionary: PublicD
     all_tiers.extend(tiers)
 
   logger = getLogger(__name__)
-  words = get_word_symbols_from_tiers(all_tiers, tiers_string_format)
+  words = set(get_word_symbols_from_tiers(all_tiers, tiers_string_format))
   logger.debug(f"Retrieved {len(words)} unique words.")
 
-  logger.debug(f"Getting {dictionary!r} dictionary...")
-  arpa_dict = parse_public_dict(dictionary)
+  if is_already_transcription:
+    result = PronunciationDict()
+    for word in words:
+      word_symbols = word
+      word_arpa_symbols = word
+      if include_punctuation_in_words:
+        word_str = "".join(word_symbols)
+        assert word_str not in result
+      else:
+        unique_word_no_punctuation = symbols_ignore(word_symbols, punctuation)
+        word_str = "".join(unique_word_no_punctuation)
+        if word_str in result:
+          continue
 
-  global PROCESS_OOV_MODEL
-  global PROCESS_DICTIONARY
-  PROCESS_DICTIONARY = pronunciation_dict_to_tuple_dict(arpa_dict)
-  PROCESS_OOV_MODEL = G2p()
+      # maybe ignore spn here
+      if include_punctuation_in_pronunciations:
+        final_word_symbols = word_arpa_symbols
+      else:
+        final_word_symbols = symbols_ignore(word_arpa_symbols, punctuation)
 
-  logger.debug("Converting all words to ARPA...")
-  cache = prepare_cache_mp(
-    sentences=words,
-    annotation_split_symbol="/",
-    chunksize=chunksize,
-    consider_annotation=consider_annotations,
-    get_pronunciation=process_lookup_dict,
-    ignore_case=True,
-    n_jobs=n_jobs,
-    split_on_hyphen=split_on_hyphen,
-    trim_symbols=punctuation,
-    maxtasksperchild=None,
-  )
-  logger.debug("Done.")
+        arpa_contains_only_punctuation = len(final_word_symbols) == 0
+        if arpa_contains_only_punctuation:
+          final_word_symbols = (SIL,)
 
-  logger.debug("Creating pronunciation dictionary...")
-  result = get_pronunciation_dictionary(
-    cache, include_punctuation_in_pronunciations, include_punctuation_in_words, punctuation)
+      result[word_str] = OrderedSet((final_word_symbols,))
+  else:
+    logger.debug(f"Getting {dictionary!r} dictionary...")
+    arpa_dict = parse_public_dict(dictionary)
+
+    global PROCESS_OOV_MODEL
+    global PROCESS_DICTIONARY
+    PROCESS_DICTIONARY = pronunciation_dict_to_tuple_dict(arpa_dict)
+    PROCESS_OOV_MODEL = G2p()
+
+    logger.debug("Converting all words to ARPA...")
+    cache = prepare_cache_mp(
+      sentences=words,
+      annotation_split_symbol="/",
+      chunksize=chunksize,
+      consider_annotation=consider_annotations,
+      get_pronunciation=process_lookup_dict,
+      ignore_case=True,
+      n_jobs=n_jobs,
+      split_on_hyphen=split_on_hyphen,
+      trim_symbols=punctuation,
+      maxtasksperchild=None,
+    )
+    logger.debug("Done.")
+
+    logger.debug("Creating pronunciation dictionary...")
+    result = get_pronunciation_dictionary(
+      cache, include_punctuation_in_pronunciations, include_punctuation_in_words, punctuation)
 
   check_pronunciation_dictionary_for_silence(result)
   if not include_punctuation_in_pronunciations:
@@ -160,6 +186,7 @@ def get_pronunciation_dictionary(cache: LookupCache, include_punctuation_in_pron
   for word_symbols, word_arpa_symbols in cast(Iterable[Tuple[Pronunciation, Pronunciation]], tqdm(sorted(cache.items()))):
     if len(word_symbols) == 0:
       continue
+
     assert len(word_arpa_symbols) > 0
 
     if include_punctuation_in_words:
@@ -181,11 +208,11 @@ def get_pronunciation_dictionary(cache: LookupCache, include_punctuation_in_pron
       if arpa_contains_only_punctuation:
         final_word_symbols = (SIL,)
 
-    result[word_str] = OrderedSet([final_word_symbols])
+    result[word_str] = OrderedSet((final_word_symbols,))
   return result
 
 
-def get_word_symbols_from_tiers(tiers: Iterable[IntervalTier], tiers_string_format: StringFormat) -> Set[Symbols]:
+def get_word_symbols_from_tiers(tiers: Iterable[IntervalTier], tiers_string_format: StringFormat) -> Generator[Symbols, None, None]:
   all_intervals = (
     interval
     for tier in tiers
@@ -193,11 +220,11 @@ def get_word_symbols_from_tiers(tiers: Iterable[IntervalTier], tiers_string_form
         Iterable[Interval], tier.intervals)
   )
 
-  words = {
+  words = (
     word
     for interval_symbols in get_mark_symbols_intervals(all_intervals, tiers_string_format)
     for word in symbols_split(interval_symbols, " ")
-  }
+  )
 
   return words
 
