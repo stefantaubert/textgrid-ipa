@@ -1,7 +1,7 @@
 #!/bin/bash
 
 deactivate
-pipenv run cxfreeze \
+python3.8 -m pipenv run cxfreeze \
   -O \
   --compress \
   --target-dir=dist \
