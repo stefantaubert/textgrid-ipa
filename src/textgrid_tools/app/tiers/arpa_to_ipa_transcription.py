@@ -30,9 +30,9 @@ def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
   parser.add_argument("--replace-unknown", action="store_true",
                       help="replace unknown ARPA symbols with a custom symbol")
   parser.add_argument("--symbol", metavar="SYMBOL", type=get_optional(parse_non_empty),
-                      help="custom symbol to replace unknown ARPA symbols")
+                      help="custom symbol to replace unknown ARPA symbols", default=None)
   parser.add_argument("--ignore", metavar="SYMBOL", type=parse_non_empty, nargs="*",
-                      help="ignore these symbols while transcription, i.e., keep them as they are", action=ConvertToOrderedSetAction)
+                      help="ignore these symbols while transcription, i.e., keep them as they are", action=ConvertToOrderedSetAction, default=[])
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
