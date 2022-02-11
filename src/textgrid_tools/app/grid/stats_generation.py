@@ -18,13 +18,15 @@ def get_stats_generation_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002,
                       help="warn at intervals smaller than this duration (in seconds)")
-  parser.add_argument("--print-symbols-tiers", type=parse_non_empty_or_whitespace, nargs='*',
-                      help="tiers with format SYMBOL which symbols should be printed", default=[], action=ConvertToOrderedSetAction)
+  parser.add_argument("--text-tiers", type=parse_non_empty_or_whitespace, nargs='*',
+                      help="tiers with format TEXT which symbols should be printed", default=[], action=ConvertToOrderedSetAction)
+  parser.add_argument("--spaced-tiers", type=parse_non_empty_or_whitespace, nargs='*',
+                      help="tiers with format SPACED which symbols should be printed", default=[], action=ConvertToOrderedSetAction)
   add_n_digits_argument(parser)
   return app_print_stats
 
 
-def app_print_stats(directory: Path, duration_threshold: float, print_symbols_tiers: OrderedSet[str], n_digits: int) -> ExecutionResult:
+def app_print_stats(directory: Path, duration_threshold: float, text_tiers: OrderedSet[str], spaced_tiers: OrderedSet[str], n_digits: int) -> ExecutionResult:
   logger = getLogger(__name__)
 
   grid_files = get_grid_files(directory)
@@ -36,7 +38,7 @@ def app_print_stats(directory: Path, duration_threshold: float, print_symbols_ti
     grid_file_in_abs = directory / rel_path
     grid_in = load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = print_stats(grid_in, duration_threshold, print_symbols_tiers)
+    error, changed_anything = print_stats(grid_in, duration_threshold, text_tiers, spaced_tiers)
     logger.info("")
     assert not changed_anything
     success = error is None

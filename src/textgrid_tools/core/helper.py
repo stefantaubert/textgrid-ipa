@@ -128,7 +128,6 @@ def get_mark_symbols_intervals(intervals: Iterable[Interval], string_format: Str
   for interval in intervals:
     yield get_mark_symbols(interval, string_format)
 
-
 def symbols_are_empty_or_whitespace(symbols: Symbols) -> bool:
   result = symbols_ignore(symbols, ignore={" ", ""})
   return len(result) == 0
