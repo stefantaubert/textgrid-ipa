@@ -37,6 +37,7 @@ def get_tiers_parsers() -> Parsers:
   yield "remove", "remove tiers", get_tiers_removing_parser
   yield "switch-format", "switch tier format of tiers", get_string_format_switching_parser
   yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
+  yield "mark-silence", "mark silence intervals", get_label_silence_parser
 
 
 def get_tier_parsers() -> Parsers:

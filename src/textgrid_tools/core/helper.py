@@ -137,6 +137,12 @@ def str_is_empty_or_whitespace(string: str) -> bool:
   return string.strip() == ""
 
 
+def is_silence(interval: Interval) -> bool:
+  result = interval.mark is None or interval.mark == ""
+  return result
+
+
+
 def get_interval_readable(interval: Interval) -> str:
   result = f"Interval [{interval.minTime}, {interval.maxTime}]: \"{get_mark(interval)}\""
   return result

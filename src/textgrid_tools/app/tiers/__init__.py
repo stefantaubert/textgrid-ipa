@@ -6,3 +6,4 @@ from textgrid_tools.app.tiers.string_format_switching import \
     get_string_format_switching_parser
 from textgrid_tools.app.tiers.symbol_removing import get_symbol_removing_parser
 from textgrid_tools.app.tiers.transcription import get_transcription_parser
+from textgrid_tools.app.tiers.silence_labeling import get_label_silence_parser

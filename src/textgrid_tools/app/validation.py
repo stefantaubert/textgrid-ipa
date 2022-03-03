@@ -15,7 +15,6 @@ class FileAlreadyExistsError(ValidationError):
 
   @classmethod
   def validate(cls, path: Path):
-    print(path)
     if path.is_file():
       return cls(path)
     return None

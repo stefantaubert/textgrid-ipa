@@ -20,6 +20,7 @@ from textgrid_tools.app.tier import (get_cloning_parser, get_copying_parser,
                                      get_renaming_parser,
                                      get_text_conversion_parser)
 from textgrid_tools.app.tiers import (get_arpa_to_ipa_transcription_parser,
+                                      get_label_silence_parser,
                                       get_normalization_parser)
 from textgrid_tools.app.tiers import \
     get_removing_parser as get_tiers_removing_parser

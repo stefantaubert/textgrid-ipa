@@ -17,7 +17,7 @@ from textgrid_tools.core.grid.stats_generation import \
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
-  parser.description = "This command generate statistics about the grid files."
+  parser.description = "This command creates a violin plot of the interval durations."
   add_directory_argument(parser)
   parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='*',
                       help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
