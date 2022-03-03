@@ -6,6 +6,8 @@ from textgrid_tools.app.intervals.boundary_joining import \
     get_boundary_joining_parser
 from textgrid_tools.app.intervals.duration_joining import \
     get_duration_joining_parser
+from textgrid_tools.app.intervals.durations_plotting import \
+    get_plot_interval_durations_parser
 from textgrid_tools.app.intervals.removing import get_removing_parser
 from textgrid_tools.app.intervals.sentence_joining import \
     get_sentence_joining_parser

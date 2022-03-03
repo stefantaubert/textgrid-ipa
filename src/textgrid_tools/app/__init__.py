@@ -8,7 +8,8 @@ from textgrid_tools.app.grids import get_dictionary_creation_parser
 from textgrid_tools.app.intervals import (get_between_pause_joining_parser,
                                           get_boundary_fixing_parser,
                                           get_boundary_joining_parser,
-                                          get_duration_joining_parser)
+                                          get_duration_joining_parser,
+                                          get_plot_interval_durations_parser)
 from textgrid_tools.app.intervals import \
     get_removing_parser as get_intervals_removing_parser
 from textgrid_tools.app.intervals import get_sentence_joining_parser

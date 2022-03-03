@@ -56,6 +56,7 @@ def get_intervals_parsers() -> Parsers:
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "split", "split intervals", get_intervals_splitting_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
+  yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 
 
 def _init_parser():
