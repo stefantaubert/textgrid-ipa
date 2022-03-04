@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Generator, Iterable, List, Optional, Set, cast
 
 from text_utils import StringFormat
@@ -15,7 +16,7 @@ from textgrid_tools.core.validation import (InvalidGridError,
                                             NotMatchingIntervalFormatError)
 
 
-def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, empty: bool, marks: Set[str], join_with: Optional[str]) -> ExecutionResult:
+def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, empty: bool, marks: Set[str]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert empty or len(marks) > 0
 
@@ -35,18 +36,26 @@ def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: String
     if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
       return error, False
 
-  if join_with is None:
-    join_with = ""
+  joined_count = 0
+  joined_to_count = 0
+  ignored_count = 0
 
   changed_anything = False
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, empty, marks):
       merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
-      if not check_intervals_are_equal(chunk, [merged_interval]):
-        replace_intervals(tier, chunk, [merged_interval])
+      replace_with = [merged_interval]
+      if not check_intervals_are_equal(chunk, replace_with):
+        joined_count += len(chunk)
+        joined_to_count += len(replace_with)
+        replace_intervals(tier, chunk, replace_with)
         changed_anything = True
-
+      else:
+        ignored_count += len(chunk)
+  logger = getLogger(__name__)
+  logger.info(
+    f"Joined {joined_count} intervals to {joined_to_count} intervals. Didn't joined {ignored_count} intervals.")
   return None, changed_anything
 
 

@@ -23,8 +23,8 @@ def get_splitting_parser(parser: ArgumentParser):
   add_tier_argument(parser, "tier on which intervals should be splitted")
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing the audios if not directory")
-  parser.add_argument("--include-silence", action="store_true",
-                      help="export silence intervals, too")
+  parser.add_argument("--include-empty", action="store_true",
+                      help="export empty intervals, too")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="don't export audios")
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
@@ -36,7 +36,7 @@ def get_splitting_parser(parser: ArgumentParser):
   return app_split_grid_on_intervals
 
 
-def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_pauses: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_empty: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
   assert directory.is_dir()
 
@@ -87,7 +87,7 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), grids_audios = split_grid_on_intervals(
-      grid, audio, sample_rate, tier, include_pauses, n_digits)
+      grid, audio, sample_rate, tier, include_empty, n_digits)
 
     success = error is None
     total_success &= success

@@ -111,9 +111,9 @@ def split_interval_symbols(symbols: Symbols, intervals_interval_format: Interval
         for symbol_str in symbols
       )
     else:
-      marks = (tuple(symbol) for symbol in symbols)
+      marks = (tuple((symbol,)) for symbol in symbols)
   elif target_format == IntervalFormat.SYMBOL:
-    marks = (tuple(symbol) for symbol in symbols)
+    marks = (tuple((symbol,)) for symbol in symbols)
   else:
     assert False
   marks = (symbols for symbols in marks if len(symbols) > 0)

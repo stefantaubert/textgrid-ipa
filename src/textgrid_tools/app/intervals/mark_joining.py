@@ -18,7 +18,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
-                                       add_tiers_argument,
+                                       add_tiers_argument, parse_non_empty,
                                        parse_non_negative_float)
 from textgrid_tools.app.validation import ValidationError
 from textgrid_tools.core import IntervalFormat, join_marks
@@ -44,7 +44,7 @@ def get_mark_joining_parser(parser: ArgumentParser):
   add_interval_format_argument(parser, "tiers")
   parser.add_argument("--empty", action="store_true",
                       help="join empty marks")
-  parser.add_argument('--marks', type=parse_non_negative_float, metavar="MARK", nargs="*",
+  parser.add_argument('--marks', type=parse_non_empty, metavar="MARK", nargs="*",
                       help="join adjacent intervals containing these marks", default=[], action=ConvertToOrderedSetAction)
   # TODO
   #parser.add_argument("--join-with", type=get_optional(parse_non_empty), default=None, help="join marks of intervals with this text in between")
@@ -57,7 +57,7 @@ def get_mark_joining_parser(parser: ArgumentParser):
   return app_join_marks
 
 
-def app_join_marks(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, content: IntervalFormat, empty: bool, marks: OrderedSet[str], join_with: Optional[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_marks(directory: Path, tiers: OrderedSet[str], formatting: StringFormat, content: IntervalFormat, empty: bool, marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   if error := NoMarkDefinedError.validate(marks, empty):
     logger = getLogger(__name__)
     logger.error(error.default_message)
@@ -68,7 +68,6 @@ def app_join_marks(directory: Path, tiers: OrderedSet[str], formatting: StringFo
     tier_names=tiers,
     tiers_interval_format=content,
     tiers_string_format=formatting,
-    join_with=join_with,
     empty=empty,
     marks=marks,
   )
