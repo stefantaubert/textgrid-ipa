@@ -187,21 +187,30 @@ def print_stats_tier(tier: IntervalTier, duration_threshold: float, string_forma
 
 def get_symbols_statistics(intervals: List[Interval], string_format: StringFormat):
   interval_symbols = get_mark_symbols_intervals(intervals, string_format)
-  symbols = (symbol for symbol in interval_symbols)
+  interval_symbols = (symbol for symbol in interval_symbols)
 
-  counts = Counter(symbols)
-  all_symbols = OrderedSet(sorted(counts.keys()))
+  counts = Counter(interval_symbols)
+  sorted_counts = counts.most_common()
+  sorted_counts.sort(key=lambda kv: kv[1], reverse=True)
+  sorted_keys = (key for key, _ in sorted_counts)
+  all_interval_symbols = OrderedSet(sorted_keys)
 
   total_symbol_count = sum(counts.values())
 
   result: List[OrderedDictType[str, Any]] = []
-  for symbol in all_symbols:
-    symbol_repr = repr(symbol)[1:-1] if symbol != " " else SPACE_DISPL
+  for symbols in all_interval_symbols:
+    # TODO include (,) as EMPTY
+    symbols_reprs = (
+      repr(symbol)[1:-1] if symbols != " " else SPACE_DISPL
+      for symbol in symbols
+    )
+
+    symbol_repr = ' '.join(symbols_reprs)
     row = {
       "Symbol": symbol_repr,
     }
 
-    symbol_count_total = counts[symbol]
+    symbol_count_total = counts[symbols]
     row["Count"] = symbol_count_total
 
     val = NOT_AVAIL_VAL if total_symbol_count == 0 else symbol_count_total / total_symbol_count * 100
