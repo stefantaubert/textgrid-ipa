@@ -27,3 +27,4 @@ from textgrid_tools.app.tiers import \
 from textgrid_tools.app.tiers import (get_string_format_switching_parser,
                                       get_symbol_removing_parser,
                                       get_transcription_parser)
+from textgrid_tools.app.intervals import get_mark_joining_parser

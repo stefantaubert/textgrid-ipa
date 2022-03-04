@@ -18,15 +18,15 @@ from tqdm import tqdm
 
 
 def get_splitting_parser(parser: ArgumentParser):
-  parser.description = "This command splits a grid into multiple grids."
+  parser.description = "This command splits a grid into multiple grids by exporting each interval as separate grid."
   add_directory_argument(parser, "directory containing the grids and audios")
-  add_tier_argument(parser, "tier on which intervals should be removed")
+  add_tier_argument(parser, "tier on which intervals should be splitted")
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing the audios if not directory")
-  parser.add_argument("--include-pauses", action="store_true",
-                      help="include pause intervals")
+  parser.add_argument("--include-silence", action="store_true",
+                      help="export silence intervals, too")
   parser.add_argument("--ignore-audio", action="store_true",
-                      help="ignore audios")
+                      help="don't export audios")
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),

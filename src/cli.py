@@ -54,6 +54,7 @@ def get_intervals_parsers() -> Parsers:
   yield "join-by-boundary", "join intervals by boundaries of a tier", get_boundary_joining_parser
   yield "join-on-sentences", "join intervals sentence-wise", get_sentence_joining_parser
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
+  yield "join-marks", "join intervals containing specific marks", get_mark_joining_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "split", "split intervals", get_intervals_splitting_parser
   yield "remove", "remove intervals", get_intervals_removing_parser

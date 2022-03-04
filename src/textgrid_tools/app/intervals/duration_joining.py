@@ -25,7 +25,7 @@ from textgrid_tools.core.interval_format import IntervalFormat
 
 
 def get_duration_joining_parser(parser: ArgumentParser):
-  parser.description = "This command joins adjacent intervals of a single tier to intervals containing sentences."
+  parser.description = "This command joins adjacent intervals to intervals with a maximum duration."
   add_directory_argument(parser)
   add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_string_format_argument(parser, "tiers")

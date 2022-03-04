@@ -23,7 +23,7 @@ from textgrid_tools.core.interval_format import IntervalFormat
 
 
 def get_boundary_joining_parser(parser: ArgumentParser):
-  parser.description = "This command joins adjacent intervals of a single tier according to the interval boundaries of another tier."
+  parser.description = "This command joins adjacent intervals according to the interval boundaries of another tier."
   add_directory_argument(parser)
   parser.add_argument("boundary_tier", metavar="boundary-tier", type=parse_non_empty_or_whitespace,
                       help="tier from which the boundaries should be considered")

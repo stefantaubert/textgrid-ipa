@@ -12,3 +12,4 @@ from textgrid_tools.app.intervals.removing import get_removing_parser
 from textgrid_tools.app.intervals.sentence_joining import \
     get_sentence_joining_parser
 from textgrid_tools.app.intervals.splitting import get_splitting_parser
+from textgrid_tools.app.intervals.mark_joining import get_mark_joining_parser
