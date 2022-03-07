@@ -5,7 +5,8 @@ from textgrid_tools.app.grid import \
     get_splitting_parser as get_grid_splitting_parser
 from textgrid_tools.app.grid import get_stats_generation_parser
 from textgrid_tools.app.grids import (get_dictionary_creation_parser,
-                                      get_grids_plot_interval_durations_parser)
+                                      get_grids_plot_interval_durations_parser,
+                                      get_marks_exporting_parser)
 from textgrid_tools.app.intervals import (get_between_pause_joining_parser,
                                           get_boundary_fixing_parser,
                                           get_boundary_joining_parser,
