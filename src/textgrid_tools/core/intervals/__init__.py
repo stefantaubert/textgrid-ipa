@@ -11,3 +11,4 @@ from textgrid_tools.core.intervals.sentence_joining import \
     join_intervals_on_sentences
 from textgrid_tools.core.intervals.splitting import split
 from textgrid_tools.core.intervals.mark_joining import join_marks
+from textgrid_tools.core.intervals.durations_plotting import plot_interval_durations_diagram

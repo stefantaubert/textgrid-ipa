@@ -21,6 +21,7 @@ def formatter(prog):
 
 def get_grids_parsers() -> Parsers:
   yield "create-dictionary", "create pronunciation dictionary from multiple grid files", get_dictionary_creation_parser
+  yield "plot-durations", "plot durations", get_grids_plot_interval_durations_parser
 
 
 def get_grid_parsers() -> Parsers:

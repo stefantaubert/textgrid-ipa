@@ -12,14 +12,13 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        get_optional, load_grid,
                                        parse_non_empty_or_whitespace,
                                        parse_path)
-from textgrid_tools.core.grid.stats_generation import \
-    plot_interval_durations_diagram
+from textgrid_tools.core import plot_interval_durations_diagram
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
   parser.description = "This command creates a violin plot of the interval durations."
   add_directory_argument(parser)
-  parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='*',
+  parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='+',
                       help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the plots if not to the same directory")
@@ -66,4 +65,4 @@ def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output_
     getLogger('matplotlib.backends.backend_pdf').disabled = False
     figure.savefig(png_out)
 
-  return total_success, True
+  return total_success, False

@@ -4,11 +4,13 @@ from textgrid_tools.app.grid import (get_audio_synchronization_parser,
 from textgrid_tools.app.grid import \
     get_splitting_parser as get_grid_splitting_parser
 from textgrid_tools.app.grid import get_stats_generation_parser
-from textgrid_tools.app.grids import get_dictionary_creation_parser
+from textgrid_tools.app.grids import (get_dictionary_creation_parser,
+                                      get_grids_plot_interval_durations_parser)
 from textgrid_tools.app.intervals import (get_between_pause_joining_parser,
                                           get_boundary_fixing_parser,
                                           get_boundary_joining_parser,
                                           get_duration_joining_parser,
+                                          get_mark_joining_parser,
                                           get_plot_interval_durations_parser)
 from textgrid_tools.app.intervals import \
     get_removing_parser as get_intervals_removing_parser
@@ -27,4 +29,3 @@ from textgrid_tools.app.tiers import \
 from textgrid_tools.app.tiers import (get_string_format_switching_parser,
                                       get_symbol_removing_parser,
                                       get_transcription_parser)
-from textgrid_tools.app.intervals import get_mark_joining_parser
