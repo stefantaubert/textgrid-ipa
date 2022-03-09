@@ -172,6 +172,13 @@ def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: flo
     if minTime <= interval.minTime and interval.maxTime <= maxTime:
       yield interval
 
+def number_prepend_zeros(n: int, max_n: int) -> str:
+  assert n >= 0
+  assert max_n >= 0
+  decimals = len(str(max_n))
+  res = str(n).zfill(decimals)
+  return res
+
 
 def get_intervals_on_tier(interval: Interval, tier: IntervalTier) -> List[Interval]:
   result = list(get_intervals_from_timespan(tier, interval.minTime, interval.maxTime))

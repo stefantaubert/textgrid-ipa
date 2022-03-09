@@ -16,6 +16,8 @@ from textgrid_tools.app.helper import (add_directory_argument,
 from textgrid_tools.core import split_grid_on_intervals
 from tqdm import tqdm
 
+from textgrid_tools.core.helper import number_prepend_zeros
+
 
 def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits a grid into multiple grids by exporting each interval as separate grid."
@@ -116,10 +118,3 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
 
   return total_success, total_changed_anything
 
-
-def number_prepend_zeros(n: int, max_n: int) -> str:
-  assert n >= 0
-  assert max_n >= 0
-  decimals = len(str(max_n))
-  res = str(n).zfill(decimals)
-  return res
