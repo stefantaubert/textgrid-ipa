@@ -1,14 +1,14 @@
-from typing import Generator, Iterable, List, Set, cast
+from typing import Generator, Iterable, List, Optional, Set, cast
 
-from text_utils import StringFormat
+from text_utils import StringFormat, Symbol
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import get_all_tiers, get_intervals_duration
 from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.common import (group_adjacent_pauses,
-                                                  merge_intervals,
-                                                  replace_intervals)
+from textgrid_tools.core.intervals.common import (
+    group_adjacent_pauses, merge_intervals, merge_intervals_custom_symbol,
+    replace_intervals)
 from textgrid_tools.core.validation import (InvalidGridError,
                                             InvalidStringFormatIntervalError,
                                             NotExistingTierError,
@@ -32,7 +32,7 @@ class PauseTooLowError(ValidationError):
     return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float) -> ExecutionResult:
+def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float, custom_join_symbol: Optional[Symbol]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -58,7 +58,11 @@ def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_st
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, pause):
-      merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      if custom_join_symbol is None:
+        merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      else:
+        merged_interval = merge_intervals_custom_symbol(
+          chunk, tiers_string_format, custom_join_symbol)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True

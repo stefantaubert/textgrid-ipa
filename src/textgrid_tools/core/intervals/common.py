@@ -1,7 +1,7 @@
 from typing import (Collection, Generator, Iterable, List, Optional, Set,
                     Tuple, Union)
 
-from text_utils import StringFormat
+from text_utils import StringFormat, symbols_join
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
 from textgrid_tools.core.helper import (get_mark_symbols_intervals,
@@ -33,6 +33,27 @@ def merge_intervals(intervals: List[Interval], intervals_string_format: StringFo
     )
     return interval
   raise NotImplementedError()
+
+
+def merge_intervals_custom_symbol(intervals: List[Interval], intervals_string_format: StringFormat, join_symbol: Symbol) -> Interval:
+  assert len(intervals) > 0
+  interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
+  joined_interval_symbols = symbols_join(interval_symbols, join_symbol=join_symbol)
+
+  if len(joined_interval_symbols) == 0:
+    mark = ""
+  else:
+    mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols)
+
+  first_interval = intervals[0]
+  last_interval = intervals[-1]
+
+  interval = Interval(
+    minTime=first_interval.minTime,
+    maxTime=last_interval.maxTime,
+    mark=mark,
+  )
+  return interval
 
 
 def replace_intervals(tier: IntervalTier, intervals: List[Interval], replace_with: List[Interval]) -> None:

@@ -30,6 +30,7 @@ class IntervalFormat(IntEnum):
     assert False
 
 
+
 def merge_interval_symbols(interval_symbols: Iterable[Symbols], intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]], ignore_join_symbols: Optional[Set[Symbol]]) -> Generator[Symbols, None, None]:
   """
   Examples:
