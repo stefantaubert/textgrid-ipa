@@ -18,9 +18,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
-                                       add_tiers_argument,
-                                       parse_existing_directory,
-                                       parse_non_empty)
+                                       add_tiers_argument, parse_non_empty)
 from textgrid_tools.core import split
 from textgrid_tools.core.interval_format import IntervalFormat
 

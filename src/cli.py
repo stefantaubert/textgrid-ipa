@@ -6,7 +6,7 @@ from typing import Callable, Dict, Generator, Tuple
 
 from textgrid_tools.app import *
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 INVOKE_HANDLER_VAR = "invoke_handler"
 
