@@ -13,10 +13,7 @@ pipenv run cxfreeze \
   --target-name=cli \
   $cli_path
 
-if [ $1 ]
-then
-  cd dist
-  zip $prog_name-linux.zip ./ -r
-  cd ..
-  echo "zipped."
-fi
+cd dist
+zip $prog_name-linux.zip ./ -r
+cd ..
+echo "zipped."
