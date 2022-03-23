@@ -10,6 +10,10 @@ __version__ = "1.0.1"
 
 INVOKE_HANDLER_VAR = "invoke_handler"
 
+CONSOLE_PNT_GREEN = "\x1b[1;49;32m"
+CONSOLE_PNT_RED = "\x1b[1;49;31m"
+CONSOLE_PNT_RST = "\x1b[0m"
+
 
 Parsers = Generator[Tuple[str, str, Callable[[ArgumentParser],
                                              Callable[..., ExecutionResult]]], None, None]
@@ -122,11 +126,11 @@ def main():
     success, changed_anything = invoke_handler(**params)
     logger = getLogger(__name__)
     if success:
-      logger.info("Everything was successfull!")
+      logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
     else:
-      logger.warning("Not everything was successfull!")
+      logger.warning(f"{CONSOLE_PNT_RED}Not everything was successfull!{CONSOLE_PNT_RST}")
     if not changed_anything:
-      logger.info("Didn't changed anything.")
+      logger.info(f"Didn't changed anything.")
   else:
     parser.print_help()
 
