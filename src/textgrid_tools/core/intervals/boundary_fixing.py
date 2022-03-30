@@ -53,7 +53,7 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
       total_changed_anything |= changed_anything
 
       if not success:
-        logger.info("Not all boundaries could be fixed")
+        logger.info("Not all boundaries could be fixed!")
 
       if not changed_anything:
         logger.debug("Did not changed anything!")
