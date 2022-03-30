@@ -131,9 +131,9 @@ class BoundaryError(ValidationError):
   @property
   def default_message(self) -> str:
     msg = "Tier(s) do not share the same interval boundaries!\n"
-    msg += "Non-existent timepoints (in s) on tiers:"
+    msg += "Non-existent timepoints (in s) on tiers:\n"
     for timepoint, tiers in self.non_existent_boundaries.items():
-      msg += f"- {timepoint}: {', '.join(tiers)}\n"
+      msg += f"- {timepoint} does not exist on {', '.join(tiers)}\n"
     return msg
 
 
