@@ -333,7 +333,9 @@ def try_load_grid(path: Path, n_digits: int) -> Tuple[Optional[GridCouldNotBeLoa
   try:
     grid_in.read(path, round_digits=n_digits)
   except Exception as ex:
-    return GridCouldNotBeLoadedError(path), None
+    logger = getLogger(__name__)
+    logger.debug(ex)
+    return GridCouldNotBeLoadedError(path, ex), None
   return None, grid_in
 
 

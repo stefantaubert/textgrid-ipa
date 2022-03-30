@@ -26,15 +26,11 @@ class FileAlreadyExistsError(ValidationError):
 
 
 class GridCouldNotBeLoadedError(ValidationError):
-  def __init__(self, path: Path) -> None:
-      super().__init__()
-      self.path = path
-  # @classmethod
-  # def validate(cls, grid: Optional[TextGrid]):
-  #   if not (grid is not None):
-  #     return cls()
-  #   return None
+  def __init__(self, path: Path, exception: Exception) -> None:
+    super().__init__()
+    self.path = path
+    self.exception = exception
 
   @property
   def default_message(self) -> str:
-    return f"Grid '{self.path.absolute()}' couldn't be loaded!"
+    return f"Grid couldn't be loaded!"
