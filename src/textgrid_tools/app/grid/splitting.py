@@ -10,9 +10,10 @@ from textgrid_tools.app.helper import (add_directory_argument,
                                        add_n_digits_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, get_audio_files,
-                                       get_grid_files, get_optional, load_grid,
+                                       get_grid_files, get_optional, try_load_grid,
                                        parse_existing_directory, parse_path,
                                        save_audio, save_grid)
+from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core import split_grid_on_intervals
 from tqdm import tqdm
 
@@ -78,7 +79,13 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
     logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
 
     grid_file_in_abs = directory / grid_files[file_stem]
-    grid = load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
 
     sample_rate = None
     audio = None

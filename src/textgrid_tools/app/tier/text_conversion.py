@@ -12,7 +12,7 @@ from textgrid_tools.app.helper import (add_encoding_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tier_argument, get_grid_files,
-                                       get_optional, load_grid, parse_path,
+                                       get_optional, try_load_grid, parse_path,
                                        save_text)
 from textgrid_tools.core import convert_tier_to_text
 from textgrid_tools.core.interval_format import IntervalFormat
@@ -49,10 +49,16 @@ def app_convert_tier_to_text(directory: Path, tier: str, formatting: StringForma
       logger.info("Text file already exists. Skipped.")
       continue
 
-    grid_file_in_abs = directory / rel_path
-    grid_in = load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = directory / rel_path    
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
 
-    (error, _), text = convert_tier_to_text(grid_in, tier, formatting, content)
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
+
+    (error, _), text = convert_tier_to_text(grid, tier, formatting, content)
 
     success = error is None
     total_success &= success

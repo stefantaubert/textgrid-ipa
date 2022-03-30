@@ -8,10 +8,10 @@ from textgrid_tools.app.helper import (add_directory_argument,
                                        add_n_digits_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument, copy_grid,
-                                       get_grid_files, get_optional, load_grid,
+                                       get_grid_files, get_optional,
                                        parse_existing_directory,
                                        parse_non_empty_or_whitespace,
-                                       save_grid)
+                                       save_grid, try_load_grid)
 from textgrid_tools.app.validation import ValidationError
 from textgrid_tools.core import copy_tier_to_grid
 
@@ -85,12 +85,24 @@ def app_copy_tier_to_grid(reference_directory: Path, reference_tier: str, direct
       continue
 
     ref_grid_file_in_abs = reference_directory / ref_grid_files[file_stem]
-    ref_grid_in = load_grid(ref_grid_file_in_abs, n_digits)
+    error, ref_grid = try_load_grid(ref_grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert ref_grid is not None
 
     grid_file_in_abs = directory / grid_files[file_stem]
-    grid = load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = copy_tier_to_grid(ref_grid_in, reference_tier, grid, tier)
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
+
+    error, changed_anything = copy_tier_to_grid(ref_grid, reference_tier, grid, tier)
 
     success = error is None
     total_success &= success

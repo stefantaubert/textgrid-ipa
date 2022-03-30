@@ -1,4 +1,6 @@
+from collections import OrderedDict
 from typing import Iterable, Optional
+from typing import OrderedDict as ODType
 
 import numpy as np
 from audio_utils.audio import s_to_samples
@@ -9,7 +11,7 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_count_of_tiers, get_interval_readable, get_mark, get_mark_symbols,
-    get_tier_readable, tier_exists)
+    get_tier_readable, tier_exists, timepoint_is_boundary)
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
@@ -106,25 +108,32 @@ class InvalidGridError(ValidationError):
 
 
 class BoundaryError(ValidationError):
-  def __init__(self, timepoints: OrderedSet[float], tiers: Iterable[IntervalTier]) -> None:
+  def __init__(self, timepoints: OrderedSet[float], tiers: Iterable[IntervalTier], non_existent_boundaries: ODType[float, OrderedSet[str]]) -> None:
     super().__init__()
     self.timepoints = timepoints
     self.tiers = tiers
+    self.non_existent_boundaries = non_existent_boundaries
 
   @classmethod
   def validate(cls, timepoints: OrderedSet[float], tiers: Iterable[IntervalTier]):
-    all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
-      timepoints, list(tiers))
-    if not all_tiers_share_timepoints:
-      return cls(timepoints, tiers)
+    non_existent_boundaries: ODType[float, OrderedSet[str]] = OrderedDict()
+    tiers = list(tiers)
+    for timepoint in timepoints:
+      for tier in tiers:
+        if not timepoint_is_boundary(timepoint, tier):
+          if timepoint not in non_existent_boundaries:
+            non_existent_boundaries[timepoint] = OrderedSet()
+          non_existent_boundaries[timepoint].add(tier.name)
+    if not len(non_existent_boundaries) == 0:
+      return cls(timepoints, tiers, non_existent_boundaries)
     return None
 
   @property
   def default_message(self) -> str:
     msg = "Tier(s) do not share the same interval boundaries!\n"
-    msg += "Timepoints (in s):"
-    for boundary in self.timepoints:
-      msg += f"- {boundary}\n"
+    msg += "Non-existent timepoints (in s) on tiers:"
+    for timepoint, tiers in self.non_existent_boundaries.items():
+      msg += f"- {timepoint}: {', '.join(tiers)}\n"
     return msg
 
 

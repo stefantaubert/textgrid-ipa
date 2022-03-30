@@ -23,6 +23,7 @@ from textgrid_tools.app.globals import (DEFAULT_ENCODING,
                                         DEFAULT_N_DIGITS,
                                         DEFAULT_N_FILE_CHUNKSIZE,
                                         DEFAULT_N_JOBS)
+from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core.helper import check_is_valid_grid
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -327,10 +328,13 @@ def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
   return result
 
 
-def load_grid(path: Path, n_digits: int) -> TextGrid:
+def try_load_grid(path: Path, n_digits: int) -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
   grid_in = TextGrid()
-  grid_in.read(path, round_digits=n_digits)
-  return grid_in
+  try:
+    grid_in.read(path, round_digits=n_digits)
+  except Exception as ex:
+    return GridCouldNotBeLoadedError(path), None
+  return None, grid_in
 
 
 def save_grid(path: Path, grid: TextGrid) -> None:

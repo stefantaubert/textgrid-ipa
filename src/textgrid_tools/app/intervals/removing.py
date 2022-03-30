@@ -12,7 +12,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_tier_argument, copy_audio,
                                        copy_grid, get_audio_files,
-                                       get_grid_files, get_optional, load_grid,
+                                       get_grid_files, get_optional, try_load_grid,
                                        parse_existing_directory,
                                        parse_non_empty, parse_path, save_audio,
                                        save_grid)
@@ -92,7 +92,13 @@ def app_remove_intervals(directory: Path, audio_directory: Optional[Path], ignor
       continue
 
     grid_file_in_abs = directory / grid_files[file_stem]
-    grid = load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
 
     sample_rate = None
     audio = None

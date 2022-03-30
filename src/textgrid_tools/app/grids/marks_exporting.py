@@ -9,7 +9,7 @@ from textgrid_tools.app.helper import (add_directory_argument,
                                        add_encoding_argument,
                                        add_n_digits_argument,
                                        add_overwrite_argument, get_grid_files,
-                                       get_optional, load_grid,
+                                       get_optional, try_load_grid,
                                        parse_non_empty,
                                        parse_non_empty_or_whitespace,
                                        parse_path)
@@ -49,8 +49,15 @@ def app_plot_interval_durations(directory: Path, tier: str, output: Path, encodi
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = directory / rel_path
-    grid_in = load_grid(grid_file_in_abs, n_digits)
-    grids.append(grid_in)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
+
+    grids.append(grid)
 
   (error, _), txt = get_marks_txt(grids, tier, sep)
 

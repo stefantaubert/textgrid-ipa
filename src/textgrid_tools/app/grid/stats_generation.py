@@ -7,9 +7,10 @@ from textgrid_tools.app.globals import ExecutionResult
 from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_directory_argument,
                                        add_n_digits_argument, get_grid_files,
-                                       load_grid,
+                                       try_load_grid,
                                        parse_non_empty_or_whitespace,
                                        parse_positive_float)
+from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core import print_stats
 
 
@@ -36,9 +37,15 @@ def app_print_stats(directory: Path, duration_threshold: float, text_tiers: Orde
     logger.info(f"Statistics {file_stem} ({file_nr}/{len(grid_files)}):")
 
     grid_file_in_abs = directory / rel_path
-    grid_in = load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = print_stats(grid_in, duration_threshold, text_tiers, spaced_tiers)
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
+
+    error, changed_anything = print_stats(grid, duration_threshold, text_tiers, spaced_tiers)
     logger.info("")
     assert not changed_anything
     success = error is None

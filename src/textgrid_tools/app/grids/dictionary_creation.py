@@ -19,7 +19,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, get_grid_files,
-                                       load_grid, parse_non_empty, parse_path)
+                                       try_load_grid, parse_non_empty, parse_path)
 from textgrid_tools.app.validation import FileAlreadyExistsError
 from textgrid_tools.core import get_arpa_pronunciation_dictionary
 from textgrid_tools.core.interval_format import IntervalFormat
@@ -94,8 +94,15 @@ def app_get_arpa_pronunciation_dictionary(directory: Path, dictionary: PublicDic
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = directory / rel_path
-    grid_in = load_grid(grid_file_in_abs, n_digits)
-    grids.append(grid_in)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
+
+    grids.append(grid)
 
   logger.info("Producing dictionary...")
   (error, _), pronunciation_dict = get_arpa_pronunciation_dictionary(

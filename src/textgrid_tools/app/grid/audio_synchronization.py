@@ -9,9 +9,10 @@ from textgrid_tools.app.helper import (add_directory_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument, copy_grid,
                                        get_audio_files, get_grid_files,
-                                       get_optional, load_grid,
+                                       get_optional, try_load_grid,
                                        parse_existing_directory, read_audio,
                                        save_grid)
+from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core import sync_grid_to_audio
 
 
@@ -60,7 +61,13 @@ def app_sync_grid_to_audio(directory: Path, audio_directory: Optional[Path], n_d
       continue
 
     grid_file_in_abs = directory / grid_files[file_stem]
-    grid = load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+    if error:
+      logger.error(error.default_message)
+      logger.info("Skipped.")
+      continue
+    assert grid is not None
 
     audio_file_in_abs = audio_directory / audio_files[file_stem]
     sample_rate, audio_in = read_audio(audio_file_in_abs)

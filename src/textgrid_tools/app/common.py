@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Callable, List, Optional, OrderedDict, Tuple
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools.app.helper import (copy_grid, get_grid_files, load_grid,
-                                       save_grid)
+from textgrid_tools.app.helper import (copy_grid, get_grid_files, save_grid,
+                                       try_load_grid)
+from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core.globals import ExecutionResult
 
 
@@ -29,7 +30,7 @@ def process_grids(directory: Path, n_digits: int, output_directory: Optional[Pat
       continue
 
     grid_file_in_abs = directory / rel_path
-    grid = load_grid(grid_file_in_abs, n_digits)
+    grid = try_load_grid(grid_file_in_abs, n_digits)
 
     error, changed_anything = method(grid)
 
@@ -106,7 +107,13 @@ def process_grid(i_file_stem: str, n_digits: int, overwrite: bool, method: Calla
     return True, False
 
   grid_file_in_abs = directory / rel_path
-  grid = load_grid(grid_file_in_abs, n_digits)
+
+  error, grid = try_load_grid(grid_file_in_abs, n_digits)
+
+  if error:
+    logger.error(error.default_message)
+    return False, False
+  assert grid is not None
 
   error, changed_anything = method(grid)
   success = error is None
