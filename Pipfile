@@ -25,6 +25,7 @@ wget = "*"
 TextGrid = "*"
 pandas = "*"
 ordered-set = "*"
+iterable-serialization = {editable = true, path = "./../iterable-serialization"}
 general-utils = {editable = true, path = "./../general-utils"}
 text-utils = {editable = true, path = "./../text-utils"}
 audio-utils = {editable = true, path = "./../audio-utils"}
