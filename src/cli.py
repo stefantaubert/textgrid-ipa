@@ -5,6 +5,7 @@ from logging import getLogger
 from typing import Callable, Dict, Generator, Tuple
 
 from textgrid_tools.app import *
+from textgrid_tools.app.grids.vocabulary_export import get_vocabulary_export_parser
 
 __version__ = "1.0.2"
 
@@ -24,6 +25,7 @@ def formatter(prog):
 
 
 def get_grids_parsers() -> Parsers:
+  yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
   yield "create-dictionary", "create pronunciation dictionary from multiple grid files", get_dictionary_creation_parser
   yield "plot-durations", "plot durations", get_grids_plot_interval_durations_parser
   yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
