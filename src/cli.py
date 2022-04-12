@@ -2,10 +2,12 @@ import argparse
 import logging
 from argparse import ArgumentParser
 from logging import getLogger
-from typing import Callable, Dict, Generator, Tuple
+import sys
+from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools.app import *
 from textgrid_tools.app.grids.vocabulary_export import get_vocabulary_export_parser
+from textgrid_tools.app.tiers.transcription_v2 import get_transcription_v2_parser
 
 __version__ = "1.0.2"
 
@@ -41,6 +43,7 @@ def get_grid_parsers() -> Parsers:
 def get_tiers_parsers() -> Parsers:
   yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_arpa_to_ipa_transcription_parser
   yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_parser
+  yield "transcribe-v2", "transcribe words of tiers using a pronunciation dictionary (version 2)", get_transcription_v2_parser
   yield "normalize", "normalize content of tiers", get_normalization_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
   yield "switch-format", "switch tier format of tiers", get_string_format_switching_parser
@@ -117,16 +120,18 @@ def configure_logger() -> None:
   console.setLevel(loglevel)
 
 
-def main():
+def parse_args(args: List[str]):
   configure_logger()
+  logger = getLogger(__name__)
+  logger.debug("Received args:")
+  logger.debug(args)
   parser = _init_parser()
-  received_args = parser.parse_args()
+  received_args = parser.parse_args(args)
   params = vars(received_args)
 
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
     success, changed_anything = invoke_handler(**params)
-    logger = getLogger(__name__)
     if success:
       logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
     else:
@@ -138,4 +143,5 @@ def main():
 
 
 if __name__ == "__main__":
-  main()
+  arguments = sys.argv[1:]
+  parse_args(arguments)

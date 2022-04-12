@@ -15,8 +15,9 @@ from textgrid_tools.core.helper import (
 from textgrid_tools.core.interval_format import IntervalFormat
 
 
-class ValidationError():
+class ValidationError(Exception):
   # pylint: disable=no-self-use
+
   @property
   def default_message(self) -> str:
     return ""

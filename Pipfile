@@ -30,6 +30,7 @@ general-utils = {editable = true, path = "./../general-utils"}
 text-utils = {editable = true, path = "./../text-utils"}
 audio-utils = {editable = true, path = "./../audio-utils"}
 pronunciation_dict_parser = {editable = true, path = "./../pronunciation_dict_parser"}
+pronunciation-dictionary = {editable = true, path = "./../pronunciation-dictionary"}
 g2p_en = {editable = true, path = "./../g2p"}
 sentence2pronunciation = {editable = true, path = "./../sentence2pronunciation"}
 speech_dataset_parser = {editable = true, path = "./../speech-dataset-parser"}

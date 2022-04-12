@@ -5,4 +5,5 @@ from textgrid_tools.core.tiers.string_format_switching import \
     switch_string_format
 from textgrid_tools.core.tiers.symbol_removing import remove_symbols
 from textgrid_tools.core.tiers.transcription import transcribe_text
+from textgrid_tools.core.tiers.transcription_v2 import transcribe_text_v2
 from textgrid_tools.core.tiers.silence_labeling import mark_silence
