@@ -1,5 +1,5 @@
-from logging import getLogger
 import math
+from logging import getLogger
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
@@ -7,7 +7,8 @@ from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.grid.audio_synchronization import (
-    LastIntervalToShortError, can_set_maxTime, set_end_to_audio_len, set_maxTime, set_maxTime_tier)
+    LastIntervalToShortError, can_set_maxTime, set_end_to_audio_len,
+    set_maxTime, set_maxTime_tier)
 from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,

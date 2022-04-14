@@ -6,6 +6,7 @@ from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
+
 def get_intervals_duration(intervals: Iterable[Interval]) -> float:
   durations = (interval.duration() for interval in intervals)
   result = sum(durations)

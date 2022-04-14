@@ -27,7 +27,6 @@ class NothingDefinedToRemoveError(ValidationError):
 
 
 def remove_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, symbols: Set[Symbol], marks_symbols: Set[Symbol], marks: Set[str]) -> ExecutionResult:
-  assert len(symbols) > 0
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

@@ -11,10 +11,7 @@ pycodestyle = "*"
 isort = "*"
 rope = "*"
 pytest = "*"
-pytest-xdist = "*"
-unittest2pytest = "*"
 cx-freeze = "*"
-pyinstaller = "*"
 
 [packages]
 scipy = "*"

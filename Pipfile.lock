@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "51eb8263706d96de668545d2d497531e030dbccabde93ae3c37e12c8e65a1f60"
+            "sha256": "c95360483ffa783854910e5d325b859eea21b6fa178bb73b398f65dd03be7461"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1002,13 +1002,6 @@
         }
     },
     "develop": {
-        "altgraph": {
-            "hashes": [
-                "sha256:743628f2ac6a7c26f5d9223c91ed8ecbba535f506f4b6f558885a8a56a105857",
-                "sha256:ebf2269361b47d97b3b88e696439f6e4cbc607c17c51feb1754f90fb79839158"
-            ],
-            "version": "==0.17.2"
-        },
         "apipkg": {
             "editable": true,
             "path": "./../speech-dataset-parser"
@@ -1061,14 +1054,6 @@
             ],
             "markers": "python_version >= '2.7' and python_version != '3.0'",
             "version": "==0.3.4"
-        },
-        "execnet": {
-            "hashes": [
-                "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5",
-                "sha256:a295f7cc774947aac58dde7fdc85f4aa00c42adf5d8f5468fc630c1acf30a142"
-            ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
-            "version": "==1.9.0"
         },
         "importlib-metadata": {
             "hashes": [
@@ -1268,31 +1253,6 @@
             "index": "pypi",
             "version": "==2.8.0"
         },
-        "pyinstaller": {
-            "hashes": [
-                "sha256:05c21117b84199272ebd355b556af4714f6e79245e1c435d6f16653786d7d17e",
-                "sha256:0dcaf6557cdb2da763c46e06e95a94a7634ab03fb09d91bc77988b01ee05c907",
-                "sha256:15557cd1a79d182967f0a5040750e6902e13ebd6cab41e3ed84d7b28a306357b",
-                "sha256:581620bdcd32f01e89b13231256b807bb090e7eadf40c81c864ec402afa4758a",
-                "sha256:70c71e827f4b34602cbc7a0947a067b662c1cbdc4db51832e13b97cca3c54dd7",
-                "sha256:714c4dcc319a41416744d1e30c6317405dfaed80d2adc45f8bfa70dc7367e664",
-                "sha256:7749c868d2e2dc84df7d6f65437226183c8a366f3a99bb2737785625c3a3cca1",
-                "sha256:7d94518ba1f8e9a8577345312276891ad7d6cd9785e453e9951b35647e2c7078",
-                "sha256:cfed0b3a43e73550a43a094610328109564710b9514afa093ef7199d072cae87",
-                "sha256:d4f79c0a774451f12baca4e476376418f011fa3039dde8fd172ea2aa8ff67bad",
-                "sha256:f2166ff2cd95eefb0d377ae8d1071f186fa25edd410ede65b376162d5ec41909"
-            ],
-            "index": "pypi",
-            "version": "==4.10"
-        },
-        "pyinstaller-hooks-contrib": {
-            "hashes": [
-                "sha256:9765e68552803327d58f6c5eca970bb245b7cdf073e2f912a2a3cb50360bc2d8",
-                "sha256:9fa4ca03d058cba676c3cc16005076ce6a529f144c08b87c69998625fbd84e0a"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2022.3"
-        },
         "pylint": {
             "hashes": [
                 "sha256:c149694cfdeaee1aa2465e6eaab84c87a881a7d55e6e93e09466be7164764d1e",
@@ -1316,22 +1276,6 @@
             ],
             "index": "pypi",
             "version": "==7.1.1"
-        },
-        "pytest-forked": {
-            "hashes": [
-                "sha256:8b67587c8f98cbbadfdd804539ed5455b6ed03802203485dd2f53c1422d7440e",
-                "sha256:bbbb6717efc886b9d64537b41fb1497cfaf3c9601276be8da2cccfea5a3c8ad8"
-            ],
-            "markers": "python_version >= '3.6'",
-            "version": "==1.4.0"
-        },
-        "pytest-xdist": {
-            "hashes": [
-                "sha256:4580deca3ff04ddb2ac53eba39d76cb5dd5edeac050cb6fbc768b0dd712b4edf",
-                "sha256:6fe5c74fec98906deb8f2d2b616b5c782022744978e7bd4695d39c8f42d0ce65"
-            ],
-            "index": "pypi",
-            "version": "==2.5.0"
         },
         "python-dateutil": {
             "hashes": [
@@ -1427,7 +1371,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_version < '3.11'",
             "version": "==2.0.1"
         },
         "tqdm": {
@@ -1445,14 +1389,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==4.1.1"
-        },
-        "unittest2pytest": {
-            "hashes": [
-                "sha256:8f270c37fee3b57b3e2bb32db0a872d07ddb77c3b2ae62e1c922b1b497af9a2f",
-                "sha256:a909522aa54787e20c1cabda9624bf81edcfe5107dc3c73a478ad2d0cf67c21f"
-            ],
-            "index": "pypi",
-            "version": "==0.4"
         },
         "wget": {
             "hashes": [

@@ -1,5 +1,7 @@
+import logging
+import os
 from functools import partial
-from logging import getLogger
+from logging import Logger, getLogger
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, List, Optional, OrderedDict, Tuple
@@ -7,8 +9,28 @@ from typing import Callable, List, Optional, OrderedDict, Tuple
 from textgrid.textgrid import TextGrid
 from textgrid_tools.app.helper import (copy_grid, get_grid_files, save_grid,
                                        try_load_grid)
-from textgrid_tools.app.validation import GridCouldNotBeLoadedError
 from textgrid_tools.core.globals import ExecutionResult
+
+
+def getFileLogger() -> Logger:
+  logger = getLogger("file-logger")
+  if logger.propagate:
+    logger.propagate = False
+  return logger
+
+
+def try_initFileLogger(path: Path) -> None:
+  try:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    os.remove(path)
+    path.write_text("")
+    fh = logging.FileHandler(path)
+    fh.setLevel(logging.DEBUG)
+    flogger = getFileLogger()
+    flogger.addHandler(fh)
+  except:
+    logger = getLogger(__name__)
+    logger.error("Logfile couldn't be created!")
 
 
 def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
