@@ -7,7 +7,7 @@ from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.grid.audio_synchronization import (
-    LastIntervalToShortError, set_end_to_audio_len)
+    LastIntervalToShortError, can_set_maxTime, set_end_to_audio_len, set_maxTime, set_maxTime_tier)
 from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,
@@ -64,18 +64,28 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
   if error := BoundaryError.validate(timepoints, grid.tiers):
     return (error, False), None
 
+  for interval in intervals_to_remove:
+    for interval_on_tier in get_intervals_on_tier(interval, ref_tier):
+      ref_tier.removeInterval(interval_on_tier)
+  if len(ref_tier.intervals) > 0:
+    move_interval(ref_tier.intervals[0], 0, n_digits)
+    set_times_consecutively_tier(ref_tier, n_digits)
+
+  sync_timepoints = get_boundary_timepoints_from_tier(ref_tier)
+
   for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers)):
+    if tier == ref_tier:
+      continue
     for interval in intervals_to_remove:
       for interval_on_tier in get_intervals_on_tier(interval, tier):
         tier.removeInterval(interval_on_tier)
     if len(tier.intervals) > 0:
       move_interval(tier.intervals[0], 0, n_digits)
       set_times_consecutively_tier(tier, n_digits)
+      if not ref_tier.maxTime > tier.minTime:
+        raise InternalError()
+      set_maxTime_tier(tier, ref_tier.maxTime)
 
-  sync_timepoints = get_boundary_timepoints_from_tier(ref_tier)
-  for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers)):
-    if tier == ref_tier:
-      continue
     for timepoint in sync_timepoints:
       fix_timepoint(timepoint, tier, threshold=math.inf)
 
@@ -137,6 +147,8 @@ def set_times_consecutively_intervals(intervals: List[Interval], n_digits: int):
 
 
 def move_interval(interval: Interval, new_minTime: float, n_digits: int) -> None:
+  if interval.minTime == new_minTime:
+    return
   duration = interval.duration()
   interval.minTime = new_minTime
   interval.maxTime = interval.minTime + duration

@@ -1,3 +1,4 @@
+from textgrid import IntervalTier
 from logging import getLogger
 
 import numpy as np
@@ -85,11 +86,24 @@ def set_maxTime(grid: TextGrid, max_time: float) -> None:
   if grid.maxTime == max_time:
     return
   for tier in grid.tiers:
-    if len(tier.intervals) > 0:
-      tier.intervals[-1].maxTime = max_time
-    tier.maxTime = max_time
+    set_maxTime_tier(tier, max_time)
   grid.maxTime = max_time
   assert check_is_valid_grid(grid)
+
+
+def set_maxTime_tier(tier: IntervalTier, max_time: float) -> bool:
+  assert tier.minTime < max_time
+  changed_anything = False
+  if len(tier.intervals) > 0:
+    last_interval = tier.intervals[-1]
+    assert last_interval.minTime < max_time
+    if last_interval.maxTime != max_time:
+      last_interval.maxTime = max_time
+      changed_anything = True
+  if tier.maxTime != max_time:
+    tier.maxTime = max_time
+    changed_anything = True
+  return changed_anything
 
 
 def set_minTime(grid: TextGrid, min_time: float) -> None:
