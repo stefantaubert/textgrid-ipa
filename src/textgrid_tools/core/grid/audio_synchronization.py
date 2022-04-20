@@ -1,11 +1,10 @@
-from textgrid import IntervalTier
 from logging import getLogger
 
 import numpy as np
-from audio_utils.audio import samples_to_s
+from textgrid import IntervalTier
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import check_is_valid_grid
+from textgrid_tools.core.helper import check_is_valid_grid, samples_to_s
 from textgrid_tools.core.validation import InvalidGridError, ValidationError
 
 

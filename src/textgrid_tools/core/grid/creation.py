@@ -2,11 +2,11 @@ from logging import getLogger
 from typing import Optional, Tuple
 
 import numpy as np
-from audio_utils.audio import samples_to_s
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import can_parse_float, check_is_valid_grid
+from textgrid_tools.core.helper import (can_parse_float, check_is_valid_grid,
+                                        samples_to_s)
 from textgrid_tools.core.validation import (InvalidStringFormatIntervalError,
                                             ValidationError)
 

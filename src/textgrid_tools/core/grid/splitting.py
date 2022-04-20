@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Iterable, List, Optional, Tuple, cast
 
 import numpy as np
-from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.cloning import copy_intervals
 from textgrid_tools.core.globals import ExecutionResult
@@ -10,7 +9,8 @@ from textgrid_tools.core.grid.audio_synchronization import (
     LastIntervalToShortError, set_end_to_audio_len)
 from textgrid_tools.core.helper import (get_boundary_timepoints_from_tier,
                                         get_intervals_on_tier, get_single_tier,
-                                        interval_is_None_or_whitespace)
+                                        interval_is_None_or_whitespace,
+                                        s_to_samples)
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             BoundaryError, InternalError,
                                             InvalidGridError,

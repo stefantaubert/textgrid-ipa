@@ -3,7 +3,6 @@ from logging import getLogger
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
-from audio_utils.audio import s_to_samples
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.grid.audio_synchronization import (
@@ -13,7 +12,7 @@ from textgrid_tools.core.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,
     get_intervals_on_tier, get_single_tier, interval_is_None_or_whitespace,
-    set_precision_interval)
+    s_to_samples, set_precision_interval)
 from textgrid_tools.core.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.core.validation import (AudioAndGridLengthMismatchError,
                                             BoundaryError, InternalError,

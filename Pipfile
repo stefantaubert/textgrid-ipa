@@ -25,7 +25,6 @@ iterable-serialization = "*"
 pronunciation-dictionary = "*"
 general-utils = {editable = true, path = "./../general-utils"}
 text-utils = {editable = true, path = "./../text-utils"}
-audio-utils = {editable = true, path = "./../audio-utils"}
 g2p_en = {editable = true, path = "./../g2p"}
 sentence2pronunciation = {editable = true, path = "./../sentence2pronunciation"}
 speech_dataset_parser = {editable = true, path = "./../speech-dataset-parser"}

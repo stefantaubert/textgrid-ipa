@@ -1,3 +1,4 @@
+from math import ceil
 from typing import Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
@@ -5,6 +6,15 @@ from text_utils import StringFormat, symbols_ignore
 from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
+
+def samples_to_s(samples: int, sampling_rate: int) -> float:
+  res = samples / sampling_rate
+  return res
+
+
+def s_to_samples(s: float, sampling_rate: int, precision: int = 4) -> int:
+  res = ceil(round(s * sampling_rate, precision))
+  return res
 
 
 def get_intervals_duration(intervals: Iterable[Interval]) -> float:
@@ -129,6 +139,7 @@ def get_mark_symbols_intervals(intervals: Iterable[Interval], string_format: Str
   for interval in intervals:
     yield get_mark_symbols(interval, string_format)
 
+
 def symbols_are_empty_or_whitespace(symbols: Symbols) -> bool:
   result = symbols_ignore(symbols, ignore={" ", ""})
   return len(result) == 0
@@ -141,7 +152,6 @@ def str_is_empty_or_whitespace(string: str) -> bool:
 def is_silence(interval: Interval) -> bool:
   result = interval.mark is None or interval.mark == ""
   return result
-
 
 
 def get_interval_readable(interval: Interval) -> str:
@@ -172,6 +182,7 @@ def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: flo
   for interval in cast(Iterable[Interval], tier.intervals):
     if minTime <= interval.minTime and interval.maxTime <= maxTime:
       yield interval
+
 
 def number_prepend_zeros(n: int, max_n: int) -> str:
   assert n >= 0
