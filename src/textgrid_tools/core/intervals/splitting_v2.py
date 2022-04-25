@@ -4,7 +4,8 @@ from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
 from textgrid_tools.core.helper import (get_all_tiers, get_mark,
-                                        interval_is_None_or_empty)
+                                        interval_is_None_or_empty,
+                                        set_intervals_consecutive)
 from textgrid_tools.core.intervals.common import replace_intervals
 from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError)
@@ -35,7 +36,6 @@ def split_v2(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool) -> E
         changed_anything = True
 
   return None, changed_anything
-
 
 
 def get_split_intervals_v2(interval: Interval, symbol: str, keep: bool) -> Generator[Interval, None, None]:

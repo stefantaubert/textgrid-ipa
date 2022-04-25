@@ -1,7 +1,5 @@
-
 from textgrid import Interval
-from textgrid_tools.core.intervals.splitting_v2 import \
-    set_intervals_consecutive
+from textgrid_tools.core.helper import set_intervals_consecutive
 
 
 def test_empty__is_allowed():

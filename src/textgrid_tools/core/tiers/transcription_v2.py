@@ -1,14 +1,16 @@
-from logging import getLogger
 import random
-from textgrid import Interval
+from logging import getLogger
 from typing import Generator, Iterable, Optional, Set, cast
 
-from pronunciation_dictionary import PronunciationDict, Word, get_weighted_pronunciation
+from pronunciation_dictionary import (PronunciationDict, Word,
+                                      get_weighted_pronunciation)
+from textgrid import Interval
 from textgrid.textgrid import TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.helper import (get_all_tiers, get_mark,
-                                        interval_is_None_or_empty)
+from textgrid_tools.core.helper import (get_all_tiers, get_interval_readable,
+                                        get_mark, interval_is_None_or_empty,
+                                        set_intervals_consecutive)
 from textgrid_tools.core.intervals.common import replace_intervals
 from textgrid_tools.core.validation import (InvalidGridError,
                                             NotExistingTierError,
@@ -51,7 +53,7 @@ class VocabularyMissingError(ValidationError):
 #     return f"{len(self.missing)} words are missing in the pronunciation dictionary!"
 
 
-def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int]) -> ExecutionResult:
+def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool) -> ExecutionResult:
   """
   chunksize: amount of intervals at once
   """
@@ -70,7 +72,8 @@ def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dicti
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for interval in intervals_copy:
       try:
-        splitted_intervals = list(get_split_intervals(interval, pronunciation_dictionary, seed))
+        splitted_intervals = list(get_split_intervals(
+          interval, pronunciation_dictionary, seed, ignore_missing))
       except VocabularyMissingError as error:
         return error, False
 
@@ -81,7 +84,7 @@ def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dicti
   return None, changed_anything
 
 
-def get_split_intervals(interval: Interval, pronunciation_dictionary: PronunciationDict, seed: Optional[int]) -> Generator[Interval, None, None]:
+def get_split_intervals(interval: Interval, pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool) -> Generator[Interval, None, None]:
   if interval_is_None_or_empty(interval):
     yield interval
     return
@@ -89,34 +92,20 @@ def get_split_intervals(interval: Interval, pronunciation_dictionary: Pronunciat
   mark = get_mark(interval)
   if error := VocabularyMissingError.validate(mark, pronunciation_dictionary):
     logger = getLogger(__name__)
+    if ignore_missing:
+      logger.info(f"Kept unchanged: {get_interval_readable(interval)}")
+      yield interval
+      return
     logger.debug(interval)
     raise error
 
   phonemes = get_weighted_pronunciation(mark, pronunciation_dictionary, seed)
   assert len(phonemes) > 0
 
-  count_of_symbols = len(phonemes)
-  current_timepoint = interval.minTime
-  interval_duration = interval.duration()
-  phoneme_duration = interval_duration / count_of_symbols
+  new_intervals = [
+    Interval(0, 1, phoneme)
+    for phoneme in phonemes
+  ]
 
-  for i, phoneme in enumerate(phonemes):
-    assert len(phoneme) > 0
-
-    min_time = current_timepoint
-    is_last = i == len(phonemes) - 1
-    if is_last:
-      max_time = interval.maxTime
-    else:
-      max_time = current_timepoint + phoneme_duration
-
-    assert min_time < max_time
-
-    new_interval = Interval(
-      minTime=min_time,
-      maxTime=max_time,
-      mark=phoneme,
-    )
-
-    current_timepoint = max_time
-    yield new_interval
+  set_intervals_consecutive(new_intervals, interval.minTime, interval.maxTime)
+  yield from new_intervals
