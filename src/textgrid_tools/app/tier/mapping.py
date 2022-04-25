@@ -2,7 +2,7 @@ from ordered_set import OrderedSet
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional
 
 from textgrid_tools.app.common import process_grids_mp
 from textgrid_tools.app.globals import ExecutionResult

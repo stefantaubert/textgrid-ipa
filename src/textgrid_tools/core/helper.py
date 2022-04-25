@@ -131,6 +131,30 @@ def get_mark(interval: Interval) -> str:
   return interval.mark
 
 
+def set_intervals_consecutive(intervals: List[Interval], min_time: float, max_time: float) -> None:
+  assert min_time < max_time
+  total_duration = max_time - min_time
+  for i, interval in enumerate(intervals):
+    is_first = i == 0
+
+    if is_first:
+      new_min_time = min_time
+    else:
+      new_min_time = min_time + i / len(intervals) * total_duration
+
+    is_last = i == len(intervals) - 1
+
+    if is_last:
+      new_max_time = max_time
+    else:
+      new_max_time = min_time + (i + 1) / len(intervals) * total_duration
+
+    assert new_min_time < new_max_time
+
+    interval.minTime = new_min_time
+    interval.maxTime = new_max_time
+
+
 def get_mark_symbols(interval: Interval, string_format: StringFormat) -> Symbols:
   return string_format.convert_string_to_symbols(get_mark(interval))
 

@@ -17,8 +17,7 @@ from textgrid_tools.app.helper import (ConvertToOrderedSetAction,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
-                                       add_tiers_argument, get_optional,
-                                       parse_non_empty)
+                                       add_tiers_argument, get_optional)
 from textgrid_tools.core import join_interval_symbols
 from textgrid_tools.core.interval_format import IntervalFormat
 
@@ -29,9 +28,10 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_string_format_argument(parser, "tiers")
   add_interval_format_argument(parser, "tiers")
-  parser.add_argument('--join-symbols', type=parse_non_empty, nargs="*",
+  # could be positional but clashes with tiers
+  parser.add_argument('--join-symbols', type=str, nargs="+",
                       help="join these symbols", default=OrderedSet(DEFAULT_PUNCTUATION), action=ConvertToOrderedSetAction)
-  parser.add_argument('--ignore-join-symbols', type=parse_non_empty, nargs="*",
+  parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
                       help="don't join to these symbols", default=OrderedSet(("", " ")), action=ConvertToOrderedSetAction)
   parser.add_argument('--custom-join-symbol', type=get_optional(str), metavar="SYMBOL",
                       help="use this symbol as join symbol between the intervals", default=None)
