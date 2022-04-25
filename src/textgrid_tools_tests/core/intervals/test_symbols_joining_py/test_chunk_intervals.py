@@ -119,3 +119,41 @@ def test_component_r():
     [intervals[9]],
     [intervals[10], intervals[11], intervals[12]],
   ]
+
+
+def test_component_t():
+  intervals = [
+    Interval(0, 1, "\""),
+    Interval(0, 1, "I"),
+    Interval(0, 1, "'"),
+    Interval(0, 1, "m"),
+    Interval(0, 1, ","),
+    Interval(0, 1, ""),
+    Interval(0, 1, "-"),
+    Interval(0, 1, "-"),
+    Interval(0, 1, ""),
+    Interval(0, 1, "4"),
+    Interval(0, 1, "."),
+    Interval(0, 1, " "),
+    Interval(0, 1, "X"),
+    Interval(0, 1, "!"),
+    Interval(0, 1, "\""),
+  ]
+
+  result = list(chunk_intervals(intervals, {"\"", "'", ".", "!", ",", "-"}, {}, "together"))
+
+  assert result == [
+    [intervals[0]],
+    [intervals[1]],
+    [intervals[2]],
+    [intervals[3]],
+    [intervals[4]],
+    [intervals[5]],
+    [intervals[6], intervals[7]],
+    [intervals[8]],
+    [intervals[9]],
+    [intervals[10]],
+    [intervals[11]],
+    [intervals[12]],
+    [intervals[13], intervals[14]],
+  ]

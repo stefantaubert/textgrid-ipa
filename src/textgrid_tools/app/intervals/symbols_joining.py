@@ -28,15 +28,15 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_string_format_argument(parser, "tiers")
   add_interval_format_argument(parser, "tiers")
+  parser.add_argument('--mode', type=str, choices=["right", "left", "together"],
+                      help="mode to join: right -> join marks from right; left -> join marks from left; together -> join adjacent intervals containing these marks together", default="right")
   # could be positional but clashes with tiers
   parser.add_argument('--join-symbols', type=str, nargs="+",
                       help="join these symbols", default=OrderedSet(DEFAULT_PUNCTUATION), action=ConvertToOrderedSetAction)
   parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
-                      help="don't join to these symbols", default=OrderedSet(("", " ")), action=ConvertToOrderedSetAction)
+                      help="don't join to these symbols; only relevant on modes 'right' and 'left'", default=OrderedSet(("", " ")), action=ConvertToOrderedSetAction)
   parser.add_argument('--custom-join-symbol', type=get_optional(str), metavar="SYMBOL",
                       help="use this symbol as join symbol between the intervals", default=None)
-  parser.add_argument('--mode', type=str, choices=["right", "left"],
-                      help="mode to join symbols: right -> join symbols from right; left -> join symbols from left", default="right")
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)

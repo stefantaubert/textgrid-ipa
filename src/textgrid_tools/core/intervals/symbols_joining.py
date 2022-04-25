@@ -1,8 +1,10 @@
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 from ordered_set import OrderedSet
 from text_utils import StringFormat, Symbol
-from text_utils.pronunciation.ipa2symb import merge_left_core, merge_right_core
+from text_utils.pronunciation.ipa2symb import (merge_fusion_with_ignore,
+                                               merge_left_core,
+                                               merge_right_core)
 from textgrid.textgrid import Interval, TextGrid
 from textgrid_tools.core.comparison import check_intervals_are_equal
 from textgrid_tools.core.globals import ExecutionResult
@@ -24,13 +26,13 @@ class InvalidModeError(ValidationError):
 
   @classmethod
   def validate(cls, mode: str):
-    if mode not in ["right", "left"]:
+    if mode not in ["right", "left", "together"]:
       return cls(mode)
     return None
 
   @property
   def default_message(self) -> str:
-    return "Mode needs to be 'right' or 'left'!"
+    return "Mode needs to be 'right', 'left' or 'together'!"
 
 
 def join_interval_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, custom_join_symbol: Optional[Symbol], join_symbols: OrderedSet[Symbol], ignore_join_symbols: OrderedSet[Symbol], mode: str) -> ExecutionResult:
@@ -77,6 +79,8 @@ def chunk_intervals(intervals: List[Interval], join_symbols: Set[Symbol], ignore
     tmp = merge_right_core(intervals_as_symbols, join_symbols, ignore_join_symbols)
   elif mode == "left":
     tmp = merge_left_core(intervals_as_symbols, join_symbols, ignore_join_symbols)
+  elif mode == "together":
+    tmp = merge_together(intervals_as_symbols, join_symbols)
   else:
     assert False
 
@@ -90,3 +94,18 @@ def chunk_intervals(intervals: List[Interval], join_symbols: Set[Symbol], ignore
       chunk.append(interval)
     yield chunk
   assert len(intervals) == 0
+
+
+def merge_together(symbols: Tuple[str, ...], join: Set[str]) -> List[Tuple[str, ...]]:
+  current_chunk = []
+  for symbol in symbols:
+    if symbol in join:
+      current_chunk.append(symbol)
+    else:
+      if len(current_chunk) > 0:
+        yield current_chunk
+        current_chunk = []
+      yield [symbol]
+
+  if len(current_chunk) > 0:
+    yield current_chunk
