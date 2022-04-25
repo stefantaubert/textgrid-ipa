@@ -35,7 +35,7 @@ def merge_intervals(intervals: List[Interval], intervals_string_format: StringFo
   raise NotImplementedError()
 
 
-def merge_intervals_custom_symbol(intervals: List[Interval], intervals_string_format: StringFormat, join_symbol: Symbol) -> Interval:
+def merge_intervals_custom_symbol(intervals: List[Interval], intervals_string_format: StringFormat, join_symbol: Optional[Symbol]) -> Interval:
   assert len(intervals) > 0
   interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
   joined_interval_symbols = symbols_join(interval_symbols, join_symbol=join_symbol)

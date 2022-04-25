@@ -1,13 +1,15 @@
 import argparse
 import logging
+import sys
 from argparse import ArgumentParser
 from logging import getLogger
-import sys
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools.app import *
-from textgrid_tools.app.grids.vocabulary_export import get_vocabulary_export_parser
-from textgrid_tools.app.tiers.transcription_v2 import get_transcription_v2_parser
+from textgrid_tools.app.grids.vocabulary_export import \
+    get_vocabulary_export_parser
+from textgrid_tools.app.tiers.transcription_v2 import \
+    get_transcription_v2_parser
 
 __version__ = "1.0.2"
 
@@ -66,8 +68,10 @@ def get_intervals_parsers() -> Parsers:
   yield "join-on-sentences", "join intervals sentence-wise", get_sentence_joining_parser
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
   yield "join-marks", "join intervals containing specific marks", get_mark_joining_parser
+  yield "join-symbols", "join intervals containing specific symbols", get_symbols_joining_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "split", "split intervals", get_intervals_splitting_parser
+  yield "split-v2", "split intervals (version 2)", get_splitting_v2_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 
