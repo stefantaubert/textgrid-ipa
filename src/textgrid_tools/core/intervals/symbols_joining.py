@@ -68,7 +68,7 @@ def join_interval_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_for
   return None, changed_anything
 
 
-def chunk_intervals(intervals: List[Interval], join_symbols: OrderedSet[Symbol], ignore_join_symbols: OrderedSet[Symbol], mode: str) -> Generator[List[Interval], None, None]:
+def chunk_intervals(intervals: List[Interval], join_symbols: Set[Symbol], ignore_join_symbols: Set[Symbol], mode: str) -> Generator[List[Interval], None, None]:
   intervals_as_symbols = tuple(
     get_mark(interval) for interval in intervals
   )
@@ -80,6 +80,7 @@ def chunk_intervals(intervals: List[Interval], join_symbols: OrderedSet[Symbol],
   else:
     assert False
 
+  intervals = list(intervals)
   for merged_symbols in tmp:
     assert len(merged_symbols) > 0
     chunk = []

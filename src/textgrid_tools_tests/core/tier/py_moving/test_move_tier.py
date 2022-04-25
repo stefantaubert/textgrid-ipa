@@ -17,7 +17,7 @@ def test_one_entry__is_not_moved():
   tier = IntervalTier("test", 0, 1)
   grid.tiers.append(tier)
 
-  error, changed_anything = move_tier(grid, tier_name="test", position_one_based=0)
+  error, changed_anything = move_tier(grid, tier_name="test", position_one_based=1)
 
   assert error is None
   assert not changed_anything
@@ -33,7 +33,7 @@ def test_A_B_move_B_to_0__is_moved():
   grid.tiers.append(tierA)
   grid.tiers.append(tierB)
 
-  error, changed_anything = move_tier(grid, tier_name="testB", position_one_based=0)
+  error, changed_anything = move_tier(grid, tier_name="testB", position_one_based=1)
 
   assert error is None
   assert changed_anything
@@ -50,7 +50,7 @@ def test_A_B_move_A_to_1__is_moved():
   grid.tiers.append(tierA)
   grid.tiers.append(tierB)
 
-  error, changed_anything = move_tier(grid, tier_name="testA", position_one_based=1)
+  error, changed_anything = move_tier(grid, tier_name="testA", position_one_based=2)
 
   assert error is None
   assert changed_anything
