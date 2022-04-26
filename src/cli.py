@@ -11,7 +11,7 @@ from textgrid_tools.app.grids.vocabulary_export import \
 from textgrid_tools.app.tiers.transcription_v2 import \
     get_transcription_v2_parser
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 INVOKE_HANDLER_VAR = "invoke_handler"
 
