@@ -20,9 +20,9 @@ tqdm = "*"
 wget = "*"
 TextGrid = "*"
 pandas = "*"
-ordered-set = "*"
+ordered-set = ">=4.1.0"
 iterable-serialization = "*"
-pronunciation-dictionary = "*"
+pronunciation-dictionary = ">=0.0.4"
 general-utils = {editable = true, path = "./../general-utils"}
 text-utils = {editable = true, path = "./../text-utils"}
 g2p_en = {editable = true, path = "./../g2p"}
