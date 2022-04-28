@@ -23,6 +23,7 @@ wget = "*"
 TextGrid = "*"
 pandas = "*"
 ordered-set = ">=4.1.0"
+matplotlib = "*"
 iterable-serialization = "*"
 pronunciation-dictionary = ">=0.0.4"
 general-utils = {editable = true, path = "./../general-utils"}

@@ -45,6 +45,7 @@ dependencies = [
   "TextGrid",
   "pandas",
   "ordered_set",
+  "matplotlib",  
   "iterable_serialization",
   "pronunciation_dictionary",
 ]
@@ -54,17 +55,19 @@ Homepage = "https://github.com/stefantaubert/textgrid-ipa"
 Issues = "https://github.com/stefantaubert/textgrid-ipa/issues"
 
 [project.scripts]
-textgrid-utils-cli = "textgrid_tools_cli.cli:run_prod"
+textgrid-utils-cli = "textgrid_utils_cli.cli:run_prod"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = [
-  "textgrid_tools",
-  "textgrid_tools_cli"
+  "textgrid_utils",
+  "textgrid_utils_cli"
 ]
 exclude = [
-  "textgrid_tools_tests",
-  "textgrid_tools_debug"
+  "textgrid_utils_tests",
+  "textgrid_utils_debug",
+  "textgrid_utils_cli_debug",
+  "textgrid_utils_cli_tests"
 ]
 namespaces = true
 
@@ -72,7 +75,8 @@ namespaces = true
 log_cli = true
 log_level = "DEBUG"
 testpaths = [
-  "src/textgrid_tools_tests",
+  "src/textgrid_utils_tests",
+  "src/textgrid_utils_cli_tests"
 ]
 
 [tool.autopep8]
@@ -84,8 +88,8 @@ max_line_length = 100
 line_length = 100
 indent = 2
 known_first_party = [
-  "textgrid_tools",
-  "textgrid_tools_cli"
+  "textgrid_utils",
+  "textgrid_utils_cli"
 ]
 known_third_party = [
   "scipy",
@@ -95,8 +99,9 @@ known_third_party = [
   "TextGrid",
   "pandas",
   "ordered_set",
+  "matplotlib",  
   "iterable_serialization",
-  "pronunciation_dictionary",
+  "pronunciation_dictionary"
 ]
 
 [build-system]

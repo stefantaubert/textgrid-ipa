@@ -5,24 +5,17 @@ from pathlib import Path
 from typing import Optional, Set
 
 from ordered_set import OrderedSet
-from pronunciation_dictionary import (DeserializationOptions,
-                                      MultiprocessingOptions,
-                                      get_dict_from_file)
+from pronunciation_dictionary import DeserializationOptions, MultiprocessingOptions, load_dict
+
+from textgrid_utils import transcribe_text_v2
 from textgrid_utils_cli.common import process_grids_mp
 from textgrid_utils_cli.globals import ExecutionResult
-from textgrid_utils_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_encoding_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tiers_argument, get_optional,
-                                       parse_existing_file,
-                                       parse_non_negative_integer,
-                                       parse_positive_integer)
-from textgrid_utils import transcribe_text_v2
+from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tiers_argument, get_optional, parse_existing_file,
+                                       parse_non_negative_integer, parse_positive_integer)
 
 
 def get_transcription_v2_parser(parser: ArgumentParser):
@@ -67,7 +60,7 @@ def app_transcribe_text_v2(directory: Path, tiers: OrderedSet[str], dictionary: 
   options = DeserializationOptions(consider_comments, consider_numbers,
                                    consider_pronunciation_comments, consider_weights)
   try:
-    pronunciation_dictionary = get_dict_from_file(dictionary, encoding, options, mp_options)
+    pronunciation_dictionary = load_dict(dictionary, encoding, options, mp_options)
   except Exception as ex:
     logger = getLogger(__name__)
     logger.error("Pronunciation dictionary couldn't be read!")
