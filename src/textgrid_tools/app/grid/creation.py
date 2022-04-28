@@ -31,7 +31,7 @@ def get_creation_parser(parser: ArgumentParser):
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing audio files if not directory")
   parser.add_argument("--meta-directory", type=get_optional(parse_existing_directory), metavar='PATH',
-                      help="directory containing meta files if not directory")
+                      help="directory containing meta files; defaults to directory if not specified", default=None)
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")
   add_encoding_argument(parser, "encoding of text and meta files")

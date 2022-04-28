@@ -113,3 +113,8 @@ venv.bak/
 output
 scripts
 *_debug/
+deploy.sh
+deploy-PyPI.sh
+debug
+todo.md
+dependencies.md

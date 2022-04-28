@@ -2,16 +2,16 @@ import argparse
 import logging
 import sys
 from argparse import ArgumentParser
+from importlib.metadata import version
 from logging import getLogger
+from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools.app import *
-from textgrid_tools.app.grids.vocabulary_export import \
-    get_vocabulary_export_parser
-from textgrid_tools.app.tiers.transcription_v2 import \
-    get_transcription_v2_parser
+from textgrid_tools.app.grids.vocabulary_export import get_vocabulary_export_parser
+from textgrid_tools.app.tiers.transcription_v2 import get_transcription_v2_parser
 
-__version__ = "1.0.3"
+__version__ = version("textgrid-utils")
 
 INVOKE_HANDLER_VAR = "invoke_handler"
 
@@ -105,8 +105,8 @@ def _init_parser():
   return main_parser
 
 
-def configure_logger() -> None:
-  loglevel = logging.DEBUG if __debug__ else logging.INFO
+def configure_logger(productive: bool) -> None:
+  loglevel = logging.INFO if productive else logging.DEBUG
   main_logger = getLogger()
   main_logger.setLevel(loglevel)
   main_logger.manager.disable = logging.NOTSET
@@ -124,8 +124,8 @@ def configure_logger() -> None:
   console.setLevel(loglevel)
 
 
-def parse_args(args: List[str]):
-  configure_logger()
+def parse_args(args: List[str], productive: bool = False):
+  configure_logger(productive)
   logger = getLogger(__name__)
   logger.debug("Received args:")
   logger.debug(args)
@@ -146,6 +146,18 @@ def parse_args(args: List[str]):
     parser.print_help()
 
 
-if __name__ == "__main__":
+def run(productive: bool):
   arguments = sys.argv[1:]
-  parse_args(arguments)
+  parse_args(arguments, productive and not debug_file_exists())
+
+
+def run_prod():
+  run(True)
+
+
+def debug_file_exists():
+  return Path("debug").is_file()
+
+
+if __name__ == "__main__":
+  run(not __debug__)

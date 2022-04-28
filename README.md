@@ -1,9 +1,10 @@
-# textgrid-tools
+# textgrid-utils
 
-![Python](https://img.shields.io/badge/python-3.8.10-green.svg)
-![Python](https://img.shields.io/github/license/stefantaubert/textgrid-ipa)
+[![PyPI](https://img.shields.io/pypi/v/textgrid-utils.svg)](https://pypi.python.org/pypi/textgrid-utils)
+[![PyPI](https://img.shields.io/pypi/pyversions/textgrid-utils.svg)](https://pypi.python.org/pypi/textgrid-utils)
+[![MIT](https://img.shields.io/github/license/stefantaubert/textgrid-ipa.svg)](https://github.com/stefantaubert/textgrid-ipa/blob/main/LICENSE)
 
-This program provides methods to modify TextGrids (.TextGrid) and their corresponding audio files (.wav).
+CLI to modify TextGrids and their corresponding audio files.
 
 ## Usage
 

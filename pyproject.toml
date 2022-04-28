@@ -1,6 +1,72 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "textgrid-utils"
+version = "0.0.1"
+description = "CLI to modify TextGrids and their corresponding audio files."
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"}
+]
+maintainers = [
+  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"},
+]
+keywords = [
+  "Text-to-speech",
+  "Speech synthesis",
+  "praat",
+  "TextGrid",
+  "Language",
+  "Linguistics"
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Operating System :: OS Independent",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX",
+  "Operating System :: POSIX :: BSD",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Unix",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+  "scipy",
+  "numpy",
+  "tqdm",
+  "wget",
+  "TextGrid",
+  "pandas",
+  "ordered_set",
+  "iterable_serialization",
+  "pronunciation_dictionary",
+]
+
+[project.urls]
+Homepage = "https://github.com/stefantaubert/textgrid-ipa"
+Issues = "https://github.com/stefantaubert/textgrid-ipa/issues"
+
+[project.scripts]
+textgrid-utils-cli = "textgrid_tools_cli.cli:run_prod"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = [
+  "textgrid_tools",
+  "textgrid_tools_cli"
+]
+exclude = [
+  "textgrid_tools_tests",
+  "textgrid_tools_debug"
+]
+namespaces = true
 
 [tool.pytest.ini_options]
 log_cli = true
@@ -8,10 +74,34 @@ log_level = "DEBUG"
 testpaths = [
   "src/textgrid_tools_tests",
 ]
-# slows down debugging
-#addopts=-n8
 
 [tool.autopep8]
 indent-size = 2
 ignore = ["E121"]
 max_line_length = 100
+
+[tool.isort]
+line_length = 100
+indent = 2
+known_first_party = [
+  "textgrid_tools",
+  "textgrid_tools_cli"
+]
+known_third_party = [
+  "scipy",
+  "numpy",
+  "tqdm",
+  "wget",
+  "TextGrid",
+  "pandas",
+  "ordered_set",
+  "iterable_serialization",
+  "pronunciation_dictionary",
+]
+
+[build-system]
+requires = [
+  "setuptools >= 40.9.0",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
