@@ -7,9 +7,9 @@ from logging import getLogger
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
-from textgrid_tools.app import *
-from textgrid_tools.app.grids.vocabulary_export import get_vocabulary_export_parser
-from textgrid_tools.app.tiers.transcription_v2 import get_transcription_v2_parser
+from textgrid_tools_cli import *
+from textgrid_tools_cli.grids.vocabulary_export import get_vocabulary_export_parser
+from textgrid_tools_cli.tiers.transcription_v2 import get_transcription_v2_parser
 
 __version__ = version("textgrid-utils")
 

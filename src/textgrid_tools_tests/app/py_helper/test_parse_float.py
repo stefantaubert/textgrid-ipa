@@ -1,7 +1,7 @@
 from argparse import ArgumentTypeError
 
 import pytest
-from textgrid_tools.app.helper import parse_float
+from textgrid_tools_cli.helper import parse_float
 
 
 def test_empty__raises_error():
