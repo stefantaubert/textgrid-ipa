@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tiers_argument)
-from textgrid_tools.core import remove_tiers
+from textgrid_tools import remove_tiers
 
 
 def get_removing_parser(parser: ArgumentParser):

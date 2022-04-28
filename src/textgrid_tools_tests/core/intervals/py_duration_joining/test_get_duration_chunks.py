@@ -1,5 +1,5 @@
 from textgrid import Interval
-from textgrid_tools.core.intervals.duration_joining import get_duration_chunks
+from textgrid_tools.intervals.duration_joining import get_duration_chunks
 from textgrid_tools_tests.helper import assert_intervals_are_equal
 
 

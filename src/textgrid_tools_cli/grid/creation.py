@@ -17,7 +17,7 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        parse_non_empty_or_whitespace,
                                        parse_positive_float, read_audio,
                                        save_grid)
-from textgrid_tools.core import create_grid_from_text
+from textgrid_tools import create_grid_from_text
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"

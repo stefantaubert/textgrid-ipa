@@ -16,7 +16,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_tier_argument,
                                        parse_non_empty_or_whitespace)
-from textgrid_tools.core import map_tier
+from textgrid_tools import map_tier
 
 
 def get_mapping_parser(parser: ArgumentParser):

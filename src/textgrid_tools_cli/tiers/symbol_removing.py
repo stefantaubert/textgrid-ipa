@@ -18,7 +18,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, parse_non_empty)
-from textgrid_tools.core import remove_symbols
+from textgrid_tools import remove_symbols
 
 
 def get_symbol_removing_parser(parser: ArgumentParser):

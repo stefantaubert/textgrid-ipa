@@ -19,8 +19,8 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, get_optional,
                                        parse_non_negative_float)
-from textgrid_tools.core import join_intervals_between_pauses
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import join_intervals_between_pauses
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_between_pause_joining_parser(parser: ArgumentParser):

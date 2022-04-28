@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        parse_non_empty_or_whitespace,
                                        parse_path)
 from textgrid_tools_cli.validation import FileAlreadyExistsError
-from textgrid_tools.core.grids.durations_plotting import \
+from textgrid_tools.grids.durations_plotting import \
     plot_grids_interval_durations_diagram
 
 

@@ -9,7 +9,7 @@ from typing import Callable, List, Optional, OrderedDict, Tuple
 from textgrid.textgrid import TextGrid
 from textgrid_tools_cli.helper import (copy_grid, get_grid_files, save_grid,
                                        try_load_grid)
-from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools.globals import ExecutionResult
 
 
 def getFileLogger() -> Logger:

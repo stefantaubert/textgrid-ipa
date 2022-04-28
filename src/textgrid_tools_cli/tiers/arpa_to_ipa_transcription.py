@@ -19,7 +19,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_string_format_argument,
                                        add_tiers_argument, get_optional,
                                        parse_non_empty)
-from textgrid_tools.core import map_arpa_to_ipa
+from textgrid_tools import map_arpa_to_ipa
 
 
 def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):

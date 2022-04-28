@@ -15,7 +15,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, add_tiers_argument,
                                        parse_positive_float)
-from textgrid_tools.core import fix_interval_boundaries
+from textgrid_tools import fix_interval_boundaries
 
 
 def get_boundary_fixing_parser(parser: ArgumentParser):

@@ -1,5 +1,5 @@
 from textgrid.textgrid import Interval
-from textgrid_tools.core.intervals.splitting_v2 import get_split_intervals_v2
+from textgrid_tools.intervals.splitting_v2 import get_split_intervals_v2
 
 
 def test_empty__empty_F__returns_one_interval():

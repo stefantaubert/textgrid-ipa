@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_tier_argument,
                                        parse_positive_integer)
-from textgrid_tools.core import move_tier
+from textgrid_tools import move_tier
 
 
 def get_moving_parser(parser: ArgumentParser):

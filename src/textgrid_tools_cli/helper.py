@@ -24,8 +24,8 @@ from textgrid_tools_cli.globals import (DEFAULT_ENCODING,
                                         DEFAULT_N_FILE_CHUNKSIZE,
                                         DEFAULT_N_JOBS)
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
-from textgrid_tools.core.helper import check_is_valid_grid
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools.helper import check_is_valid_grid
+from textgrid_tools.interval_format import IntervalFormat
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"

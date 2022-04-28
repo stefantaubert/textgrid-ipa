@@ -17,9 +17,9 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_string_format_argument,
                                        add_tiers_argument,
                                        parse_non_empty_or_whitespace)
-from textgrid_tools.core import join_intervals_on_boundaries
-from textgrid_tools.core.globals import ExecutionResult
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import join_intervals_on_boundaries
+from textgrid_tools.globals import ExecutionResult
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_boundary_joining_parser(parser: ArgumentParser):

@@ -14,10 +14,10 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        add_encoding_argument,
                                        add_tiers_argument, get_grid_files,
                                        parse_path, try_load_grid)
-from textgrid_tools.core.helper import get_all_intervals
-from textgrid_tools.core.validation import (InvalidGridError,
-                                            NotExistingTierError,
-                                            ValidationError)
+from textgrid_tools.helper import get_all_intervals
+from textgrid_tools.validation import (InvalidGridError,
+                                       NotExistingTierError,
+                                       ValidationError)
 
 
 def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:

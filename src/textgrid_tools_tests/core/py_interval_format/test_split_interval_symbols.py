@@ -1,6 +1,6 @@
 
-from textgrid_tools.core.interval_format import (IntervalFormat,
-                                                 split_interval_symbols)
+from textgrid_tools.interval_format import (IntervalFormat,
+                                            split_interval_symbols)
 
 
 def test_empty_input():

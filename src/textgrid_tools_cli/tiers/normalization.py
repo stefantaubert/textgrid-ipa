@@ -19,7 +19,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_symbol_format, add_tiers_argument)
-from textgrid_tools.core import normalize_tiers
+from textgrid_tools import normalize_tiers
 
 
 def get_normalization_parser(parser: ArgumentParser):

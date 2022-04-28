@@ -14,10 +14,10 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        parse_existing_directory, parse_path,
                                        save_audio, save_grid)
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
-from textgrid_tools.core import split_grid_on_intervals
+from textgrid_tools import split_grid_on_intervals
 from tqdm import tqdm
 
-from textgrid_tools.core.helper import number_prepend_zeros
+from textgrid_tools.helper import number_prepend_zeros
 
 
 def get_splitting_parser(parser: ArgumentParser):

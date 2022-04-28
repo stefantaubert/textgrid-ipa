@@ -20,8 +20,8 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_tiers_argument,
                                        parse_non_empty_or_whitespace,
                                        parse_positive_float)
-from textgrid_tools.core import join_intervals_on_durations
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import join_intervals_on_durations
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_duration_joining_parser(parser: ArgumentParser):

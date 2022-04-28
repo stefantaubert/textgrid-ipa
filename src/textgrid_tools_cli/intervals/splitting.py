@@ -19,8 +19,8 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, parse_non_empty)
-from textgrid_tools.core import split
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import split
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_splitting_parser(parser: ArgumentParser):

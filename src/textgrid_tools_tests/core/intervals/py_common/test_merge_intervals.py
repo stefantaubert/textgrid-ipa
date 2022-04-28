@@ -5,11 +5,11 @@ from typing import (Collection, Generator, Iterable, List, Optional, Set,
 from text_utils import StringFormat
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_tools.core.helper import (get_mark_symbols_intervals,
-                                        interval_is_None_or_whitespace)
-from textgrid_tools.core.interval_format import (IntervalFormat,
-                                                 merge_interval_symbols)
-from textgrid_tools.core.intervals.common import merge_intervals
+from textgrid_tools.helper import (get_mark_symbols_intervals,
+                                   interval_is_None_or_whitespace)
+from textgrid_tools.interval_format import (IntervalFormat,
+                                            merge_interval_symbols)
+from textgrid_tools.intervals.common import merge_intervals
 
 
 def test_component():

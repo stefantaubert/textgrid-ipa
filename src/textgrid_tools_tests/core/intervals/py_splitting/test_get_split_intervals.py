@@ -1,7 +1,7 @@
 from text_utils import StringFormat
 from textgrid.textgrid import Interval
-from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.splitting import get_split_intervals
+from textgrid_tools.interval_format import IntervalFormat
+from textgrid_tools.intervals.splitting import get_split_intervals
 
 
 def test_no_space__returns_one_intervals():

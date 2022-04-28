@@ -16,8 +16,8 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        parse_existing_directory,
                                        parse_non_empty, parse_path, save_audio,
                                        save_grid)
-from textgrid_tools.core import remove_intervals
-from textgrid_tools.core.intervals.removing import NothingDefinedToRemoveError
+from textgrid_tools import remove_intervals
+from textgrid_tools.intervals.removing import NothingDefinedToRemoveError
 
 # TODO tiers support
 

@@ -16,7 +16,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument)
-from textgrid_tools.core import switch_string_format
+from textgrid_tools import switch_string_format
 
 
 def get_string_format_switching_parser(parser: ArgumentParser):

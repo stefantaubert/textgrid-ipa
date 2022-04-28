@@ -12,7 +12,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        get_optional, try_load_grid,
                                        parse_non_empty_or_whitespace,
                                        parse_path)
-from textgrid_tools.core import plot_interval_durations_diagram
+from textgrid_tools import plot_interval_durations_diagram
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):

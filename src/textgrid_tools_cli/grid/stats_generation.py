@@ -11,7 +11,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        parse_non_empty_or_whitespace,
                                        parse_positive_float)
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
-from textgrid_tools.core import print_stats
+from textgrid_tools import print_stats
 
 
 def get_stats_generation_parser(parser: ArgumentParser):

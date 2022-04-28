@@ -19,7 +19,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, parse_existing_file)
-from textgrid_tools.core import transcribe_text
+from textgrid_tools import transcribe_text
 
 
 def get_transcription_parser(parser: ArgumentParser):

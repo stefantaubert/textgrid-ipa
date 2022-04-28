@@ -13,8 +13,8 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tier_argument, add_tiers_argument)
-from textgrid_tools.core import clone_tier
-from textgrid_tools.core.globals import ExecutionResult
+from textgrid_tools import clone_tier
+from textgrid_tools.globals import ExecutionResult
 
 
 def get_cloning_parser(parser: ArgumentParser):

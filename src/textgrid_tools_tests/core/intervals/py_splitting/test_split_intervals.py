@@ -1,7 +1,7 @@
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.splitting import split
+from textgrid_tools.interval_format import IntervalFormat
+from textgrid_tools.intervals.splitting import split
 
 
 def test_component__words():

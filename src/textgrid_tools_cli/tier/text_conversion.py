@@ -14,8 +14,8 @@ from textgrid_tools_cli.helper import (add_encoding_argument,
                                        add_tier_argument, get_grid_files,
                                        get_optional, try_load_grid, parse_path,
                                        save_text)
-from textgrid_tools.core import convert_tier_to_text
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import convert_tier_to_text
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_text_conversion_parser(parser: ArgumentParser):

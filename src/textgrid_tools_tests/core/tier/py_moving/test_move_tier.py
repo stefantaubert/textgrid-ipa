@@ -1,6 +1,6 @@
 from textgrid.textgrid import IntervalTier, TextGrid
-from textgrid_tools.core.tier.moving import move_tier
-from textgrid_tools.core.validation import InvalidGridError
+from textgrid_tools.tier.moving import move_tier
+from textgrid_tools.validation import InvalidGridError
 
 
 def test_empty__is_not_moved():

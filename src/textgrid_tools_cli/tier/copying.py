@@ -13,7 +13,7 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        parse_non_empty_or_whitespace,
                                        save_grid, try_load_grid)
 from textgrid_tools_cli.validation import ValidationError
-from textgrid_tools.core import copy_tier_to_grid
+from textgrid_tools import copy_tier_to_grid
 
 
 def get_copying_parser(parser: ArgumentParser):

@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        parse_non_empty_or_whitespace,
                                        parse_path)
 from textgrid_tools_cli.validation import FileAlreadyExistsError
-from textgrid_tools.core.grids.marks_exporting import get_marks_txt
+from textgrid_tools.grids.marks_exporting import get_marks_txt
 
 
 def get_marks_exporting_parser(parser: ArgumentParser):

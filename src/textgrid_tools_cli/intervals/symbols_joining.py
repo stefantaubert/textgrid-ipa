@@ -18,8 +18,8 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_overwrite_argument,
                                        add_string_format_argument,
                                        add_tiers_argument, get_optional)
-from textgrid_tools.core import join_interval_symbols
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import join_interval_symbols
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def get_symbols_joining_parser(parser: ArgumentParser):

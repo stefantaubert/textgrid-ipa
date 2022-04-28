@@ -1,7 +1,7 @@
 from ordered_set import OrderedSet
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.tiers.transcription import transcribe_text
+from textgrid_tools.tiers.transcription import transcribe_text
 
 
 def test_component__success():

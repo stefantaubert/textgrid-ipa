@@ -21,7 +21,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_tiers_argument, parse_non_empty,
                                        parse_non_negative_float)
 from textgrid_tools_cli.validation import ValidationError
-from textgrid_tools.core import IntervalFormat, join_marks
+from textgrid_tools import IntervalFormat, join_marks
 
 
 class NoMarkDefinedError(ValidationError):

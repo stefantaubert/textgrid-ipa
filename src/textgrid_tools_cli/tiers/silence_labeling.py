@@ -19,7 +19,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_tiers_argument, parse_non_empty,
                                        parse_non_negative_float)
 from textgrid_tools_cli.validation import ValidationError
-from textgrid_tools.core import mark_silence
+from textgrid_tools import mark_silence
 
 
 class MaxNotGreaterThanMinError(ValidationError):

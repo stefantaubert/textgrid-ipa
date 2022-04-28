@@ -13,7 +13,7 @@ from textgrid_tools_cli.helper import (add_directory_argument,
                                        parse_existing_directory, read_audio,
                                        save_grid)
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
-from textgrid_tools.core import sync_grid_to_audio
+from textgrid_tools import sync_grid_to_audio
 
 
 def get_audio_synchronization_parser(parser: ArgumentParser):

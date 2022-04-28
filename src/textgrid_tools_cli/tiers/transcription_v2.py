@@ -22,7 +22,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        parse_existing_file,
                                        parse_non_negative_integer,
                                        parse_positive_integer)
-from textgrid_tools.core import transcribe_text_v2
+from textgrid_tools import transcribe_text_v2
 
 
 def get_transcription_v2_parser(parser: ArgumentParser):

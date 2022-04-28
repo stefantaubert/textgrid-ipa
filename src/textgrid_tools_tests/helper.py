@@ -1,8 +1,8 @@
 from typing import Collection, List
 
 from textgrid import Interval
-from textgrid_tools.core.comparison import (check_interval_is_equal,
-                                            check_intervals_are_equal)
+from textgrid_tools.comparison import (check_interval_is_equal,
+                                       check_intervals_are_equal)
 
 
 def assert_interval_is_equal(interval1: Interval, interval2: Interval):

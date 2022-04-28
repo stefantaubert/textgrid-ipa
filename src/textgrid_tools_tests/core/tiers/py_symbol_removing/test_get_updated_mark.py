@@ -1,6 +1,6 @@
 
 from text_utils import StringFormat
-from textgrid_tools.core.tiers.symbol_removing import get_updated_mark
+from textgrid_tools.tiers.symbol_removing import get_updated_mark
 
 
 def test_empty__returns_empty():

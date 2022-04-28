@@ -21,8 +21,8 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
                                        add_tiers_argument, get_grid_files,
                                        try_load_grid, parse_non_empty, parse_path)
 from textgrid_tools_cli.validation import FileAlreadyExistsError
-from textgrid_tools.core import get_arpa_pronunciation_dictionary
-from textgrid_tools.core.interval_format import IntervalFormat
+from textgrid_tools import get_arpa_pronunciation_dictionary
+from textgrid_tools.interval_format import IntervalFormat
 
 
 def add_dictionary_argument(parser: ArgumentParser) -> None:

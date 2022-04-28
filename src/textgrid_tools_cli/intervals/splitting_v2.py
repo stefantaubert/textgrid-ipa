@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument,
                                        add_output_directory_argument,
                                        add_overwrite_argument,
                                        add_tiers_argument)
-from textgrid_tools.core import split_v2
+from textgrid_tools import split_v2
 
 
 def get_splitting_v2_parser(parser: ArgumentParser):

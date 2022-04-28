@@ -1,7 +1,7 @@
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.core.interval_format import IntervalFormat
-from textgrid_tools.core.intervals.sentence_joining import \
+from textgrid_tools.interval_format import IntervalFormat
+from textgrid_tools.intervals.sentence_joining import \
     join_intervals_on_sentences
 
 
