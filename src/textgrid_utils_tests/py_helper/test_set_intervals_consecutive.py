@@ -1,4 +1,5 @@
 from textgrid import Interval
+
 from textgrid_utils.helper import set_intervals_consecutive
 
 

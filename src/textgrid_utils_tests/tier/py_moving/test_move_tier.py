@@ -1,4 +1,5 @@
 from textgrid.textgrid import IntervalTier, TextGrid
+
 from textgrid_utils.tier.moving import move_tier
 from textgrid_utils.validation import InvalidGridError
 
