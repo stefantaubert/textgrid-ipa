@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_utils_cli import *
+from textgrid_utils_cli.grids.grids_merging import get_grids_merging_parser
 from textgrid_utils_cli.grids.vocabulary_export import get_vocabulary_export_parser
 from textgrid_utils_cli.tiers.transcription_v2 import get_transcription_v2_parser
 
@@ -29,6 +30,7 @@ def formatter(prog):
 
 
 def get_grids_parsers() -> Parsers:
+  yield "merge", "merge grids together", get_grids_merging_parser
   yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
   yield "create-dictionary", "create pronunciation dictionary from multiple grid files", get_dictionary_creation_parser
   yield "plot-durations", "plot durations", get_grids_plot_interval_durations_parser
@@ -156,7 +158,7 @@ def run_prod():
 
 
 def debug_file_exists():
-  return Path("debug").is_file()
+  return Path("/tmp/debug").is_file()
 
 
 if __name__ == "__main__":

@@ -1,14 +1,13 @@
 from typing import Generator, Iterable, List, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
+
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (get_all_tiers, get_mark,
-                                   interval_is_None_or_empty,
+from textgrid_utils.helper import (get_all_tiers, get_mark, interval_is_None_or_empty,
                                    set_intervals_consecutive)
 from textgrid_utils.intervals.common import replace_intervals
-from textgrid_utils.validation import (InvalidGridError,
-                                       NotExistingTierError)
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError
 
 
 def split_v2(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool) -> ExecutionResult:
@@ -25,15 +24,26 @@ def split_v2(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool) -> E
 
   changed_anything = False
 
+  # for tier in tiers:
+  #   intervals_copy = cast(Iterable[Interval], list(tier.intervals))
+  #   for interval in intervals_copy:
+  #     splitted_intervals = list(get_split_intervals_v2(
+  #       interval, symbol, keep))
+
+  #     if not check_intervals_are_equal([interval], splitted_intervals):
+  #       replace_intervals(tier, [interval], splitted_intervals)
+  #       changed_anything = True
+
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
-    for interval in intervals_copy:
-      splitted_intervals = list(get_split_intervals_v2(
-        interval, symbol, keep))
-
-      if not check_intervals_are_equal([interval], splitted_intervals):
-        replace_intervals(tier, [interval], splitted_intervals)
-        changed_anything = True
+    new_intervals = list(
+      splitted_interval
+      for interval in intervals_copy
+      for splitted_interval in get_split_intervals_v2(interval, symbol, keep)
+    )
+    if not check_intervals_are_equal(tier.intervals, new_intervals):
+      tier.intervals = new_intervals
+      changed_anything = True
 
   return None, changed_anything
 
