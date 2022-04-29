@@ -7,7 +7,7 @@ from typing import Optional
 from ordered_set import OrderedSet
 from pronunciation_dictionary import DeserializationOptions, MultiprocessingOptions, load_dict
 
-from textgrid_utils import transcribe_text_v2
+from textgrid_utils import transcribe_text
 from textgrid_utils_cli.common import process_grids_mp
 from textgrid_utils_cli.globals import ExecutionResult
 from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_argument,
@@ -68,7 +68,7 @@ def app_transcribe_text_v2(directory: Path, tiers: OrderedSet[str], dictionary: 
     return False, False
 
   method = partial(
-    transcribe_text_v2,
+    transcribe_text,
     tier_names=tiers,
     pronunciation_dictionary=pronunciation_dictionary,
     seed=seed,

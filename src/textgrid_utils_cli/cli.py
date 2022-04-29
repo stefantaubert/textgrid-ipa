@@ -11,7 +11,7 @@ from textgrid_utils_cli import *
 from textgrid_utils_cli.grids.grids_merging import get_grids_merging_parser
 from textgrid_utils_cli.grids.vocabulary_export import get_vocabulary_export_parser
 from textgrid_utils_cli.tier.importing import get_importing_parser
-from textgrid_utils_cli.tiers.transcription_v2 import get_transcription_parser
+from textgrid_utils_cli.tiers.transcription import get_transcription_parser
 
 __version__ = version("textgrid-utils")
 

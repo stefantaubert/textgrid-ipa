@@ -2,4 +2,4 @@ from textgrid_utils.tiers.marks_mapping import map_marks
 from textgrid_utils.tiers.removing import remove_tiers
 from textgrid_utils.tiers.silence_labeling import mark_silence
 from textgrid_utils.tiers.symbol_removing import remove_symbols
-from textgrid_utils.tiers.transcription_v2 import transcribe_text_v2
+from textgrid_utils.tiers.transcription import transcribe_text

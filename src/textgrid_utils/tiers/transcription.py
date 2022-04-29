@@ -49,7 +49,7 @@ class VocabularyMissingError(ValidationError):
 #     return f"{len(self.missing)} words are missing in the pronunciation dictionary!"
 
 
-def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool) -> ExecutionResult:
+def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool) -> ExecutionResult:
   # TODO add mode first, last etc
   """
   chunksize: amount of intervals at once
