@@ -87,7 +87,7 @@ ffmpeg -i *.mp3 -acodec pcm_s16le -ar 22050 *.wav
 If you want to cite this repo, you can use this BibTeX-entry:
 
 ```bibtex
-@misc{tstgu22,
+@misc{tstgt22,
   author = {Taubert, Stefan},
   title = {textgrid-tools},
   year = {2022},
