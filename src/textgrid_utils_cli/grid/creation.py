@@ -3,21 +3,14 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
-from text_utils import StringFormat
-from textgrid_utils_cli.globals import ExecutionResult
-from textgrid_utils_cli.helper import (add_directory_argument,
-                                       add_encoding_argument,
-                                       add_n_digits_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_string_format_argument,
-                                       get_audio_files, get_files_dict,
-                                       get_optional, get_text_files,
-                                       parse_existing_directory,
-                                       parse_non_empty_or_whitespace,
-                                       parse_positive_float, read_audio,
-                                       save_grid)
 from textgrid_utils import create_grid_from_text
+from textgrid_utils_cli.globals import ExecutionResult
+from textgrid_utils_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_n_digits_argument, add_output_directory_argument,
+                                       add_overwrite_argument, get_audio_files, get_files_dict,
+                                       get_optional, get_text_files, parse_existing_directory,
+                                       parse_non_empty_or_whitespace, parse_positive_float,
+                                       read_audio, save_grid)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -37,14 +30,13 @@ def get_creation_parser(parser: ArgumentParser):
   add_encoding_argument(parser, "encoding of text and meta files")
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
-  add_string_format_argument(parser, "text files")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_create_grid_from_text
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, formatting: StringFormat, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if audio_directory is None:
@@ -94,7 +86,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     else:
       logger.info("No meta file found.")
 
-    (error, _), grid = create_grid_from_text(text, formatting, meta, audio_in,
+    (error, _), grid = create_grid_from_text(text, meta, audio_in,
                                              sample_rate, name, tier, speech_rate, n_digits)
 
     success = error is None

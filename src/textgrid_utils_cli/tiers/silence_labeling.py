@@ -6,20 +6,16 @@ from pathlib import Path
 from typing import Optional
 
 from ordered_set import OrderedSet
-from text_utils import Symbol
+
+from textgrid_utils import mark_silence
 from textgrid_utils_cli.common import process_grids_mp
 from textgrid_utils_cli.globals import ExecutionResult
-from textgrid_utils_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tiers_argument, parse_non_empty,
+from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument, parse_non_empty,
                                        parse_non_negative_float)
 from textgrid_utils_cli.validation import ValidationError
-from textgrid_utils import mark_silence
 
 
 class MaxNotGreaterThanMinError(ValidationError):

@@ -4,11 +4,10 @@ from typing import Optional, Tuple
 import numpy as np
 from text_utils import StringFormat
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (can_parse_float, check_is_valid_grid,
-                                   samples_to_s)
-from textgrid_utils.validation import (InvalidStringFormatIntervalError,
-                                       ValidationError)
+from textgrid_utils.helper import can_parse_float, check_is_valid_grid, samples_to_s
+from textgrid_utils.validation import InvalidStringFormatIntervalError, ValidationError
 
 
 class StartNotSmallerThanEndError(ValidationError):
@@ -127,7 +126,7 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
@@ -137,9 +136,6 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     assert sample_rate is not None
 
   if error := TextEmptyError.validate(text):
-    return (error, False), None
-
-  if error := InvalidStringFormatIntervalError.validate(text, text_string_format):
     return (error, False), None
 
   if meta is not None:
@@ -182,13 +178,10 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     start = None
     end = None
 
-  text_symbols = text_string_format.convert_string_to_symbols(text)
-  assert len(text_symbols) > 0
-
   duration_s: float = None
 
   if audio is None:
-    duration_s = len(text_symbols) / characters_per_second
+    duration_s = len(text) / characters_per_second
     logger.debug(f"Estimated grid duration to {duration_s}s.")
   else:
     duration_s = samples_to_s(audio.shape[0], sample_rate)
@@ -208,9 +201,8 @@ def create_grid_from_text(text: str, text_string_format: StringFormat, meta: Opt
     max_time_text_interval = round(end, n_digits)
     logger.debug(f"Set end of grid to {end}.")
 
-  mark = text_string_format.convert_symbols_to_string(text_symbols)
   result = get_grid(grid_name, tier_name, min_time, min_time_text_interval,
-                    mark, max_time_text_interval, max_time)
+                    text, max_time_text_interval, max_time)
   return (None, True), result
 
 

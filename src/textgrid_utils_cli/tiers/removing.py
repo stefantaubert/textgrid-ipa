@@ -1,20 +1,17 @@
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from ordered_set import OrderedSet
+
+from textgrid_utils import remove_tiers
 from textgrid_utils_cli.common import process_grids_mp
 from textgrid_utils_cli.globals import ExecutionResult
-from textgrid_utils_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tiers_argument)
-from textgrid_utils import remove_tiers
+from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument)
 
 
 def get_removing_parser(parser: ArgumentParser):

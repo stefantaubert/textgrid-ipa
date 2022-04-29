@@ -1,11 +1,9 @@
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from ordered_set import OrderedSet
-from text_utils.string_format import StringFormat
-from text_utils.types import Symbol
 
 from textgrid_utils import remove_symbols
 from textgrid_utils_cli.common import process_grids_mp
@@ -14,8 +12,7 @@ from textgrid_utils_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
                                        add_directory_argument, add_maxtaskperchild_argument,
                                        add_n_digits_argument, add_n_jobs_argument,
                                        add_output_directory_argument, add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument,
-                                       parse_non_empty)
+                                       add_tiers_argument, parse_non_empty)
 
 
 def get_symbol_removing_parser(parser: ArgumentParser):
@@ -37,7 +34,7 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   return app_remove_symbols
 
 
-def app_remove_symbols(directory: Path, tiers: OrderedSet[str], text: OrderedSet[Symbol], marks_text: OrderedSet[Symbol], marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_remove_symbols(directory: Path, tiers: OrderedSet[str], text: OrderedSet[str], marks_text: OrderedSet[str], marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
     remove_symbols,
     tier_names=tiers,
