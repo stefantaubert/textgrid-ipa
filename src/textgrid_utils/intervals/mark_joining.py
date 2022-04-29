@@ -1,22 +1,17 @@
 from logging import getLogger
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Generator, Iterable, List, Set, cast
 
-from text_utils import StringFormat
 from textgrid.textgrid import Interval, TextGrid
+
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_tiers
-from textgrid_utils.interval_format import IntervalFormat
-from textgrid_utils.intervals.common import (group_adjacent_pauses,
-                                             merge_intervals,
+from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals_custom_symbol,
                                              replace_intervals)
-from textgrid_utils.validation import (InvalidGridError,
-                                       InvalidStringFormatIntervalError,
-                                       NotExistingTierError,
-                                       NotMatchingIntervalFormatError)
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError
 
 
-def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, empty: bool, marks: Set[str]) -> ExecutionResult:
+def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert empty or len(marks) > 0
 
@@ -29,13 +24,6 @@ def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: String
 
   tiers = list(get_all_tiers(grid, tier_names))
 
-  for tier in tiers:
-    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
-      return error, False
-
-    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
-      return error, False
-
   joined_count = 0
   joined_to_count = 0
   ignored_count = 0
@@ -44,7 +32,7 @@ def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: String
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, empty, marks):
-      merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
       replace_with = [merged_interval]
       if not check_intervals_are_equal(chunk, replace_with):
         joined_count += len(chunk)
@@ -53,6 +41,7 @@ def join_marks(grid: TextGrid, tier_names: Set[str], tiers_string_format: String
         changed_anything = True
       else:
         ignored_count += len(chunk)
+
   logger = getLogger(__name__)
   logger.info(
     f"Joined {joined_count} intervals to {joined_to_count} intervals. Didn't joined {ignored_count} intervals.")
