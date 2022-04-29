@@ -9,8 +9,7 @@ from textgrid_utils_cli.intervals import (get_between_pause_joining_parser,
                                           get_duration_joining_parser, get_mark_joining_parser,
                                           get_plot_interval_durations_parser)
 from textgrid_utils_cli.intervals import get_removing_parser as get_intervals_removing_parser
-from textgrid_utils_cli.intervals import (get_sentence_joining_parser, get_splitting_v2_parser,
-                                          get_symbols_joining_parser)
+from textgrid_utils_cli.intervals import get_splitting_v2_parser, get_symbols_joining_parser
 from textgrid_utils_cli.tier import (get_cloning_parser, get_copying_parser, get_mapping_parser,
                                      get_moving_parser, get_renaming_parser,
                                      get_text_conversion_parser)

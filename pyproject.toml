@@ -67,7 +67,8 @@ exclude = [
   "textgrid_utils_tests",
   "textgrid_utils_debug",
   "textgrid_utils_cli_debug",
-  "textgrid_utils_cli_tests"
+  "textgrid_utils_cli_tests",
+  "textgrid_utils_old"
 ]
 namespaces = true
 
