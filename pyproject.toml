@@ -96,12 +96,10 @@ known_third_party = [
   "scipy",
   "numpy",
   "tqdm",
-  "wget",
   "TextGrid",
   "pandas",
   "ordered_set",
-  "matplotlib",  
-  "iterable_serialization",
+  "matplotlib",
   "pronunciation_dictionary"
 ]
 

@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-textgrid-tools = {editable = true, path = "."}
+textgrid-utils = {editable = true, path = "."}
 autopep8 = "*"
 pylint = "*"
 pycodestyle = "*"
@@ -19,12 +19,10 @@ twine = "*"
 scipy = "*"
 numpy = "*"
 tqdm = "*"
-wget = "*"
 TextGrid = "*"
 pandas = "*"
 ordered-set = ">=4.1.0"
 matplotlib = "*"
-iterable-serialization = "*"
 pronunciation-dictionary = ">=0.0.4"
 general-utils = {editable = true, path = "./../general-utils"}
 text-utils = {editable = true, path = "./../text-utils"}
