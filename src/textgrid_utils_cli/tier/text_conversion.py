@@ -3,19 +3,12 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
-from text_utils import StringFormat
-from textgrid_utils_cli.globals import ExecutionResult
-from textgrid_utils_cli.helper import (add_encoding_argument,
-                                       add_directory_argument,
-                                       add_interval_format_argument,
-                                       add_n_digits_argument,
-                                       add_overwrite_argument,
-                                       add_string_format_argument,
-                                       add_tier_argument, get_grid_files,
-                                       get_optional, try_load_grid, parse_path,
-                                       save_text)
 from textgrid_utils import convert_tier_to_text
-from textgrid_utils.interval_format import IntervalFormat
+from textgrid_utils_cli.globals import ExecutionResult
+from textgrid_utils_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_n_digits_argument, add_overwrite_argument,
+                                       add_tier_argument, get_grid_files, get_optional, parse_path,
+                                       save_text, try_load_grid)
 
 
 def get_text_conversion_parser(parser: ArgumentParser):
@@ -23,17 +16,17 @@ def get_text_conversion_parser(parser: ArgumentParser):
 
   add_directory_argument(parser)
   add_tier_argument(parser, "tier from which the content should be written")
-  add_string_format_argument(parser, "tier")
-  add_interval_format_argument(parser, "tier")
   add_encoding_argument(parser, "encoding of text files")
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the text files if not to the same directory", default=None)
+  parser.add_argument('--sep', type=str, metavar="SYMBOL",
+                      help="use this symbol to separate the marks of each interval", default="\n")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_convert_tier_to_text
 
 
-def app_convert_tier_to_text(directory: Path, tier: str, formatting: StringFormat, content: IntervalFormat, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_convert_tier_to_text(directory: Path, tier: str, sep: str, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
   logger = getLogger(__name__)
 
   if output_directory is None:
@@ -58,7 +51,7 @@ def app_convert_tier_to_text(directory: Path, tier: str, formatting: StringForma
       continue
     assert grid is not None
 
-    (error, _), text = convert_tier_to_text(grid, tier, formatting, content)
+    (error, _), text = convert_tier_to_text(grid, tier, sep)
 
     success = error is None
     total_success &= success
