@@ -1,12 +1,10 @@
-from typing import (Any, Dict, Generator, Iterable, List, Optional, Set, Tuple,
-                    cast)
+from typing import List, Optional, Tuple
 
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import TextGrid
+
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (get_mark, get_single_tier,
-                                   number_prepend_zeros)
-from textgrid_utils.validation import (InvalidGridError,
-                                       NotExistingTierError)
+from textgrid_utils.helper import get_mark, get_single_tier, number_prepend_zeros
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError
 
 
 def get_marks_txt(grids: List[TextGrid], tier_name: str, interval_sep: Optional[str]) -> Tuple[ExecutionResult, Optional[str]]:

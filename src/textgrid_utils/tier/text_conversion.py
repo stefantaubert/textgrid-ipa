@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Optional, Tuple
 
 from textgrid.textgrid import TextGrid
@@ -19,7 +20,14 @@ def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str) -> Tuple[Exec
     return error, False
 
   tier = get_single_tier(grid, tier_name)
-  marks = (get_mark(interval) for interval in tier.intervals)
+  marks = list(get_mark(interval) for interval in tier.intervals)
+
+  if sep != "":
+    any_mark_contains_sep = any(sep in mark for mark in marks)
+    if any_mark_contains_sep:
+      logger = getLogger(__name__)
+      logger.warning("Separator occurs in at least one mark!")
+
   result = sep.join(marks)
 
   return (None, True), result
