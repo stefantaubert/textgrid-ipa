@@ -1,7 +1,6 @@
 from typing import Generator, List, Set, Tuple, cast
 
 from ordered_set import OrderedSet
-from text_utils.pronunciation.ipa2symb import merge_left_core, merge_right_core
 from textgrid.textgrid import Interval, TextGrid
 
 from textgrid_utils.comparison import check_intervals_are_equal
@@ -93,3 +92,45 @@ def merge_together(symbols: Tuple[str, ...], join: Set[str]) -> List[Tuple[str, 
 
   if len(current_chunk) > 0:
     yield current_chunk
+
+
+def merge_left_core(symbols: Tuple[str, ...], merge_symbols: Set[str], ignore_merge_symbols: Set[str]) -> Tuple[Tuple[str, ...]]:
+  j = 0
+  reversed_symbols = symbols[::-1]
+  reversed_merged_symbols = []
+  while j < len(reversed_symbols):
+    new_symbol, j = get_next_merged_left_symbol_and_index(
+      reversed_symbols, j, merge_symbols, ignore_merge_symbols)
+    reversed_merged_symbols.append(new_symbol)
+  merged_symbols = reversed_merged_symbols[::-1]
+  return tuple(merged_symbols)
+
+
+def get_next_merged_left_symbol_and_index(symbols: Tuple[str, ...], j: int, merge_symbols: Set[str], ignore_merge_symbols: Set[str]) -> Tuple[str, int]:
+  new_symbol = [symbols[j]]
+  j += 1
+  if new_symbol[0] not in ignore_merge_symbols and new_symbol[0] not in merge_symbols:
+    while j < len(symbols) and symbols[j] in merge_symbols:
+      new_symbol.insert(0, symbols[j])
+      j += 1
+  return tuple(new_symbol), j
+
+
+def merge_right_core(symbols: Tuple[str, ...], merge_symbols: Set[str], ignore_merge_symbols: Set[str]) -> Tuple[Tuple[str, ...]]:
+  j = 0
+  merged_symbols = []
+  while j < len(symbols):
+    new_symbol, j = get_next_merged_right_symbol_and_index(
+      symbols, j, merge_symbols, ignore_merge_symbols)
+    merged_symbols.append(new_symbol)
+  return tuple(merged_symbols)
+
+
+def get_next_merged_right_symbol_and_index(symbols: Tuple[str, ...], j: int, merge_symbols: Set[str], ignore_merge_symbols: Set[str]) -> Tuple[str, int]:
+  new_symbol = [symbols[j]]
+  j += 1
+  if new_symbol[0] not in ignore_merge_symbols and new_symbol[0] not in merge_symbols:
+    while j < len(symbols) and symbols[j] in merge_symbols:
+      new_symbol.append(symbols[j])
+      j += 1
+  return tuple(new_symbol), j
