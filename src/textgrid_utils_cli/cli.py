@@ -45,7 +45,7 @@ def get_grid_parsers() -> Parsers:
 
 
 def get_tiers_parsers() -> Parsers:
-  yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_arpa_to_ipa_transcription_parser
+  yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_marks_mapping_parser
   yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_v2_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
   yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
