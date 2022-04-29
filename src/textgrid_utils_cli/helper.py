@@ -1,17 +1,18 @@
 import argparse
 import codecs
+import os
 from argparse import ArgumentParser, ArgumentTypeError
+from collections import OrderedDict
 from functools import partial
 from logging import getLogger
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from typing import Callable, List, Optional
+from typing import Callable, Generator, List, Optional
 from typing import OrderedDict as OrderedDictType
-from typing import Tuple, TypeVar
+from typing import Set, Tuple, TypeVar
 
 import numpy as np
-from general_utils.main import get_files_dict
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read, write
 from textgrid.textgrid import TextGrid
@@ -25,6 +26,28 @@ GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
 WAV_FILE_TYPE = ".wav"
 MP3_FILE_TYPE = ".mp3"
+
+
+def get_files_dict(directory: Path, filetypes: Set[str]) -> OrderedDictType[str, Path]:
+  result = OrderedDict(sorted(get_files_tuples(directory, filetypes)))
+  return result
+
+
+def get_files_tuples(directory: Path, filetypes: Set[str]) -> Generator[Tuple[str, Path], None, None]:
+  filetypes_lower = {ft.lower() for ft in filetypes}
+  all_files = get_all_files_in_all_subfolders(directory)
+  resulting_files = (
+    (str(file.relative_to(directory).parent / file.stem), file.relative_to(directory))
+      for file in all_files if file.suffix.lower() in filetypes_lower
+  )
+  return resulting_files
+
+
+def get_all_files_in_all_subfolders(directory: Path) -> Generator[Path, None, None]:
+  for root, _, files in os.walk(directory):
+    for name in files:
+      file_path = Path(root) / name
+      yield file_path
 
 
 class ConvertToOrderedSetAction(argparse._StoreAction):

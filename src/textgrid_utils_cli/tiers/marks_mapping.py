@@ -1,10 +1,10 @@
+import json
 from argparse import ArgumentParser
 from functools import partial
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
-from general_utils import parse_json
 from ordered_set import OrderedSet
 
 from textgrid_utils import map_marks
@@ -43,7 +43,8 @@ def get_marks_mapping_parser(parser: ArgumentParser):
 def map_marks_ns(directory: Path, mapping: Path, encoding: str, tiers: OrderedSet[str], replace_unmapped: bool, mark: Optional[str], ignore: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
 
   try:
-    mapping_content = parse_json(mapping, encoding)
+    with mapping.open(mode='r', encoding=encoding) as json_file:
+      mapping_content = json.load(json_file)
   except Exception as ex:
     logger = getLogger(__name__)
     logger.error("Mapping couldn't be read!")
