@@ -7,7 +7,7 @@ from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import (get_all_tiers, get_interval_readable, get_intervals_duration,
                                    interval_is_None_or_whitespace)
-from textgrid_utils.intervals.common import merge_intervals_custom_symbol, replace_intervals
+from textgrid_utils.intervals.common import merge_intervals, replace_intervals
 from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 from textgrid_utils_tests.helper import assert_intervals_are_equal
 
@@ -28,7 +28,7 @@ class DurationTooLowError(ValidationError):
     return f"Duration needs to be greater than zero but was \"{self.duration}\"!"
 
 
-def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool) -> ExecutionResult:
+def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool, ignore_empty: bool) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -53,7 +53,7 @@ def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with:
           f"The duration of interval {get_interval_readable(interval)} ({interval.duration()}s) is bigger than {max_duration_s}!")
     # TODO fix bug
     for chunk in chunk_intervals(intervals_copy, max_duration_s, include_empty_intervals):
-      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
+      merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True

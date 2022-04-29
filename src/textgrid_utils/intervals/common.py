@@ -5,11 +5,12 @@ from textgrid.textgrid import Interval, IntervalTier
 from textgrid_utils.helper import get_mark, interval_is_None_or_whitespace
 
 
-def merge_intervals_custom_symbol(intervals: List[Interval], join_symbol: str) -> Interval:
+def merge_intervals(intervals: List[Interval], join_symbol: str, ignore_empty: bool) -> Interval:
   assert len(intervals) > 0
   marks = (get_mark(interval) for interval in intervals)
-  non_empty_marks = (m for m in marks if m != "")
-  mark = join_symbol.join(non_empty_marks)
+  if ignore_empty:
+    marks = (m for m in marks if m != "")
+  mark = join_symbol.join(marks)
 
   first_interval = intervals[0]
   last_interval = intervals[-1]

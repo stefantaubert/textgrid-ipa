@@ -13,6 +13,7 @@ from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_arg
                                        add_n_jobs_argument, add_output_directory_argument,
                                        add_overwrite_argument, add_tiers_argument,
                                        parse_positive_float)
+from textgrid_utils_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 
 
 def get_duration_joining_parser(parser: ArgumentParser):
@@ -23,8 +24,8 @@ def get_duration_joining_parser(parser: ArgumentParser):
                       help="maximum duration until intervals should be joined (in seconds)", default=10)
   parser.add_argument("--include-pauses", action="store_true",
                       help="include pauses at the beginning/ending while joining")
-  parser.add_argument('--join-with', type=str, metavar="SYMBOL",
-                      help="use this symbol as join symbol between the intervals", default=" ")
+  add_join_with_argument(parser)
+  add_join_empty_argument(parser)
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
@@ -34,7 +35,7 @@ def get_duration_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_durations
 
 
-def app_join_intervals_on_durations(directory: Path, tiers: OrderedSet[str], join_with: str, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_on_durations(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool,  n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   print(tiers)
   method = partial(
     join_intervals_on_durations,
@@ -42,6 +43,7 @@ def app_join_intervals_on_durations(directory: Path, tiers: OrderedSet[str], joi
     include_empty_intervals=include_pauses,
     max_duration_s=duration,
     join_with=join_with,
+    ignore_empty=not join_empty,
   )
 
   return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)

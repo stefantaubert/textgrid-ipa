@@ -1,8 +1,7 @@
-import random
 from logging import getLogger
 from typing import Generator, Iterable, Optional, Set, cast
 
-from pronunciation_dictionary import PronunciationDict, Word, get_weighted_pronunciation
+from pronunciation_dictionary import PronunciationDict, get_weighted_pronunciation
 from textgrid import Interval
 from textgrid.textgrid import TextGrid
 

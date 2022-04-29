@@ -14,6 +14,7 @@ from textgrid_utils_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
                                        add_n_digits_argument, add_n_jobs_argument,
                                        add_output_directory_argument, add_overwrite_argument,
                                        add_tiers_argument, parse_non_empty)
+from textgrid_utils_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 from textgrid_utils_cli.validation import ValidationError
 
 
@@ -37,8 +38,8 @@ def get_mark_joining_parser(parser: ArgumentParser):
                       help="join empty marks")
   parser.add_argument('--marks', type=parse_non_empty, metavar="MARK", nargs="*",
                       help="join adjacent intervals containing these marks", default=[], action=ConvertToOrderedSetAction)
-  parser.add_argument('--join-with', type=str, metavar="SYMBOL",
-                      help="use this symbol as join symbol between the intervals", default=" ")
+  add_join_with_argument(parser)
+  add_join_empty_argument(parser)
   add_output_directory_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
@@ -48,7 +49,7 @@ def get_mark_joining_parser(parser: ArgumentParser):
   return app_join_marks
 
 
-def app_join_marks(directory: Path, tiers: OrderedSet[str], join_with: str, empty: bool, marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_marks(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool, empty: bool, marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   if error := NoMarkDefinedError.validate(marks, empty):
     logger = getLogger(__name__)
     logger.error(error.default_message)
@@ -58,6 +59,7 @@ def app_join_marks(directory: Path, tiers: OrderedSet[str], join_with: str, empt
     join_marks,
     tier_names=tiers,
     join_with=join_with,
+    ignore_empty=not join_empty,
     empty=empty,
     marks=marks,
   )

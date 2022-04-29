@@ -7,13 +7,13 @@ from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import (get_all_tiers, get_boundary_timepoints_from_tier,
                                    get_intervals_part_of_timespan_from_intervals, get_single_tier)
-from textgrid_utils.intervals.common import merge_intervals_custom_symbol, replace_intervals
+from textgrid_utils.intervals.common import merge_intervals, replace_intervals
 from textgrid_utils.validation import (BoundaryError, InvalidGridError,
                                        MultipleTiersWithThatNameError, NonDistinctTiersError,
                                        NotExistingTierError)
 
 
-def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str) -> ExecutionResult:
+def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -43,7 +43,7 @@ def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_n
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, boundary_tier_timepoints):
-      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
+      merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True

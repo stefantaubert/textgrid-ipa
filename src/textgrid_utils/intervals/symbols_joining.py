@@ -7,7 +7,7 @@ from textgrid.textgrid import Interval, TextGrid
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_tiers, get_mark
-from textgrid_utils.intervals.common import merge_intervals_custom_symbol, replace_intervals
+from textgrid_utils.intervals.common import merge_intervals, replace_intervals
 from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
@@ -27,7 +27,7 @@ class InvalidModeError(ValidationError):
     return "Mode needs to be 'right', 'left' or 'together'!"
 
 
-def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str) -> ExecutionResult:
+def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -46,7 +46,7 @@ def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, 
   for tier in tiers:
     intervals_copy = cast(List[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, join_symbols, ignore_join_symbols, mode):
-      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
+      merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True

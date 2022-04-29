@@ -6,12 +6,12 @@ from textgrid.textgrid import Interval, TextGrid
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_tiers
-from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals_custom_symbol,
+from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals,
                                              replace_intervals)
 from textgrid_utils.validation import InvalidGridError, NotExistingTierError
 
 
-def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str]) -> ExecutionResult:
+def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str], ignore_empty: bool) -> ExecutionResult:
   assert len(tier_names) > 0
   assert empty or len(marks) > 0
 
@@ -32,7 +32,7 @@ def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, empty, marks):
-      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
+      merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       replace_with = [merged_interval]
       if not check_intervals_are_equal(chunk, replace_with):
         joined_count += len(chunk)

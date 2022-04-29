@@ -5,7 +5,7 @@ from textgrid.textgrid import Interval, TextGrid
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_tiers, get_intervals_duration
-from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals_custom_symbol,
+from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals,
                                              replace_intervals)
 from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 
@@ -26,7 +26,7 @@ class PauseTooLowError(ValidationError):
     return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str) -> ExecutionResult:
+def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str, ignore_empty: bool) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -45,7 +45,7 @@ def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: f
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, pause):
-      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
+      merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True
