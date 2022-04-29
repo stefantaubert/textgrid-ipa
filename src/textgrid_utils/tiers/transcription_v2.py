@@ -2,19 +2,16 @@ import random
 from logging import getLogger
 from typing import Generator, Iterable, Optional, Set, cast
 
-from pronunciation_dictionary import (PronunciationDict, Word,
-                                      get_weighted_pronunciation)
+from pronunciation_dictionary import PronunciationDict, Word, get_weighted_pronunciation
 from textgrid import Interval
 from textgrid.textgrid import TextGrid
+
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (get_all_tiers, get_interval_readable,
-                                   get_mark, interval_is_None_or_empty,
-                                   set_intervals_consecutive)
+from textgrid_utils.helper import (get_all_tiers, get_interval_readable, get_mark,
+                                   interval_is_None_or_empty, set_intervals_consecutive)
 from textgrid_utils.intervals.common import replace_intervals
-from textgrid_utils.validation import (InvalidGridError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
 class VocabularyMissingError(ValidationError):
@@ -54,6 +51,7 @@ class VocabularyMissingError(ValidationError):
 
 
 def transcribe_text_v2(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool) -> ExecutionResult:
+  # TODO add mode first, last etc
   """
   chunksize: amount of intervals at once
   """
@@ -99,7 +97,8 @@ def get_split_intervals(interval: Interval, pronunciation_dictionary: Pronunciat
     logger.debug(interval)
     raise error
 
-  phonemes = get_weighted_pronunciation(mark, pronunciation_dictionary, seed)
+  pronunciations = pronunciation_dictionary[mark]
+  phonemes = get_weighted_pronunciation(pronunciations, seed)
   assert len(phonemes) > 0
 
   new_intervals = [

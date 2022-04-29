@@ -3,5 +3,4 @@ from textgrid_utils_cli.tiers.normalization import get_normalization_parser
 from textgrid_utils_cli.tiers.removing import get_removing_parser
 from textgrid_utils_cli.tiers.silence_labeling import get_label_silence_parser
 from textgrid_utils_cli.tiers.symbol_removing import get_symbol_removing_parser
-from textgrid_utils_cli.tiers.transcription import get_transcription_parser
 from textgrid_utils_cli.tiers.transcription_v2 import get_transcription_v2_parser

@@ -17,4 +17,4 @@ from textgrid_utils_cli.tier import (get_cloning_parser, get_copying_parser, get
 from textgrid_utils_cli.tiers import (get_arpa_to_ipa_transcription_parser,
                                       get_label_silence_parser, get_normalization_parser)
 from textgrid_utils_cli.tiers import get_removing_parser as get_tiers_removing_parser
-from textgrid_utils_cli.tiers import get_symbol_removing_parser, get_transcription_parser
+from textgrid_utils_cli.tiers import get_symbol_removing_parser

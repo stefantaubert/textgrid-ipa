@@ -45,8 +45,7 @@ def get_grid_parsers() -> Parsers:
 
 def get_tiers_parsers() -> Parsers:
   yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_arpa_to_ipa_transcription_parser
-  yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_parser
-  yield "transcribe-v2", "transcribe words of tiers using a pronunciation dictionary (version 2)", get_transcription_v2_parser
+  yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_v2_parser
   yield "normalize", "normalize content of tiers", get_normalization_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
   yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
@@ -70,7 +69,7 @@ def get_intervals_parsers() -> Parsers:
   yield "join-marks", "join intervals containing specific marks", get_mark_joining_parser
   yield "join-symbols", "join intervals containing specific symbols", get_symbols_joining_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
-  yield "split-v2", "split intervals", get_splitting_v2_parser
+  yield "split", "split intervals", get_splitting_v2_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 

@@ -1,22 +1,16 @@
 from logging import getLogger
 from typing import Set
 
-from text_utils import Symbols
-from text_utils.string_format import StringFormat
-from text_utils.types import Symbol
-from text_utils.utils import symbols_ignore
 from textgrid.textgrid import TextGrid
+
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_intervals, get_mark
-from textgrid_utils.validation import (InvalidGridError,
-                                       InvalidStringFormatIntervalError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
 class NothingDefinedToRemoveError(ValidationError):
   @classmethod
-  def validate(cls, symbols: Set[Symbol], marks_symbols: Set[Symbol], marks: Set[str]):
+  def validate(cls, symbols: Set[str], marks_symbols: Set[str], marks: Set[str]):
     if len(symbols) == 0 and len(marks_symbols) == 0 and len(marks) == 0:
       return cls()
     return None
@@ -26,7 +20,7 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Anything to remove needs to be set!"
 
 
-def remove_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, symbols: Set[Symbol], marks_symbols: Set[Symbol], marks: Set[str]) -> ExecutionResult:
+def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_text: Set[str], marks: Set[str]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -38,33 +32,28 @@ def remove_symbols(grid: TextGrid, tier_names: Set[str], tiers_string_format: St
 
   intervals = list(get_all_intervals(grid, tier_names))
 
-  if error := InvalidStringFormatIntervalError.validate_intervals(intervals, tiers_string_format):
-    return error, False
-
   logger = getLogger(__name__)
-  logger.debug(f"Removing symbols: {' '.join(sorted(symbols))}...")
+  logger.debug(f"Removing text: {' '.join(sorted(text))}...")
   logger.debug(f"Removing marks: {' '.join(sorted(marks))}...")
-  logger.debug(f"Removing marks_symbols: {' '.join(sorted(marks_symbols))}...")
+  logger.debug(f"Removing marks containing only text: {' '.join(sorted(marks_text))}...")
 
   changed_anything = False
 
   for interval in intervals:
-    mark = get_mark(interval)
-    mark = get_updated_mark(mark, tiers_string_format, symbols, marks_symbols, marks)
-    if interval.mark != mark:
-      logger.debug(f"Changed \"{interval.mark}\" to \"{mark}\".")
-      interval.mark = mark
+    old_mark = get_mark(interval)
+    new_mark = get_updated_mark(old_mark, text, marks_text, marks)
+    if new_mark != old_mark:
+      logger.debug(f"Changed \"{old_mark}\" to \"{new_mark}\".")
+      interval.mark = new_mark
       changed_anything = True
 
   return None, changed_anything
 
 
-def get_updated_mark(mark: str, tiers_string_format: StringFormat, symbols: Set[Symbol], marks_symbols: Set[Symbol], marks: Set[str]) -> str:
+def get_updated_mark(mark: str, text: Set[str], marks_text: Set[str], marks: Set[str]) -> str:
   mark = replace_marks(mark, marks)
-  interval_symbols = tiers_string_format.convert_string_to_symbols(mark)
-  interval_symbols = replace_only_symbols(interval_symbols, marks_symbols)
-  interval_symbols = symbols_ignore(interval_symbols, symbols)
-  mark = tiers_string_format.convert_symbols_to_string(interval_symbols)
+  mark = replace_marks_text(mark, marks_text)
+  mark = replace_text(mark, text)
   return mark
 
 
@@ -74,27 +63,17 @@ def replace_marks(mark: str, marks: Set[str]) -> str:
   return mark
 
 
-def replace_only_symbols(mark_symbols: Symbols, only_symbols: Set[Symbol]) -> Symbols:
-  tmp_symbols = symbols_ignore(mark_symbols, only_symbols)
-  mark_contains_only_marks_symbols = len(tmp_symbols) == 0
-  if mark_contains_only_marks_symbols:
-    return tuple()
-  return mark_symbols
+def replace_marks_text(mark: str, marks_text: Set[str]) -> str:
+  tmp = mark
+  for repl in marks_text:
+    tmp = tmp.replace(repl, "")
+  if tmp == "":
+    return ""
+  return mark
 
 
-# def remove_intervals_with_marks(intervals: Iterable[Interval], ignore_marks: Set[str]) -> Generator[Interval, None, None]:
-#   result = (
-#     interval
-#     for interval in intervals
-#     if get_mark(interval) not in ignore_marks
-#   )
-#   return result
-
-
-# def remove_intervals_with_only_symbols(intervals: Iterable[Interval], only_symbols: Set[str], string_format: StringFormat) -> Generator[Interval, None, None]:
-#   result = (
-#     interval
-#     for interval in intervals
-#     if len(symbols_ignore(get_mark_symbols(interval, string_format), only_symbols)) > 0
-#   )
-#   return result
+def replace_text(mark: str, text: Set[str]) -> str:
+  res = mark
+  for repl in text:
+    res = res.replace(repl, "")
+  return res
