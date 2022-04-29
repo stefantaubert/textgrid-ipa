@@ -23,7 +23,7 @@ def test_one_space__returns_two_intervals():
 
 
 def test_double_space__returns_two_intervals():
-  interval = Interval(3, 5, "Is  right.")
+  interval = Interval(3, 5, "Is right.")
 
   intervals = list(get_split_intervals_v2(interval, " ", False))
 
@@ -33,7 +33,7 @@ def test_double_space__returns_two_intervals():
 
 
 def test_component():
-  interval = Interval(3, 5, "Is  right and a test and 123 abce: and? \"no\" ??.")
+  interval = Interval(3, 5, "Is right and a test and 123 abce: and? \"no\" ??.")
 
   intervals = list(get_split_intervals_v2(interval, " ", False))
 

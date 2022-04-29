@@ -10,7 +10,7 @@ def test_component__words():
   tier.add(0.5, 2, "\"This test\"")
   tier.add(2, 2.5, "")
   tier.add(2.5, 3, "")
-  tier.add(3, 5, "Is  right.")
+  tier.add(3, 5, "Is right.")
   tier.add(5, 6, "")
   grid.append(tier)
 
@@ -25,6 +25,6 @@ def test_component__words():
   assert tier[2] == Interval(1.25, 2.0, "test\"")
   assert tier[3] == Interval(2, 2.5, "")
   assert tier[4] == Interval(2.5, 3, "")
-  assert tier[5] == Interval(3, 3.5, "Is")
-  assert tier[6] == Interval(3.5, 5.0, "right.")
+  assert tier[5] == Interval(3, 4, "Is")
+  assert tier[6] == Interval(4, 5.0, "right.")
   assert tier[7] == Interval(5, 6, "")

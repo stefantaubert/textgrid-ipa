@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "24e0e41b484915c7bdf3af2ee34f4b2ff0809023b114c6eccdec3ab853e30e3e"
+            "sha256": "09006d0299d24fc0bf2f4e28d675bcad8ebf2855653e6380c447b3b399f18567"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -532,7 +532,7 @@
                 "sha256:1208431ca90a8cca1a6b8af391bb53c1a2db74e5d1cef6ddced95d4b2062edc6",
                 "sha256:ea4c597ebf37142f827b8f39299579e31685c31d3a438b59f469406afd0f2539"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_version < '3.10'",
             "version": "==4.11.3"
         },
         "iniconfig": {
@@ -549,14 +549,6 @@
             ],
             "index": "pypi",
             "version": "==5.10.1"
-        },
-        "iterable-serialization": {
-            "hashes": [
-                "sha256:29dd698e6537fde4361a2ba360ec98b4922003f4c177fd4d5db75fa78e087386",
-                "sha256:bfe3eb07287085a3051235c5b4acd0daa98b4af8c97c66b1395ecb849ea2eb38"
-            ],
-            "markers": "python_version >= '3.6'",
-            "version": "==0.0.1"
         },
         "jeepney": {
             "hashes": [
@@ -1116,12 +1108,6 @@
                 "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"
             ],
             "version": "==0.5.1"
-        },
-        "wget": {
-            "hashes": [
-                "sha256:35e630eca2aa50ce998b9b1a127bb26b30dfee573702782aa982f875e3f16061"
-            ],
-            "version": "==3.2"
         },
         "wheel": {
             "hashes": [
