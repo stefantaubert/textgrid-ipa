@@ -18,7 +18,7 @@ from textgrid_utils_cli.helper import (add_chunksize_argument, add_directory_arg
                                        parse_non_negative_integer, parse_positive_integer)
 
 
-def get_transcription_v2_parser(parser: ArgumentParser):
+def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
   add_directory_argument(parser)
   parser.add_argument("dictionary", metavar="dictionary", type=parse_existing_file,

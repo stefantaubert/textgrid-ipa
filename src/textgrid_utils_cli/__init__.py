@@ -13,6 +13,6 @@ from textgrid_utils_cli.intervals import get_splitting_v2_parser, get_symbols_jo
 from textgrid_utils_cli.tier import (get_cloning_parser, get_copying_parser, get_mapping_parser,
                                      get_moving_parser, get_renaming_parser,
                                      get_text_conversion_parser)
-from textgrid_utils_cli.tiers import get_marks_mapping_parser, get_label_silence_parser
+from textgrid_utils_cli.tiers import get_label_silence_parser, get_marks_mapping_parser
 from textgrid_utils_cli.tiers import get_removing_parser as get_tiers_removing_parser
 from textgrid_utils_cli.tiers import get_symbol_removing_parser

@@ -36,15 +36,15 @@ def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], rep
   return None, changed_anything
 
 
-def map_mark(mark: str, mapping: Dict[str, str], ignore: Set[str], replace_unknown: bool, replace_unknown_with: Optional[str]) -> str:
+def map_mark(mark: str, mapping: Dict[str, str], ignore: Set[str], replace_unmapped: bool, replace_unmapped_with: Optional[str]) -> str:
   assert isinstance(mark, str)
   if mark in ignore:
     return mark
   has_mapping = mark in mapping
   if has_mapping:
     return mapping[mark]
-  if replace_unknown:
-    if replace_unknown_with is None or replace_unknown_with == "":
+  if replace_unmapped:
+    if replace_unmapped_with is None or replace_unmapped_with == "":
       return ""
-    return replace_unknown_with
+    return replace_unmapped_with
   return mark

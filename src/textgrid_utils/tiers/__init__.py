@@ -1,4 +1,4 @@
-from textgrid_utils.tiers.arpa_to_ipa_transcription import map_marks
+from textgrid_utils.tiers.marks_mapping import map_marks
 from textgrid_utils.tiers.removing import remove_tiers
 from textgrid_utils.tiers.silence_labeling import mark_silence
 from textgrid_utils.tiers.symbol_removing import remove_symbols
