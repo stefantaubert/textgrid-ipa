@@ -1,10 +1,9 @@
 from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Optional
 
 from ordered_set import OrderedSet
-from text_utils.string_format import StringFormat
 from text_utils.types import Symbol
 
 from textgrid_utils import map_arpa_to_ipa
@@ -14,8 +13,7 @@ from textgrid_utils_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
                                        add_directory_argument, add_maxtaskperchild_argument,
                                        add_n_digits_argument, add_n_jobs_argument,
                                        add_output_directory_argument, add_overwrite_argument,
-                                       add_string_format_argument, add_tiers_argument, get_optional,
-                                       parse_non_empty)
+                                       add_tiers_argument, get_optional, parse_non_empty)
 
 
 def get_arpa_to_ipa_transcription_parser(parser: ArgumentParser):
