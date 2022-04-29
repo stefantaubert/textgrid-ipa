@@ -1,26 +1,19 @@
 from typing import Generator, Iterable, List, Set, cast
 
 from ordered_set import OrderedSet
-from text_utils import StringFormat
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import Interval, TextGrid
+
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (
-    get_all_tiers, get_boundary_timepoints_from_tier,
-    get_intervals_part_of_timespan,
-    get_intervals_part_of_timespan_from_intervals, get_single_tier)
-from textgrid_utils.interval_format import IntervalFormat
-from textgrid_utils.intervals.common import (merge_intervals,
-                                             replace_intervals)
+from textgrid_utils.helper import (get_all_tiers, get_boundary_timepoints_from_tier,
+                                   get_intervals_part_of_timespan_from_intervals, get_single_tier)
+from textgrid_utils.intervals.common import merge_intervals_custom_symbol, replace_intervals
 from textgrid_utils.validation import (BoundaryError, InvalidGridError,
-                                       InvalidStringFormatIntervalError,
-                                       MultipleTiersWithThatNameError,
-                                       NonDistinctTiersError,
-                                       NotExistingTierError,
-                                       NotMatchingIntervalFormatError)
+                                       MultipleTiersWithThatNameError, NonDistinctTiersError,
+                                       NotExistingTierError)
 
 
-def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat) -> ExecutionResult:
+def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -46,18 +39,11 @@ def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_n
   if error := BoundaryError.validate(boundary_tier_timepoints, tiers):
     return error, False
 
-  for tier in tiers:
-    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
-      return error, False
-
-    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
-      return error, False
-
   changed_anything = False
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, boundary_tier_timepoints):
-      merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
+      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True
