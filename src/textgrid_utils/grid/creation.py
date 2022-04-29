@@ -2,12 +2,11 @@ from logging import getLogger
 from typing import Optional, Tuple
 
 import numpy as np
-from text_utils import StringFormat
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import can_parse_float, check_is_valid_grid, samples_to_s
-from textgrid_utils.validation import InvalidStringFormatIntervalError, ValidationError
+from textgrid_utils.validation import ValidationError
 
 
 class StartNotSmallerThanEndError(ValidationError):

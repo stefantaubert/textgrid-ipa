@@ -1,29 +1,18 @@
 import logging
-from collections import Counter, OrderedDict
-from logging import getLogger
-from math import ceil
-from typing import Any, Dict, Generator, Iterable, List, Optional
-from typing import OrderedDict as OrderedDictType
-from typing import Set, Tuple, cast
+from collections import OrderedDict
+from typing import Dict, List, Optional, Set, Tuple, cast
 
-import matplotlib
 import numpy as np
-import pandas as pd
 from matplotlib import collections
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.ticker import AutoMinorLocator, FixedLocator, MultipleLocator
-from numpy.core.fromnumeric import mean
-from ordered_set import OrderedSet
-from pandas import DataFrame
-from text_utils import StringFormat, Symbol
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from matplotlib.ticker import FixedLocator
+from textgrid.textgrid import TextGrid
+
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.helper import (get_all_intervals,
-                                   get_mark_symbols_intervals)
-from textgrid_utils.validation import (InvalidGridError,
-                                       NotExistingTierError)
+from textgrid_utils.helper import get_all_intervals
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError
 
 # warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
 # f"{x!r}"[1:-1]
