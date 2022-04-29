@@ -49,7 +49,6 @@ def get_tiers_parsers() -> Parsers:
   yield "transcribe-v2", "transcribe words of tiers using a pronunciation dictionary (version 2)", get_transcription_v2_parser
   yield "normalize", "normalize content of tiers", get_normalization_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
-  yield "switch-format", "switch tier format of tiers", get_string_format_switching_parser
   yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
   yield "mark-silence", "mark silence intervals", get_label_silence_parser
 
