@@ -1,7 +1,7 @@
-# textgrid-utils
+# textgrid-tools
 
-[![PyPI](https://img.shields.io/pypi/v/textgrid-utils.svg)](https://pypi.python.org/pypi/textgrid-utils)
-[![PyPI](https://img.shields.io/pypi/pyversions/textgrid-utils.svg)](https://pypi.python.org/pypi/textgrid-utils)
+[![PyPI](https://img.shields.io/pypi/v/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools)
+[![PyPI](https://img.shields.io/pypi/pyversions/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools)
 [![MIT](https://img.shields.io/github/license/stefantaubert/textgrid-ipa.svg)](https://github.com/stefantaubert/textgrid-ipa/blob/main/LICENSE)
 
 CLI to modify TextGrids and their corresponding audio files.
@@ -52,13 +52,13 @@ CLI to modify TextGrids and their corresponding audio files.
 ## Installation
 
 ```sh
-pip install textgrid-utils --user
+pip install textgrid-tools --user
 ```
 
 ## Usage
 
 ```sh
-textgrid-utils-cli
+textgrid-tools-cli
 ```
 
 ## Dependencies
@@ -89,7 +89,7 @@ If you want to cite this repo, you can use this BibTeX-entry:
 ```bibtex
 @misc{tstgu22,
   author = {Taubert, Stefan},
-  title = {textgrid-utils},
+  title = {textgrid-tools},
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},

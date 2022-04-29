@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-textgrid-utils = {editable = true, path = "."}
+textgrid-tools = {editable = true, path = "."}
 autopep8 = "*"
 pylint = "*"
 pycodestyle = "*"

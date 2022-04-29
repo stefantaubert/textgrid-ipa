@@ -1,5 +1,5 @@
 [project]
-name = "textgrid-utils"
+name = "textgrid-tools"
 version = "0.0.1"
 description = "CLI to modify TextGrids and their corresponding audio files."
 readme = "README.md"
@@ -55,20 +55,20 @@ Homepage = "https://github.com/stefantaubert/textgrid-ipa"
 Issues = "https://github.com/stefantaubert/textgrid-ipa/issues"
 
 [project.scripts]
-textgrid-utils-cli = "textgrid_utils_cli.cli:run_prod"
+textgrid-tools-cli = "textgrid_tools_cli.cli:run_prod"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = [
-  "textgrid_utils",
-  "textgrid_utils_cli"
+  "textgrid_tools",
+  "textgrid_tools_cli"
 ]
 exclude = [
-  "textgrid_utils_tests",
-  "textgrid_utils_debug",
-  "textgrid_utils_cli_debug",
-  "textgrid_utils_cli_tests",
-  "textgrid_utils_old"
+  "textgrid_tools_tests",
+  "textgrid_tools_debug",
+  "textgrid_tools_cli_debug",
+  "textgrid_tools_cli_tests",
+  "textgrid_tools_old"
 ]
 namespaces = true
 
@@ -76,8 +76,8 @@ namespaces = true
 log_cli = true
 log_level = "DEBUG"
 testpaths = [
-  "src/textgrid_utils_tests",
-  "src/textgrid_utils_cli_tests"
+  "src/textgrid_tools_tests",
+  "src/textgrid_tools_cli_tests"
 ]
 
 [tool.autopep8]
@@ -89,8 +89,8 @@ max_line_length = 100
 line_length = 100
 indent = 2
 known_first_party = [
-  "textgrid_utils",
-  "textgrid_utils_cli"
+  "textgrid_tools",
+  "textgrid_tools_cli"
 ]
 known_third_party = [
   "scipy",

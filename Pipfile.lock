@@ -1058,7 +1058,7 @@
             "index": "pypi",
             "version": "==1.5"
         },
-        "textgrid-utils": {
+        "textgrid-tools": {
             "editable": true,
             "path": "."
         },
