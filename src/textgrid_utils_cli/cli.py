@@ -74,6 +74,27 @@ def get_intervals_parsers() -> Parsers:
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 
 
+def get_parsers() -> Dict[str, Tuple[Parsers, str]]:
+  parsers: Dict[str, Tuple[Parsers, str]] = {
+    "grids": (get_grids_parsers(), "execute commands targeted at multiple grids at once"),
+    "grid": (get_grid_parsers(), "execute commands targeted at single grids"),
+    "tiers": (get_tiers_parsers(), "execute commands targeted at multiple tiers at once"),
+    "tier": (get_tier_parsers(), "execute commands targeted at single tiers"),
+    "intervals": (get_intervals_parsers(), "execute commands targeted at intervals of tiers"),
+  }
+  return parsers
+
+
+def print_features():
+  parsers = get_parsers()
+  for parser_name, (methods, help_str) in parsers.items():
+    print(f"- {parser_name}")
+    for command, description, method in methods:
+      print(f"  - {description}")
+
+
+
+
 def _init_parser():
   main_parser = ArgumentParser(
     formatter_class=formatter,
@@ -82,14 +103,7 @@ def _init_parser():
   main_parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
   subparsers = main_parser.add_subparsers(help="description")
 
-  parsers: Dict[str, Tuple[Parsers, str]] = {
-    "grids": (get_grids_parsers(), "execute commands targeted at multiple grids at once"),
-    "grid": (get_grid_parsers(), "execute commands targeted at single grids"),
-    "tiers": (get_tiers_parsers(), "execute commands targeted at multiple tiers at once"),
-    "tier": (get_tier_parsers(), "execute commands targeted at single tiers"),
-    "intervals": (get_intervals_parsers(), "execute commands targeted at intervals of tiers"),
-  }
-
+  parsers = get_parsers()
   for parser_name, (methods, help_str) in parsers.items():
     sub_parser = subparsers.add_parser(parser_name, help=help_str, formatter_class=formatter)
     subparsers_of_subparser = sub_parser.add_subparsers()
@@ -158,4 +172,5 @@ def debug_file_exists():
 
 
 if __name__ == "__main__":
+  #print_features()
   run(not __debug__)
