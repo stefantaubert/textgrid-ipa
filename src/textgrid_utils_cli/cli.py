@@ -64,7 +64,6 @@ def get_tier_parsers() -> Parsers:
 def get_intervals_parsers() -> Parsers:
   yield "join-between-pauses", "join intervals between pauses", get_between_pause_joining_parser
   yield "join-by-boundary", "join intervals by boundaries of a tier", get_boundary_joining_parser
-  yield "join-on-sentences", "join intervals sentence-wise", get_sentence_joining_parser
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
   yield "join-marks", "join intervals containing specific marks", get_mark_joining_parser
   yield "join-symbols", "join intervals containing specific symbols", get_symbols_joining_parser
