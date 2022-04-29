@@ -12,6 +12,5 @@ from textgrid_utils.intervals.mark_joining import join_marks
 from textgrid_utils.intervals.removing import remove_intervals
 from textgrid_utils.intervals.sentence_joining import \
     join_intervals_on_sentences
-from textgrid_utils.intervals.splitting import split
 from textgrid_utils.intervals.splitting_v2 import split_v2
 from textgrid_utils.intervals.symbols_joining import join_interval_symbols

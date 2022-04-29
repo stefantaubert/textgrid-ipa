@@ -1,19 +1,13 @@
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Generator, Iterable, List, Set, cast
 
-from text_utils import StringFormat, Symbol
 from textgrid.textgrid import Interval, TextGrid
+
 from textgrid_utils.comparison import check_intervals_are_equal
 from textgrid_utils.globals import ExecutionResult
 from textgrid_utils.helper import get_all_tiers, get_intervals_duration
-from textgrid_utils.interval_format import IntervalFormat
-from textgrid_utils.intervals.common import (
-    group_adjacent_pauses, merge_intervals, merge_intervals_custom_symbol,
-    replace_intervals)
-from textgrid_utils.validation import (InvalidGridError,
-                                       InvalidStringFormatIntervalError,
-                                       NotExistingTierError,
-                                       NotMatchingIntervalFormatError,
-                                       ValidationError)
+from textgrid_utils.intervals.common import (group_adjacent_pauses, merge_intervals_custom_symbol,
+                                             replace_intervals)
+from textgrid_utils.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
 class PauseTooLowError(ValidationError):
@@ -32,7 +26,7 @@ class PauseTooLowError(ValidationError):
     return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_string_format: StringFormat, tiers_interval_format: IntervalFormat, pause: float, custom_join_symbol: Optional[Symbol]) -> ExecutionResult:
+def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
@@ -47,22 +41,11 @@ def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], tiers_st
 
   tiers = list(get_all_tiers(grid, tier_names))
 
-  for tier in tiers:
-    if error := InvalidStringFormatIntervalError.validate_tier(tier, tiers_string_format):
-      return error, False
-
-    if error := NotMatchingIntervalFormatError.validate_tier(tier, tiers_interval_format, tiers_string_format):
-      return error, False
-
   changed_anything = False
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for chunk in chunk_intervals(intervals_copy, pause):
-      if custom_join_symbol is None:
-        merged_interval = merge_intervals(chunk, tiers_string_format, tiers_interval_format)
-      else:
-        merged_interval = merge_intervals_custom_symbol(
-          chunk, tiers_string_format, custom_join_symbol)
+      merged_interval = merge_intervals_custom_symbol(chunk, join_with)
       if not check_intervals_are_equal(chunk, [merged_interval]):
         replace_intervals(tier, chunk, [merged_interval])
         changed_anything = True

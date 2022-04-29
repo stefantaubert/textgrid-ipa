@@ -1,13 +1,12 @@
-from typing import (Collection, Generator, Iterable, List, Optional, Set,
-                    Tuple, Union)
+from typing import Collection, Generator, Iterable, List, Optional, Set, Tuple, Union
 
 from text_utils import StringFormat, symbols_join
 from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
-from textgrid_utils.helper import (get_mark_symbols_intervals,
+
+from textgrid_utils.helper import (get_mark, get_mark_symbols_intervals,
                                    interval_is_None_or_whitespace)
-from textgrid_utils.interval_format import (IntervalFormat,
-                                            merge_interval_symbols)
+from textgrid_utils.interval_format import IntervalFormat, merge_interval_symbols
 
 
 def merge_intervals(intervals: List[Interval], intervals_string_format: StringFormat, intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]] = None, ignore_join_symbols: Optional[Set[Symbol]] = None) -> Interval:
@@ -35,15 +34,11 @@ def merge_intervals(intervals: List[Interval], intervals_string_format: StringFo
   raise NotImplementedError()
 
 
-def merge_intervals_custom_symbol(intervals: List[Interval], intervals_string_format: StringFormat, join_symbol: Optional[Symbol]) -> Interval:
+def merge_intervals_custom_symbol(intervals: List[Interval], join_symbol: Symbol) -> Interval:
   assert len(intervals) > 0
-  interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
-  joined_interval_symbols = symbols_join(interval_symbols, join_symbol=join_symbol)
-
-  if len(joined_interval_symbols) == 0:
-    mark = ""
-  else:
-    mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols)
+  marks = (get_mark(interval) for interval in intervals)
+  non_empty_marks = (m for m in marks if m != "")
+  mark = join_symbol.join(non_empty_marks)
 
   first_interval = intervals[0]
   last_interval = intervals[-1]
@@ -53,6 +48,7 @@ def merge_intervals_custom_symbol(intervals: List[Interval], intervals_string_fo
     maxTime=last_interval.maxTime,
     mark=mark,
   )
+
   return interval
 
 
