@@ -1,7 +1,6 @@
 import argparse
 import codecs
 from argparse import ArgumentParser, ArgumentTypeError
-from collections import OrderedDict
 from functools import partial
 from logging import getLogger
 from os import cpu_count
@@ -15,17 +14,12 @@ import numpy as np
 from general_utils.main import get_files_dict
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read, write
-from text_utils import Language, SymbolFormat
-from text_utils.string_format import StringFormat
 from textgrid.textgrid import TextGrid
-from textgrid_utils_cli.globals import (DEFAULT_ENCODING,
-                                        DEFAULT_MAXTASKSPERCHILD,
-                                        DEFAULT_N_DIGITS,
-                                        DEFAULT_N_FILE_CHUNKSIZE,
-                                        DEFAULT_N_JOBS)
-from textgrid_utils_cli.validation import GridCouldNotBeLoadedError
+
 from textgrid_utils.helper import check_is_valid_grid
-from textgrid_utils.interval_format import IntervalFormat
+from textgrid_utils_cli.globals import (DEFAULT_ENCODING, DEFAULT_MAXTASKSPERCHILD,
+                                        DEFAULT_N_DIGITS, DEFAULT_N_FILE_CHUNKSIZE, DEFAULT_N_JOBS)
+from textgrid_utils_cli.validation import GridCouldNotBeLoadedError
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
@@ -51,98 +45,6 @@ def add_n_digits_argument(parser: ArgumentParser) -> None:
 #       if not namespace.overwrite and values.is_file():
 #         raise ArgumentTypeError("File already exists!")
 #     super().__call__(parser, namespace, values, option_string)
-
-def add_string_format_argument(parser: ArgumentParser, target: str, short_name: str = "-f", name: str = '--formatting') -> None:
-  names = OrderedDict((
-    (StringFormat.TEXT, "Normal"),
-    (StringFormat.SYMBOLS, "Spaced"),
-  ))
-
-  values_to_names = dict(zip(
-    names.values(),
-    names.keys()
-  ))
-
-  help_str = f"formatting of text in {target}; use \'{names[StringFormat.TEXT]}\' for normal text and \'{names[StringFormat.SYMBOLS]}\' for space separated symbols, i.e., words are separated by two spaces and characters are separated by one space. Example: {names[StringFormat.TEXT]} -> |This text.|; {names[StringFormat.SYMBOLS]} -> |T␣h␣i␣s␣␣t␣e␣x␣t␣.|"
-  parser.add_argument(
-    short_name, name,
-    metavar=list(names.values()),
-    choices=StringFormat,
-    type=values_to_names.get,
-    default=names[StringFormat.TEXT],
-    help=help_str,
-  )
-
-
-def add_interval_format_argument(parser: ArgumentParser, target: str, short_name: str = "-c", name: str = '--content') -> None:
-  names = OrderedDict((
-    (IntervalFormat.SYMBOL, "Symbol"),
-    (IntervalFormat.SYMBOLS, "Symbols"),
-    (IntervalFormat.WORD, "Word"),
-    (IntervalFormat.WORDS, "Words"),
-  ))
-
-  values_to_names = dict(zip(
-    names.values(),
-    names.keys()
-  ))
-
-  help_str = f"type of intervals content in {target}, i.e., what does one interval contain if it is not a pause-interval? Example: {names[IntervalFormat.SYMBOL]} -> |AA1|B|CH|; {names[IntervalFormat.SYMBOLS]} -> |\"␣AA0|B|CH␣.|; {names[IntervalFormat.WORD]} -> |This|is|a|sentence.|; {names[IntervalFormat.WORDS]} -> |This␣is␣a␣sentence.|And␣another␣one.|"
-  parser.add_argument(
-    short_name, name,
-    metavar=list(names.values()),
-    choices=IntervalFormat,
-    type=values_to_names.get,
-    default=names[IntervalFormat.WORDS],
-    help=help_str,
-  )
-
-
-def add_language_argument(parser: ArgumentParser, target: str, short_name: str = "-l", name: str = '--language') -> None:
-  names = OrderedDict((
-    (Language.ENG, "en"),
-    (Language.GER, "de"),
-    (Language.CHN, "zh"),
-  ))
-
-  values_to_names = dict(zip(
-    names.values(),
-    names.keys()
-  ))
-
-  help_str = f"language of {target} (ISO 639-1 Code)"
-  parser.add_argument(
-    short_name, name,
-    metavar=list(names.values()),
-    choices=Language,
-    type=values_to_names.get,
-    default=names[Language.ENG],
-    help=help_str,
-  )
-
-
-def add_symbol_format(parser: ArgumentParser, target: str, short_name: str = "-sf", name: str = '--symbol-format') -> None:
-  names = OrderedDict((
-    (SymbolFormat.GRAPHEMES, "Graphemes"),
-    (SymbolFormat.PHONEMES_ARPA, "ARPA-Phonemes"),
-    (SymbolFormat.PHONEMES_IPA, "IPA-Phonemes"),
-    (SymbolFormat.PHONES_IPA, "IPA-Phones"),
-  ))
-
-  values_to_names = dict(zip(
-    names.values(),
-    names.keys()
-  ))
-
-  help_str = f"format of symbols in {target}"
-  parser.add_argument(
-    short_name, name,
-    metavar=list(names.values()),
-    choices=SymbolFormat,
-    type=values_to_names.get,
-    default=names[SymbolFormat.GRAPHEMES],
-    help=help_str,
-  )
 
 
 def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:

@@ -2,8 +2,6 @@ from math import ceil
 from typing import Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
-from text_utils import StringFormat, symbols_ignore
-from text_utils.types import Symbols
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 
@@ -153,20 +151,6 @@ def set_intervals_consecutive(intervals: List[Interval], min_time: float, max_ti
 
     interval.minTime = new_min_time
     interval.maxTime = new_max_time
-
-
-def get_mark_symbols(interval: Interval, string_format: StringFormat) -> Symbols:
-  return string_format.convert_string_to_symbols(get_mark(interval))
-
-
-def get_mark_symbols_intervals(intervals: Iterable[Interval], string_format: StringFormat) -> Generator[Symbols, None, None]:
-  for interval in intervals:
-    yield get_mark_symbols(interval, string_format)
-
-
-def symbols_are_empty_or_whitespace(symbols: Symbols) -> bool:
-  result = symbols_ignore(symbols, ignore={" ", ""})
-  return len(result) == 0
 
 
 def str_is_empty_or_whitespace(string: str) -> bool:

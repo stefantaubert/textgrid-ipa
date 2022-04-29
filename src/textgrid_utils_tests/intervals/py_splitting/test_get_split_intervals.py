@@ -1,15 +1,12 @@
-from text_utils import StringFormat
 from textgrid.textgrid import Interval
-from textgrid_utils.interval_format import IntervalFormat
-from textgrid_utils.intervals.splitting import get_split_intervals
+
+from textgrid_utils.intervals.splitting_v2 import get_split_intervals_v2
 
 
 def test_no_space__returns_one_intervals():
   interval = Interval(0.5, 2, "\"Thistest\"")
 
-  intervals = list(get_split_intervals(
-    interval, StringFormat.TEXT,
-      IntervalFormat.WORDS, {}, {}))
+  intervals = list(get_split_intervals_v2(interval, " ", False))
 
   assert len(intervals) == 1
   assert intervals[0] == Interval(0.5, 2, "\"Thistest\"")
@@ -18,9 +15,7 @@ def test_no_space__returns_one_intervals():
 def test_one_space__returns_two_intervals():
   interval = Interval(0.5, 2, "\"This test\"")
 
-  intervals = list(get_split_intervals(
-    interval, StringFormat.TEXT,
-      IntervalFormat.WORDS, {}, {}))
+  intervals = list(get_split_intervals_v2(interval, " ", False))
 
   assert len(intervals) == 2
   assert intervals[0] == Interval(0.5, 1.25, "\"This")
@@ -30,20 +25,16 @@ def test_one_space__returns_two_intervals():
 def test_double_space__returns_two_intervals():
   interval = Interval(3, 5, "Is  right.")
 
-  intervals = list(get_split_intervals(
-    interval, StringFormat.TEXT,
-      IntervalFormat.WORDS, {}, {}))
+  intervals = list(get_split_intervals_v2(interval, " ", False))
 
   assert len(intervals) == 2
-  assert intervals[0] == Interval(3, 3.5, "Is")
-  assert intervals[1] == Interval(3.5, 5.0, "right.")
+  assert intervals[0] == Interval(3, 4, "Is")
+  assert intervals[1] == Interval(4, 5.0, "right.")
 
 
 def test_component():
   interval = Interval(3, 5, "Is  right and a test and 123 abce: and? \"no\" ??.")
 
-  intervals = list(get_split_intervals(
-    interval, StringFormat.TEXT,
-      IntervalFormat.WORDS, {}, {}))
+  intervals = list(get_split_intervals_v2(interval, " ", False))
 
   assert len(intervals) == 11

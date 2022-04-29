@@ -1,17 +1,13 @@
 from collections import OrderedDict
-from typing import Iterable, Optional
+from typing import Iterable
 from typing import OrderedDict as ODType
 
 import numpy as np
 from ordered_set import OrderedSet
-from text_utils.string_format import (StringFormat,
-                                      can_convert_symbols_string_to_symbols)
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_utils.helper import (
-    check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
-    get_count_of_tiers, get_interval_readable, get_mark, get_mark_symbols,
-    get_tier_readable, s_to_samples, tier_exists, timepoint_is_boundary)
-from textgrid_utils.interval_format import IntervalFormat
+from textgrid.textgrid import IntervalTier, TextGrid
+
+from textgrid_utils.helper import (check_is_valid_grid, get_count_of_tiers, s_to_samples,
+                                   tier_exists, timepoint_is_boundary)
 
 
 class ValidationError(Exception):
@@ -169,104 +165,3 @@ class NonDistinctTiersError(ValidationError):
   @property
   def default_message(self) -> str:
     return f"Tiers \"{self.tier_name}\" are not distinct!"
-
-
-class InvalidStringFormatIntervalError(ValidationError):
-  def __init__(self, string: str, string_format: StringFormat) -> None:
-    super().__init__()
-    self.string = string
-    self.string_format = string_format
-    self.interval: Optional[Interval] = None
-    self.tier: Optional[IntervalTier] = None
-
-  @classmethod
-  def validate(cls, string: str, string_format: StringFormat):
-    if string_format == StringFormat.SYMBOLS:
-      if not can_convert_symbols_string_to_symbols(string):
-        return cls(string, string_format)
-    return None
-
-  @classmethod
-  def validate_interval(cls, interval: Interval, string_format: StringFormat):
-    mark = get_mark(interval)
-    if error := cls.validate(mark, string_format):
-      error.interval = interval
-      return error
-    return None
-
-  @classmethod
-  def validate_intervals(cls, intervals: Iterable[Interval], string_format: StringFormat):
-    for interval in intervals:
-      if error := cls.validate_interval(interval, string_format):
-        return error
-    return None
-
-  @classmethod
-  def validate_tier(cls, tier: IntervalTier, string_format: StringFormat):
-    if error := cls.validate_intervals(tier.intervals, string_format):
-      error.tier = tier
-      return error
-    return None
-
-  @property
-  def default_message(self) -> str:
-    msg = f"Marks format does not match!"
-    if self.interval is not None:
-      msg += f"\n@{get_interval_readable(self.interval)}"
-    if self.tier is not None:
-      msg += f"\n@{get_tier_readable(self.tier)}"
-    msg += "\n"
-    msg += f"Format: {self.string_format!r}\n"
-    msg += f"String:\n\n```\n{self.string}\n```"
-    return msg
-
-
-class NotMatchingIntervalFormatError(ValidationError):
-  def __init__(self, tier_interval_format: IntervalFormat, string_format: StringFormat, interval: Interval) -> None:
-    super().__init__()
-    self.tier_interval_format = tier_interval_format
-    self.string_format = string_format
-    self.interval = interval
-    self.tier: Optional[IntervalTier] = None
-
-  @classmethod
-  def validate(cls, interval: Interval, interval_format: IntervalFormat, string_format: StringFormat):
-    symbols = get_mark_symbols(interval, string_format)
-    if interval_format == IntervalFormat.SYMBOL:
-      if len(symbols) > 1:
-        return cls(interval_format, string_format, interval)
-    elif interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
-      if " " in symbols:
-        return cls(interval_format, string_format, interval)
-    elif interval_format == IntervalFormat.WORDS:
-      return None
-    else:
-      assert False
-    return None
-
-  @classmethod
-  def validate_tier(cls, tier: IntervalTier, interval_format: IntervalFormat, string_format: StringFormat):
-    for interval in tier.intervals:
-      if error := cls.validate(interval, interval_format, string_format):
-        error.tier = tier
-        return error
-    return None
-
-  @property
-  def default_message(self) -> str:
-    msg = f"Interval marks format does not match {self.tier_interval_format!r}!\n"
-    if self.tier_interval_format in (IntervalFormat.SYMBOLS, IntervalFormat.WORD):
-      if self.string_format == StringFormat.TEXT:
-        msg += "Spaces are not allowed:\n"
-      elif self.string_format == StringFormat.SYMBOLS:
-        msg += "Double-spaces are not allowed:\n"
-      else:
-        assert False
-    elif self.tier_interval_format == IntervalFormat.SYMBOL:
-      msg += "Multiple symbols are not allowed:\n"
-    else:
-      assert False
-    msg += f"{get_interval_readable(self.interval)}"
-    if self.tier is not None:
-      msg += f"\n{get_tier_readable(self.tier)}"
-    return msg

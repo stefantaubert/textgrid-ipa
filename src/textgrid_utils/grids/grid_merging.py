@@ -1,27 +1,12 @@
 from collections import OrderedDict
-from logging import getLogger
 from math import inf
-from typing import Dict, Generator, Iterable, List, Optional, Set, Tuple, cast
+from typing import Iterable, List, Optional, Tuple, cast
 
-from g2p_en import G2p
-from ordered_set import OrderedSet
-from pronunciation_dict_parser import (Pronunciation, PronunciationDict, PublicDictType,
-                                       parse_public_dict)
-from sentence2pronunciation.lookup_cache import LookupCache
-from sentence2pronunciation.multiprocessing import prepare_cache_mp
-from text_utils import StringFormat, Symbol, Symbols, symbols_to_upper
-from text_utils.utils import pronunciation_dict_to_tuple_dict, symbols_ignore, symbols_split
 from textgrid import Interval, IntervalTier, TextGrid
-from tqdm import tqdm
 
 from textgrid_utils.globals import ExecutionResult
-from textgrid_utils.grids.arpa import ALLOWED_MFA_MODEL_SYMBOLS, SIL
-from textgrid_utils.helper import get_all_tiers, get_mark_symbols_intervals
-from textgrid_utils.interval_format import IntervalFormat
 from textgrid_utils.intervals.boundary_fixing import fix_interval_boundaries
-from textgrid_utils.validation import (InvalidGridError, InvalidStringFormatIntervalError, MultipleTiersWithThatNameError,
-                                       NotExistingTierError, NotMatchingIntervalFormatError,
-                                       ValidationError)
+from textgrid_utils.validation import InvalidGridError, ValidationError
 
 
 class TiersNotSameError(ValidationError):
@@ -54,7 +39,7 @@ def merge_grids(grids: List[TextGrid]) -> Tuple[ExecutionResult, Optional[TextGr
     if error := InvalidGridError.validate(grid):
       return (error, False), None
 
-    #if error := MultipleTiersWithThatNameError.validate(grid, ref_grid):
+    # if error := MultipleTiersWithThatNameError.validate(grid, ref_grid):
     #  return error, False
 
     if error := TiersNotSameError.validate(grid, ref_grid):
@@ -79,7 +64,7 @@ def merge_grids(grids: List[TextGrid]) -> Tuple[ExecutionResult, Optional[TextGr
     result.append(grid_tier)
   result.minTime = 0.0
   result.maxTime = result.tiers[0].maxTime
-  
+
   if len(target_tiers) > 1:
     tier_names = list(target_tiers.keys())
     fix_interval_boundaries(result, grid.tiers[0].name, tier_names[1:], inf)

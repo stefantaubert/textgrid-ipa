@@ -10,6 +10,7 @@ from typing import Callable, Dict, Generator, List, Tuple
 from textgrid_utils_cli import *
 from textgrid_utils_cli.grids.grids_merging import get_grids_merging_parser
 from textgrid_utils_cli.grids.vocabulary_export import get_vocabulary_export_parser
+from textgrid_utils_cli.tier.importing import get_importing_parser
 from textgrid_utils_cli.tiers.transcription_v2 import get_transcription_v2_parser
 
 __version__ = version("textgrid-utils")
@@ -46,7 +47,6 @@ def get_grid_parsers() -> Parsers:
 def get_tiers_parsers() -> Parsers:
   yield "transcribe-to-ipa", "transcribe tiers with ARPA transcriptions to IPA", get_arpa_to_ipa_transcription_parser
   yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_v2_parser
-  yield "normalize", "normalize content of tiers", get_normalization_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
   yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
   yield "mark-silence", "mark silence intervals", get_label_silence_parser
@@ -59,6 +59,7 @@ def get_tier_parsers() -> Parsers:
   yield "map", "map tier to other tiers", get_mapping_parser
   yield "move", "move tier to another position", get_moving_parser
   yield "export", "export content of tier to a txt file", get_text_conversion_parser
+  yield "import", "import content of tier from a txt file", get_importing_parser
 
 
 def get_intervals_parsers() -> Parsers:

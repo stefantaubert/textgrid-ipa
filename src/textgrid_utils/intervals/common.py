@@ -1,40 +1,11 @@
-from typing import Collection, Generator, Iterable, List, Optional, Set, Tuple, Union
+from typing import Generator, Iterable, List, Optional, Tuple, Union
 
-from text_utils import StringFormat, symbols_join
-from text_utils.types import Symbol
 from textgrid.textgrid import Interval, IntervalTier
 
-from textgrid_utils.helper import (get_mark, get_mark_symbols_intervals,
-                                   interval_is_None_or_whitespace)
-from textgrid_utils.interval_format import IntervalFormat, merge_interval_symbols
+from textgrid_utils.helper import get_mark, interval_is_None_or_whitespace
 
 
-def merge_intervals(intervals: List[Interval], intervals_string_format: StringFormat, intervals_interval_format: IntervalFormat, join_symbols: Optional[Set[Symbol]] = None, ignore_join_symbols: Optional[Set[Symbol]] = None) -> Interval:
-  assert len(intervals) > 0
-  interval_symbols = list(get_mark_symbols_intervals(intervals, intervals_string_format))
-  joined_interval_symbols = list(merge_interval_symbols(
-    interval_symbols, intervals_interval_format, join_symbols, ignore_join_symbols))
-  assert 0 <= len(joined_interval_symbols) <= len(interval_symbols)
-
-  if len(joined_interval_symbols) <= 1:
-    if len(joined_interval_symbols) == 0:
-      mark = ""
-    else:
-      mark = intervals_string_format.convert_symbols_to_string(joined_interval_symbols[0])
-
-    first_interval = intervals[0]
-    last_interval = intervals[-1]
-
-    interval = Interval(
-      minTime=first_interval.minTime,
-      maxTime=last_interval.maxTime,
-      mark=mark,
-    )
-    return interval
-  raise NotImplementedError()
-
-
-def merge_intervals_custom_symbol(intervals: List[Interval], join_symbol: Symbol) -> Interval:
+def merge_intervals_custom_symbol(intervals: List[Interval], join_symbol: str) -> Interval:
   assert len(intervals) > 0
   marks = (get_mark(interval) for interval in intervals)
   non_empty_marks = (m for m in marks if m != "")

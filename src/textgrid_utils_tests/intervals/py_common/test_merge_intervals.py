@@ -1,15 +1,6 @@
+from textgrid.textgrid import Interval
 
-from typing import (Collection, Generator, Iterable, List, Optional, Set,
-                    Tuple, Union)
-
-from text_utils import StringFormat
-from text_utils.types import Symbol
-from textgrid.textgrid import Interval, IntervalTier
-from textgrid_utils.helper import (get_mark_symbols_intervals,
-                                   interval_is_None_or_whitespace)
-from textgrid_utils.interval_format import (IntervalFormat,
-                                            merge_interval_symbols)
-from textgrid_utils.intervals.common import merge_intervals
+from textgrid_utils.intervals.common import merge_intervals_custom_symbol
 
 
 def test_component():
@@ -21,6 +12,6 @@ def test_component():
     Interval(4, 5, "d"),
   )
 
-  result = merge_intervals(list(intervals), StringFormat.TEXT, IntervalFormat.SYMBOL)
+  result = merge_intervals_custom_symbol(list(intervals), "X")
 
-  assert result
+  assert result == Interval(0, 5, "XbXXcXd")
