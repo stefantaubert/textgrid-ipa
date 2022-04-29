@@ -61,6 +61,17 @@ pip install textgrid-utils --user
 textgrid-utils-cli
 ```
 
+## Dependencies
+
+- scipy
+- numpy
+- tqdm
+- TextGrid
+- pandas
+- matplotlib
+- ordered-set >=4.1.0
+- pronunciation-dictionary >=0.0.4
+
 ## Troubleshooting
 
 If recordings/audio files are not in `.wav` format they need to be converted:
