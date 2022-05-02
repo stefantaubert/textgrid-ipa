@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Callable, List, Optional, OrderedDict, Tuple
 
 from textgrid.textgrid import TextGrid
-from textgrid_tools_cli.helper import (copy_grid, get_grid_files, save_grid,
-                                       try_load_grid)
+
 from textgrid_tools.globals import ExecutionResult
+from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
 
 
 def getFileLogger() -> Logger:
@@ -20,17 +20,22 @@ def getFileLogger() -> Logger:
 
 
 def try_initFileLogger(path: Path) -> None:
+  if path.is_dir():
+    logger = getLogger(__name__)
+    logger.error("Path is a directory!")
   try:
     path.parent.mkdir(parents=True, exist_ok=True)
-    os.remove(path)
+    if path.is_file():
+      os.remove(path)
     path.write_text("")
     fh = logging.FileHandler(path)
     fh.setLevel(logging.DEBUG)
     flogger = getFileLogger()
     flogger.addHandler(fh)
-  except:
+  except Exception as ex:
     logger = getLogger(__name__)
     logger.error("Logfile couldn't be created!")
+    logger.exception(ex)
 
 
 def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
