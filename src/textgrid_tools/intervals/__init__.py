@@ -5,5 +5,5 @@ from textgrid_tools.intervals.duration_joining import join_intervals_on_duration
 from textgrid_tools.intervals.durations_plotting import plot_interval_durations_diagram
 from textgrid_tools.intervals.mark_joining import join_marks
 from textgrid_tools.intervals.removing import remove_intervals
-from textgrid_tools.intervals.splitting_v2 import split_v2
+from textgrid_tools.intervals.splitting import split_intervals
 from textgrid_tools.intervals.symbols_joining import join_interval_symbols

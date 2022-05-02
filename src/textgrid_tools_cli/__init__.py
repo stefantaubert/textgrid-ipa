@@ -10,7 +10,7 @@ from textgrid_tools_cli.intervals import (get_between_pause_joining_parser,
                                           get_duration_joining_parser, get_mark_joining_parser,
                                           get_plot_interval_durations_parser)
 from textgrid_tools_cli.intervals import get_removing_parser as get_intervals_removing_parser
-from textgrid_tools_cli.intervals import get_splitting_v2_parser, get_symbols_joining_parser
+from textgrid_tools_cli.intervals import get_splitting_parser, get_symbols_joining_parser
 from textgrid_tools_cli.tier import (get_cloning_parser, get_importing_parser, get_mapping_parser,
                                      get_moving_parser, get_renaming_parser,
                                      get_exporting_parser)

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable, List, Optional, OrderedDict, Tuple
 
 from textgrid.textgrid import TextGrid
+from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
@@ -96,15 +97,22 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
     directory=directory,
     output_directory=output_directory,
   )
-
+  
+  logger.debug(f"Jobs: {n_jobs}")
+  logger.debug(f"Maxtask: {maxtasksperchild}")
+  logger.debug(f"Chunksize: {chunksize}")
+  logger.debug(f"Files: {len(grid_files)}")
+  
   with Pool(
     processes=n_jobs,
     initializer=__init_pool,
     initargs=(grid_files,),
     maxtasksperchild=maxtasksperchild,
   ) as pool:
-    result: List[Tuple[bool, bool]] = list(pool.imap_unordered(
-      method_proxy, enumerate(grid_files.keys(), start=1), chunksize=chunksize))
+    iterator = pool.imap_unordered(method_proxy, enumerate(
+      grid_files.keys(), start=1), chunksize=chunksize)
+    iterator = tqdm(iterator, total=len(grid_files), desc="Processing", unit="file(s)")
+    result: List[Tuple[bool, bool]] = list(iterator)
 
   total_success = all(success for success, _ in result)
   total_changed_anything = any(changed_anything for _, changed_anything in result)
@@ -126,7 +134,7 @@ def process_grid(i_file_stem: str, n_digits: int, overwrite: bool, method: Calla
   file_nr, file_stem = i_file_stem
   rel_path = process_grid_files[file_stem]
   logger_prepend = f"[{file_stem}]"
-  logger.info(f"Processing {file_stem} ({file_nr}/{len(process_grid_files)})...")
+  #logger.info(f"Processing {file_stem} ({file_nr}/{len(process_grid_files)})...")
   grid_file_out_abs = output_directory / rel_path
 
   if grid_file_out_abs.exists() and not overwrite:

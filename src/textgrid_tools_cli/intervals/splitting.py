@@ -4,20 +4,17 @@ from pathlib import Path
 from typing import Optional
 
 from ordered_set import OrderedSet
+
+from textgrid_tools import split_intervals
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tiers_argument)
-from textgrid_tools import split_v2
+from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument)
 
 
-def get_splitting_v2_parser(parser: ArgumentParser):
+def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits the content of a tier."
   add_directory_argument(parser, "directory containing the grid files which should be modified")
   add_tiers_argument(parser, "tiers which should be split")
@@ -30,12 +27,12 @@ def get_splitting_v2_parser(parser: ArgumentParser):
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
   add_maxtaskperchild_argument(parser)
-  return app_split_v2
+  return app_split_intervals
 
 
-def app_split_v2(directory: Path, tiers: OrderedSet[str], symbol: str, keep: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_split_intervals(directory: Path, tiers: OrderedSet[str], symbol: str, keep: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   method = partial(
-    split_v2,
+    split_intervals,
     symbol=symbol,
     keep=keep,
     tier_names=tiers,

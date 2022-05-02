@@ -1,6 +1,6 @@
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
-from textgrid_tools.intervals.splitting_v2 import split_v2
+from textgrid_tools.intervals.splitting import split_intervals
 
 
 def test_component__words():
@@ -14,7 +14,7 @@ def test_component__words():
   tier.add(5, 6, "")
   grid.append(tier)
 
-  error, changed_anything = split_v2(
+  error, changed_anything = split_intervals(
     grid, {"test"}, " ", False)
 
   assert error is None

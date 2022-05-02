@@ -1,11 +1,11 @@
 from textgrid.textgrid import Interval
-from textgrid_tools.intervals.splitting_v2 import get_split_intervals_v2
+from textgrid_tools.intervals.splitting import get_split_intervals
 
 
 def test_empty__empty_F__returns_one_interval():
   interval = Interval(0.5, 2, "")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", False))
 
   assert len(intervals) == 1
@@ -15,7 +15,7 @@ def test_empty__empty_F__returns_one_interval():
 def test_empty__empty_T__returns_one_interval():
   interval = Interval(0.5, 2, "")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", True))
 
   assert len(intervals) == 1
@@ -25,7 +25,7 @@ def test_empty__empty_T__returns_one_interval():
 def test_one_symbol__empty_F__returns_one_interval():
   interval = Interval(0.5, 2, "a")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", False))
 
   assert len(intervals) == 1
@@ -35,7 +35,7 @@ def test_one_symbol__empty_F__returns_one_interval():
 def test_one_symbol__empty_T__returns_one_interval():
   interval = Interval(0.5, 2, "a")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", True))
 
   assert len(intervals) == 1
@@ -45,7 +45,7 @@ def test_one_symbol__empty_T__returns_one_interval():
 def test_two_symbols__empty_F__returns_two_intervals():
   interval = Interval(0.5, 1.5, "ab")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", False))
 
   assert len(intervals) == 2
@@ -60,7 +60,7 @@ def test_two_symbols__empty_F__returns_two_intervals():
 def test_two_symbols__empty_T__returns_three_intervals():
   interval = Interval(0.5, 2.0, "ab")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, "", True))
 
   assert len(intervals) == 3
@@ -78,7 +78,7 @@ def test_two_symbols__empty_T__returns_three_intervals():
 def test_component_F():
   interval = Interval(0.5, 2.5, "this is a test")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, " ", False))
 
   assert len(intervals) == 4
@@ -91,7 +91,7 @@ def test_component_F():
 def test_component_T():
   interval = Interval(0.5, 4, "this is a test")
 
-  intervals = list(get_split_intervals_v2(
+  intervals = list(get_split_intervals(
     interval, " ", True))
 
   assert len(intervals) == 7
