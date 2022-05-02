@@ -38,8 +38,8 @@ def app_remove_symbols(directory: Path, tiers: OrderedSet[str], text: OrderedSet
   method = partial(
     remove_symbols,
     tier_names=tiers,
-    symbols=text,
-    marks_symbols=marks_text,
+    text=text,
+    marks_text=marks_text,
     marks=marks,
   )
 
