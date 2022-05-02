@@ -11,7 +11,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
                                        save_text, try_load_grid)
 
 
-def get_text_conversion_parser(parser: ArgumentParser):
+def get_exporting_parser(parser: ArgumentParser):
   parser.description = "This command writes the content of a tier into a text file."
 
   add_directory_argument(parser)
