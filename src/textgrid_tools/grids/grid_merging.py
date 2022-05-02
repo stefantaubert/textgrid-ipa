@@ -5,8 +5,7 @@ from typing import Iterable, List, Optional, Tuple, cast
 from textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import (check_intervals_are_consecutive,
-                                   check_tier_intervals_are_consecutive)
+from textgrid_tools.helper import check_intervals_are_consecutive
 from textgrid_tools.intervals.boundary_fixing import fix_interval_boundaries
 from textgrid_tools.validation import InvalidGridError, ValidationError
 
@@ -75,7 +74,7 @@ def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_
   return (None, True), result
 
 
-def set_times_consecutive_from_durations(intervals: Iterable[Interval], init_min_time: float) -> None:
+def set_times_consecutive_from_durations(intervals: Iterable[Interval], init_min_time: float) -> float:
   last_time = init_min_time
   for interval in intervals:
     duration = interval.duration()

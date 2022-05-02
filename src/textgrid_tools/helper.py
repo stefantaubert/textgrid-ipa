@@ -106,7 +106,8 @@ def check_interval_is_valid(interval: Interval) -> bool:
 
 def check_tier_intervals_are_consecutive(tier: IntervalTier) -> bool:
   return check_intervals_are_consecutive(tier.intervals)
-  
+
+
 def check_intervals_are_consecutive(intervals: List[Interval]) -> bool:
   if len(intervals) == 0:
     return True
