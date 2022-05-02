@@ -65,7 +65,7 @@ def import_text_to_tier_ns(directory: Path, tier: str, sep: str, text_directory:
     assert grid is not None
 
     try:
-      text = rel_path.read_text(encoding)
+      text = (text_dir / rel_path).read_text(encoding)
     except Exception as ex:
       logger.error("Text couldn't be loaded. Skipped")
       logger.exception(ex)
