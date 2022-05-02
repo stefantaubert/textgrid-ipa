@@ -55,7 +55,6 @@ def get_tiers_parsers() -> Parsers:
 def get_tier_parsers() -> Parsers:
   yield "rename", "rename tier", get_renaming_parser
   yield "clone", "clone tier", get_cloning_parser
-  yield "copy", "copy tier from one grid to another", get_copying_parser
   yield "map", "map tier to other tiers", get_mapping_parser
   yield "move", "move tier to another position", get_moving_parser
   yield "export", "export content of tier to a txt file", get_text_conversion_parser
