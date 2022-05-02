@@ -1,3 +1,4 @@
+from logging import getLogger
 from math import ceil
 from typing import Generator, Iterable, List, Optional, Set, cast
 
@@ -104,11 +105,16 @@ def check_interval_is_valid(interval: Interval) -> bool:
 
 
 def check_tier_intervals_are_consecutive(tier: IntervalTier) -> bool:
-  for i in range(1, len(tier.intervals)):
-    prev_interval = cast(Interval, tier.intervals[i - 1])
-    current_interval = cast(Interval, tier.intervals[i])
-    if prev_interval.maxTime != current_interval.minTime:
+  return check_intervals_are_consecutive(tier.intervals)
+  
+def check_intervals_are_consecutive(intervals: List[Interval]) -> bool:
+  if len(intervals) == 0:
+    return True
+  prev_interval = intervals[0]
+  for interval in intervals[1:]:
+    if prev_interval.maxTime != interval.minTime:
       return False
+    prev_interval = interval
   return True
 
 

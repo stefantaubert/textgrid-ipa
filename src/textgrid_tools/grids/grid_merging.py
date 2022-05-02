@@ -5,6 +5,8 @@ from typing import Iterable, List, Optional, Tuple, cast
 from textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
+from textgrid_tools.helper import (check_intervals_are_consecutive,
+                                   check_tier_intervals_are_consecutive)
 from textgrid_tools.intervals.boundary_fixing import fix_interval_boundaries
 from textgrid_tools.validation import InvalidGridError, ValidationError
 
@@ -50,20 +52,21 @@ def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_
   for grid in grids[1:]:
     for tier in cast(List[IntervalTier], ref_grid.tiers):
       if insert_duration is not None:
+        assert insert_duration > 0
         insert_interval = Interval(0.0, insert_duration, insert_mark)
         target_tiers[tier.name].append(insert_interval)
       target_tiers[tier.name].extend(tier.intervals)
 
   result = TextGrid()
 
+  min_time = 0
   for tier, intervals in target_tiers.items():
-    set_times_from_durations(intervals, 0.0)
-    grid_tier = IntervalTier(
-      tier, 0.0, intervals[-1].maxTime
-    )
+    max_time = set_times_consecutive_from_durations(intervals, min_time)
+    grid_tier = IntervalTier(tier, min_time, max_time)
     grid_tier.intervals = intervals
     result.append(grid_tier)
-  result.minTime = 0.0
+
+  result.minTime = min_time
   result.maxTime = result.tiers[0].maxTime
 
   if len(target_tiers) > 1:
@@ -72,10 +75,13 @@ def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_
   return (None, True), result
 
 
-def set_times_from_durations(intervals: Iterable[Interval], init_min_time: float) -> None:
+def set_times_consecutive_from_durations(intervals: Iterable[Interval], init_min_time: float) -> None:
   last_time = init_min_time
   for interval in intervals:
     duration = interval.duration()
+    new_max_time = last_time + duration
     interval.minTime = last_time
-    interval.maxTime = last_time + duration
-    last_time = interval.maxTime
+    interval.maxTime = new_max_time
+    last_time = new_max_time
+  assert check_intervals_are_consecutive(intervals)
+  return last_time
