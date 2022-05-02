@@ -1,22 +1,16 @@
 from argparse import ArgumentParser
-from collections import Counter
-from itertools import chain
 from logging import getLogger
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Callable, List, Optional, Set, Tuple
+from typing import Callable, List, Optional
 
-from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
-from textgrid_tools.helper import get_all_intervals
-from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
-from textgrid_tools_cli.common import getFileLogger, try_initFileLogger
+from textgrid_tools_cli.common import try_initFileLogger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_tiers_argument, get_grid_files, parse_path, save_grid,
-                                       try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
+                                       parse_path, parse_positive_float, save_grid, try_load_grid)
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
@@ -25,12 +19,16 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   add_directory_argument(parser)
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated grid")
+  parser.add_argument("--insert-duration", type=get_optional(parse_positive_float),
+                      help="insert an interval between subsequent grids having this duration and mark as content", default=None)
+  parser.add_argument(
+    "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
   parser.add_argument("--log", type=parse_path, metavar="FILE",
                       help="path to write the log", default=default_log_path)
   return merge_grids_app
 
 
-def merge_grids_app(directory: Path, output: Path, log: Optional[Path]) -> ExecutionResult:
+def merge_grids_app(directory: Path, output: Path, log: Optional[Path], insert_duration: Optional[float], insert_mark: Optional[str]) -> ExecutionResult:
   logger = getLogger(__name__)
   if log is not None:
     try_initFileLogger(log)
@@ -59,7 +57,7 @@ def merge_grids_app(directory: Path, output: Path, log: Optional[Path]) -> Execu
     logger.error(error.default_message)
     return False, False
 
-  (error, changed_anything), merged_grid = merge_grids(grids)
+  (error, changed_anything), merged_grid = merge_grids(grids, insert_duration, insert_mark)
 
   success = error is None
 

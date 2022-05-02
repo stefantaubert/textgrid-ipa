@@ -27,7 +27,7 @@ def get_tier_names(grid: TextGrid):
   return tier_names
 
 
-def merge_grids(grids: List[TextGrid]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(grids) > 0
 
   if len(grids) == 1:
@@ -39,9 +39,6 @@ def merge_grids(grids: List[TextGrid]) -> Tuple[ExecutionResult, Optional[TextGr
     if error := InvalidGridError.validate(grid):
       return (error, False), None
 
-    # if error := MultipleTiersWithThatNameError.validate(grid, ref_grid):
-    #  return error, False
-
     if error := TiersNotSameError.validate(grid, ref_grid):
       return (error, False), None
 
@@ -52,9 +49,13 @@ def merge_grids(grids: List[TextGrid]) -> Tuple[ExecutionResult, Optional[TextGr
 
   for grid in grids[1:]:
     for tier in cast(List[IntervalTier], ref_grid.tiers):
+      if insert_duration is not None:
+        insert_interval = Interval(0.0, insert_duration, insert_mark)
+        target_tiers[tier.name].append(insert_interval)
       target_tiers[tier.name].extend(tier.intervals)
 
   result = TextGrid()
+
   for tier, intervals in target_tiers.items():
     set_times_from_durations(intervals, 0.0)
     grid_tier = IntervalTier(
