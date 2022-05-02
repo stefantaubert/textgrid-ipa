@@ -8,10 +8,6 @@ from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools_cli import *
-from textgrid_tools_cli.grids.grids_merging import get_grids_merging_parser
-from textgrid_tools_cli.grids.vocabulary_export import get_vocabulary_export_parser
-from textgrid_tools_cli.tier.importing import get_importing_parser
-from textgrid_tools_cli.tiers.transcription import get_transcription_parser
 
 __version__ = version("textgrid-tools")
 

@@ -1,4 +1,5 @@
 from textgrid_tools_cli.tier.cloning import get_cloning_parser
+from textgrid_tools_cli.tier.importing import get_importing_parser
 from textgrid_tools_cli.tier.mapping import get_mapping_parser
 from textgrid_tools_cli.tier.moving import get_moving_parser
 from textgrid_tools_cli.tier.renaming import get_renaming_parser
