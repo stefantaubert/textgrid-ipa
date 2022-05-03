@@ -8,7 +8,7 @@ from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
-from textgrid_tools_cli.common import getFileLogger, try_initFileLogger
+from textgrid_tools_cli.common import get_file_logger, try_init_file_logger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument,
                                        add_encoding_argument,
@@ -36,7 +36,7 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
 def get_vocabulary_parsed(directory: Path, tiers: OrderedSet[str], output: Path, encoding: str, log: Optional[Path]) -> ExecutionResult:
   logger = getLogger(__name__)
   if log is not None:
-    try_initFileLogger(log)
+    try_init_file_logger(log)
 
   grid_files = get_grid_files(directory)
 
@@ -105,7 +105,7 @@ def get_vocabulary(grids: List[TextGrid], tier_names: Set[str]) -> Tuple[Validat
       all_intervals = chain(all_intervals, intervals)
 
   all_marks_counter = Counter(interval.mark for interval in all_intervals)
-  flogger = getFileLogger()
+  flogger = get_file_logger()
 
   flogger.info("Occurrences:")
   total = sum(all_marks_counter.values())

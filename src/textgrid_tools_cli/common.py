@@ -13,14 +13,14 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
 
 
-def getFileLogger() -> Logger:
+def get_file_logger() -> Logger:
   logger = getLogger("file-logger")
   if logger.propagate:
     logger.propagate = False
   return logger
 
 
-def try_initFileLogger(path: Path) -> None:
+def try_init_file_logger(path: Path) -> None:
   if path.is_dir():
     logger = getLogger(__name__)
     logger.error("Path is a directory!")
@@ -31,7 +31,7 @@ def try_initFileLogger(path: Path) -> None:
     path.write_text("")
     fh = logging.FileHandler(path)
     fh.setLevel(logging.DEBUG)
-    flogger = getFileLogger()
+    flogger = get_file_logger()
     flogger.addHandler(fh)
   except Exception as ex:
     logger = getLogger(__name__)

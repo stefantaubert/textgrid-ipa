@@ -70,13 +70,14 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     text_file_in_abs = directory / rel_path
     text = text_file_in_abs.read_text(encoding)
 
-    audio_in = None
+    audio_samples_in = None
     sample_rate = None
     meta = None
 
     if file_stem in audio_files:
       audio_file_in_abs = audio_directory / audio_files[file_stem]
       sample_rate, audio_in = read_audio(audio_file_in_abs)
+      audio_samples_in = audio_in.shape[0]
     else:
       logger.info("No audio found, audio duration will be estimated.")
 
@@ -86,7 +87,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     else:
       logger.info("No meta file found.")
 
-    (error, _), grid = create_grid_from_text(text, meta, audio_in,
+    (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
                                              sample_rate, name, tier, speech_rate, n_digits)
 
     success = error is None

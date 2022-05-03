@@ -125,13 +125,13 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, meta: Optional[str], audio: Optional[np.ndarray], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
   logger = getLogger(__name__)
 
-  if audio is not None:
+  if audio_samples is not None:
     assert sample_rate is not None
 
   if error := TextEmptyError.validate(text):
@@ -165,8 +165,8 @@ def create_grid_from_text(text: str, meta: Optional[str], audio: Optional[np.nda
       if error := StartNotSmallerThanEndError.validate(start, end):
         return (error, False), None
 
-    if audio is not None:
-      duration_s = samples_to_s(audio.shape[0], sample_rate)
+    if audio_samples is not None:
+      duration_s = samples_to_s(audio_samples, sample_rate)
 
       if start is not None and (error := StartTooBigError.validate(start, duration_s)):
         return (error, False), None
@@ -179,11 +179,11 @@ def create_grid_from_text(text: str, meta: Optional[str], audio: Optional[np.nda
 
   duration_s: float = None
 
-  if audio is None:
+  if audio_samples is None:
     duration_s = len(text) / characters_per_second
     logger.debug(f"Estimated grid duration to {duration_s}s.")
   else:
-    duration_s = samples_to_s(audio.shape[0], sample_rate)
+    duration_s = samples_to_s(audio_samples, sample_rate)
     logger.debug(f"Total grid duration is {duration_s}s.")
 
   min_time = 0

@@ -7,7 +7,7 @@ from typing import Callable, List, Optional
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
-from textgrid_tools_cli.common import try_initFileLogger
+from textgrid_tools_cli.common import try_init_file_logger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
                                        parse_path, parse_positive_float, save_grid, try_load_grid)
@@ -31,7 +31,7 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
 def merge_grids_app(directory: Path, output: Path, log: Optional[Path], insert_duration: Optional[float], insert_mark: Optional[str]) -> ExecutionResult:
   logger = getLogger(__name__)
   if log is not None:
-    try_initFileLogger(log)
+    try_init_file_logger(log)
 
   grid_files = get_grid_files(directory)
 
