@@ -1,13 +1,15 @@
 import argparse
-import logging
 import sys
 from argparse import ArgumentParser
 from importlib.metadata import version
-from logging import Logger, getLogger
+from logging import getLogger
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools_cli import *
+from textgrid_tools_cli.grid.creation_v2 import get_creation_v2_parser
+from textgrid_tools_cli.logging_configuration import (configure_root_logger,
+                                                      init_and_get_console_logger)
 
 __version__ = version("textgrid-tools")
 
@@ -35,6 +37,7 @@ def get_grids_parsers() -> Parsers:
 
 def get_grid_parsers() -> Parsers:
   yield "create", "convert text files to grid files", get_creation_parser
+  yield "create-v2", "convert text files to grid files", get_creation_v2_parser
   yield "sync", "synchronize grid minTime and maxTime according to the corresponding audio file", get_audio_synchronization_parser
   yield "split", "split a grid file on intervals into multiple grid files (incl. audio files)", get_grid_splitting_parser
   yield "print-stats", "print statistics", get_stats_generation_parser
@@ -110,41 +113,14 @@ def _init_parser():
   return main_parser
 
 
-def add_console_out(logger: Logger):
-  console = logging.StreamHandler()
-  logger.addHandler(console)
-  logging_formatter = logging.Formatter(
-    '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
-    '%Y/%m/%d %H:%M:%S',
-  )
-  console.setFormatter(logging_formatter)
+def parse_args(args: List[str]):
+  configure_root_logger()
+  logger = getLogger()
 
+  if debug_file_exists():
+    logger.debug("Received args:")
+    logger.debug(args)
 
-def configure_logger(productive: bool) -> None:
-  productive = False
-  loglevel = logging.INFO if productive else logging.DEBUG
-  main_logger = getLogger()
-  main_logger.setLevel(loglevel)
-  main_logger.manager.disable = logging.NOTSET
-  # if len(main_logger.handlers) > 0:
-  #   console = main_logger.handlers[0]
-  # else:
-  #   console = logging.StreamHandler()
-  #   main_logger.addHandler(console)
-
-  # logging_formatter = logging.Formatter(
-  #   '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
-  #   '%Y/%m/%d %H:%M:%S',
-  # )
-  # console.setFormatter(logging_formatter)
-  # console.setLevel(loglevel)
-
-
-def parse_args(args: List[str], productive: bool = False):
-  configure_logger(productive)
-  logger = getLogger(__name__)
-  logger.debug("Received args:")
-  logger.debug(args)
   parser = _init_parser()
   received_args = parser.parse_args(args)
   params = vars(received_args)
@@ -152,29 +128,35 @@ def parse_args(args: List[str], productive: bool = False):
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
     success, changed_anything = invoke_handler(**params)
+    # get logger after it had a change to be init with a logfile
     if success:
       logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
     else:
-      logger.warning(f"{CONSOLE_PNT_RED}Not everything was successfull!{CONSOLE_PNT_RST}")
+      logger.warning(
+        f"{CONSOLE_PNT_RED}Not everything was successfull! See log for details.{CONSOLE_PNT_RST}")
     if not changed_anything:
-      logger.info(f"Didn't changed anything.")
+      logger.info("Didn't changed anything.")
   else:
     parser.print_help()
 
 
-def run(productive: bool):
+def run():
   arguments = sys.argv[1:]
-  parse_args(arguments, productive and not debug_file_exists())
+  parse_args(arguments)
 
 
 def run_prod():
-  run(True)
+  run()
 
 
 def debug_file_exists():
   return Path("/tmp/debug").is_file()
 
 
+def create_debug_file():
+  Path("/tmp/debug").write_text("", "UTF-8")
+
+
 if __name__ == "__main__":
   # print_features()
-  run(not __debug__)
+  run()

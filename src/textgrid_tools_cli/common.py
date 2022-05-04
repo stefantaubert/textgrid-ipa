@@ -13,40 +13,6 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
 
 
-def get_file_logger() -> Logger:
-  logger = getLogger("file-logger")
-  if logger.propagate:
-    logger.propagate = False
-  return logger
-
-
-def try_init_file_logger(path: Path) -> bool:
-  if path.is_dir():
-    logger = getLogger(__name__)
-    logger.error("Path is a directory!")
-  try:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.is_file():
-      os.remove(path)
-    path.write_text("")
-    fh = logging.FileHandler(path)
-  except Exception as ex:
-    logger = getLogger(__name__)
-    logger.error("Logfile couldn't be created!")
-    logger.exception(ex)
-    return False
-
-  logging_formatter = logging.Formatter(
-    '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
-    '%Y/%m/%d %H:%M:%S',
-  )
-  fh.setFormatter(logging_formatter)
-  fh.setLevel(logging.DEBUG)
-  flogger = get_file_logger()
-  flogger.addHandler(fh)
-  return True
-
-
 def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
   logger = getLogger(__name__)
 

@@ -8,7 +8,7 @@ from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
-from textgrid_tools_cli.common import get_file_logger, try_init_file_logger
+from textgrid_tools_cli.logging_configuration import get_file_logger, try_init_file_logger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument,
                                        add_encoding_argument,

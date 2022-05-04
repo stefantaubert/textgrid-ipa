@@ -7,11 +7,11 @@ from typing import Callable, List, Optional
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
-from textgrid_tools_cli.common import try_init_file_logger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_log_argument, get_grid_files,
                                        get_optional, parse_path, parse_positive_float, save_grid,
                                        try_load_grid)
+from textgrid_tools_cli.logging_configuration import try_init_file_logger
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:

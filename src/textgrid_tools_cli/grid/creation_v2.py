@@ -18,16 +18,19 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools import create_grid_from_text
-from textgrid_tools_cli.cli import add_console_out
-from textgrid_tools_cli.common import get_file_logger, try_init_file_logger
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_log_argument, add_n_digits_argument,
                                        add_output_directory_argument, add_overwrite_argument,
-                                       get_audio_files, get_files_dict, get_optional,
+                                       get_audio_files, get_chunks, get_files_dict, get_optional,
                                        get_text_files, parse_existing_directory,
                                        parse_non_empty_or_whitespace, parse_positive_float,
                                        parse_positive_integer, read_audio, save_grid, try_load_grid)
+from textgrid_tools_cli.io import load_audio_durations, load_texts, save_grids
+from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
+                                                      init_and_get_console_logger,
+                                                      init_file_stem_loggers, try_init_file_logger,
+                                                      write_file_stem_loggers_to_file_logger)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -50,53 +53,14 @@ def get_creation_v2_parser(parser: ArgumentParser):
                       help="name of the grid")
   add_encoding_argument(parser, "encoding of text and meta files")
   parser.add_argument("--chunk", type=parse_positive_integer,
-                      help="amount of files to process at a time", default=inf)
+                      help="amount of files to process at a time; defaults to all items if not defined", default=None)
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
-  add_overwrite_argument(parser)
+  # add_overwrite_argument(parser)
   add_log_argument(parser)
   return app_create_grid_from_text
-
-
-def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
-  stem, path = item
-  try:
-    text = path.read_text(encoding)
-  except Exception as ex:
-    logger = getLogger(stem)
-    logger.error(f"Text file '{path.absolute()}' could not be read!")
-    logger.exception(ex)
-    return stem, None
-
-  return stem, text
-
-
-def process_read_audiodata(item: Tuple[str, Path, List[str]]) -> Tuple[str, Optional[Tuple[int, int]]]:
-  stem, path = item
-  try:
-    sample_rate, audio_in = read_audio(path)
-  except Exception as ex:
-    logger = getLogger(stem)
-    logger.error(f"Audio file '{path.absolute()}' could not be read!")
-    logger.exception(ex)
-    return stem, None
-  audio_samples_in = audio_in.shape[0]
-  return stem, (sample_rate, audio_samples_in)
-
-
-def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
-  stem, grid_file_out_abs, grid = item
-  if grid is None:
-    return
-  try:
-    save_grid(grid_file_out_abs, grid)
-  except Exception as ex:
-    logger = getLogger(stem)
-    logger.error(f"Grid file '{grid_file_out_abs.absolute()}' could not be saved!")
-    logger.exception(ex)
-    return
 
 
 def process_create_grid(stem_data: Tuple, name: Optional[str], tier: str, speech_rate: float, n_digits: int) -> Tuple[str, Optional[TextGrid]]:
@@ -118,19 +82,12 @@ def process_create_grid(stem_data: Tuple, name: Optional[str], tier: str, speech
   return stem, None
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: int, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
   start = perf_counter()
-  logger = getLogger(__name__)
-
-  if log is not None:
+  if log:
     try_init_file_logger(log)
-
+  logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-  logger.parent = flogger
-  add_console_out(logger)
-
-  flogger.debug("test")
-  logger.debug("test")
 
   if audio_directory is None:
     audio_directory = directory
@@ -154,35 +111,19 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     meta_files = get_files_dict(meta_directory, filetypes={META_FILE_TYPE})
     logger.info(f"Found {len(meta_files)} meta files.")
 
-  keys = OrderedSet(text_files.keys())
+  file_stems = OrderedSet(text_files.keys())
 
-  logging_queues = dict.fromkeys(text_files.keys())
+  logging_queues = init_file_stem_loggers(file_stems)
 
-  for k in text_files.keys():
-    logger = getLogger(k)
-    logger.propagate = False
-    q = queue.Queue(-1)
-    logging_queues[k] = q
-    handler = QueueHandler(q)
-    logger.addHandler(handler)
-
-  chunk_size = chunk
-  if isinf(chunk):
-    chunk_size = len(keys)
-
-  chunked_list = (keys[i:i + chunk_size] for i in range(0, len(keys), chunk_size))
+  chunked_list = get_chunks(file_stems, chunk)
   total_success = True
-  n_jobs = 2
+
+  n_jobs = 1
   n_jobs_processing = 1
   maxtasksperchild_processing = None
-  chunksize = 10
+  chunksize = 100
   chunksize_processing = 10
   single_core = False
-
-  read_method_proxy = partial(
-    process_read_text,
-    encoding=encoding,
-  )
 
   create_grids_proxy = partial(
     process_create_grid,
@@ -192,51 +133,32 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     n_digits=n_digits,
   )
 
-  chunk: OrderedSet[str]
-  for chunk in tqdm(chunked_list, desc="Processing chunks", unit="chunk(s)"):
+  file_chunk: OrderedSet[str]
+  for file_chunk in tqdm(chunked_list, desc="Processing chunks", unit="chunk(s)", position=0):
+    # reading texts
     process_data = (
       (stem, directory / text_files[stem])
-      for stem in chunk
+      for stem in file_chunk
     )
+    parsed_text_files = load_texts(process_data, encoding, len(file_chunk), n_jobs, chunksize)
 
-    with ThreadPool(
-      processes=n_jobs,
-    ) as pool:
-      iterator = pool.imap_unordered(read_method_proxy, process_data, chunksize)
-      iterator = tqdm(iterator, total=len(chunk),
-                      desc="Reading text files", unit="file(s)")
-      parsed_text_files = dict(iterator)
-    del process_data
-
-    relevant_audio_files = chunk.intersection(audio_files.keys())
+    # reading audio durations
+    relevant_audio_files = set(parsed_text_files.keys()).intersection(audio_files.keys())
     process_data = (
       (stem, audio_directory / audio_files[stem])
       for stem in relevant_audio_files
     )
+    parsed_audio_files = load_audio_durations(
+      process_data, len(relevant_audio_files), n_jobs, chunksize)
 
-    with ThreadPool(
-      processes=n_jobs,
-    ) as pool:
-      iterator = pool.imap_unordered(process_read_audiodata, process_data, chunksize)
-      iterator = tqdm(iterator, total=len(relevant_audio_files),
-                      desc="Reading audio files", unit="file(s)")
-      parsed_audio_files = dict(iterator)
-    del process_data
-
-    relevant_meta_files = chunk.intersection(meta_files.keys())
+    # reading meta files
+    relevant_meta_files = set(parsed_text_files.keys()).intersection(meta_files.keys())
     process_data = (
       (stem, meta_directory / meta_files[stem])
       for stem in relevant_meta_files
     )
-
-    with ThreadPool(
-      processes=n_jobs,
-    ) as pool:
-      iterator = pool.imap_unordered(read_method_proxy, process_data, chunksize)
-      iterator = tqdm(iterator, total=len(relevant_meta_files),
-                      desc="Reading meta files", unit="file(s)")
-      parsed_meta_files = dict(iterator)
-    del process_data
+    parsed_meta_files = load_texts(process_data, encoding, len(
+      relevant_meta_files), n_jobs, chunksize, "meta")
 
     process_data = (
       (
@@ -262,7 +184,6 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
         iterator = tqdm(iterator, total=len(parsed_text_files),
                         desc="Processing", unit="file(s)")
         created_grids = dict(iterator)
-    del process_data
 
     for k, val in created_grids.items():
       if val is None:
@@ -272,20 +193,14 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       (stem, output_directory / f"{stem}.TextGrid", grid)
       for stem, grid in created_grids.items()
     )
+    successes = save_grids(save_files, len(created_grids), n_jobs, chunksize)
+    total_success &= all(successes)
 
-    with ThreadPool(
-      processes=n_jobs,
-    ) as pool:
-      iterator = pool.imap_unordered(process_save_grid, save_files, chunksize)
-      iterator = tqdm(iterator, total=len(created_grids), desc="Saving files", unit="file(s)")
-      list(iterator)
+  write_file_stem_loggers_to_file_logger(logging_queues)
 
-  for k, q in logging_queues.items():
-    flogger.info(k)
-    entries = list(q.queue)
-    for x in entries:
-      flogger.handle(x)
   duration = perf_counter() - start
-  print(duration)
   flogger.debug(f"Total duration (s): {duration}")
+  if log:
+    logger = getLogger()
+    logger.info(f"Written log to: {log.absolute()}")
   return total_success, True

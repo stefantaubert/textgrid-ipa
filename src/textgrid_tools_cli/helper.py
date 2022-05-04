@@ -5,13 +5,14 @@ from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
 from functools import partial
 from logging import getLogger
+from math import inf, isinf
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
 from tempfile import gettempdir
-from typing import Callable, Generator, List, Optional
+from typing import Callable, Generator, List, Literal, Optional
 from typing import OrderedDict as OrderedDictType
-from typing import Set, Tuple, TypeVar
+from typing import Set, Tuple, TypeVar, Union
 
 import numpy as np
 from ordered_set import OrderedSet
@@ -27,6 +28,13 @@ GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
 WAV_FILE_TYPE = ".wav"
 MP3_FILE_TYPE = ".mp3"
+
+
+def get_chunks(keys: OrderedSet[str], chunk_size: Optional[int]) -> List[OrderedSet[str]]:
+  if chunk_size is None:
+    chunk_size = len(keys)
+  chunked_list = list(keys[i: i + chunk_size] for i in range(0, len(keys), chunk_size))
+  return chunked_list
 
 
 def get_files_dict(directory: Path, filetypes: Set[str]) -> OrderedDictType[str, Path]:
@@ -241,8 +249,8 @@ def add_maxtaskperchild_argument(parser: ArgumentParser) -> None:
 
 def get_grid_files(folder: Path) -> OrderedDictType[str, Path]:
   result = get_files_dict(folder, filetypes={GRID_FILE_TYPE})
-  #logger = getLogger(__name__)
-  #logger.info(f"Found {len(result)} grid files.")
+  # logger = getLogger(__name__)
+  # logger.info(f"Found {len(result)} grid files.")
   return result
 
 
@@ -272,8 +280,8 @@ def try_load_grid(path: Path, n_digits: int) -> Tuple[Optional[GridCouldNotBeLoa
 
 
 def save_grid(path: Path, grid: TextGrid) -> None:
-  #logger = getLogger(__name__)
-  #logger.debug("Saving grid...")
+  # logger = getLogger(__name__)
+  # logger.debug("Saving grid...")
   assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)
@@ -310,7 +318,7 @@ def save_audio(path: Path, audio: np.ndarray, sampling_rate: int) -> None:
 
 def read_audio(path: Path) -> Tuple[int, np.ndarray]:
   # assert not MP3_FILE_TYPE in path.name:
-    #audio_in, sample_rate = librosa.load(audio_file_in_abs)
+    # audio_in, sample_rate = librosa.load(audio_file_in_abs)
     # with audioread.audio_open(audio_file_in_abs) as f:
     #   sample_rate = f.samplerate
     #   x = f.read_data()
