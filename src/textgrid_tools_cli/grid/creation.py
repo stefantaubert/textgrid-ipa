@@ -35,8 +35,11 @@ def get_creation_parser(parser: ArgumentParser):
   add_overwrite_argument(parser)
   return app_create_grid_from_text
 
+from time import perf_counter
+
 
 def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+  start = perf_counter()
   logger = getLogger(__name__)
 
   if audio_directory is None:
@@ -99,5 +102,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       continue
 
     save_grid(grid_file_out_abs, grid)
-
+  duration = perf_counter() - start
+  print(duration)
+  
   return total_success, True

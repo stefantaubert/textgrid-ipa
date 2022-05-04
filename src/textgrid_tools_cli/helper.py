@@ -265,8 +265,8 @@ def try_load_grid(path: Path, n_digits: int) -> Tuple[Optional[GridCouldNotBeLoa
 
 
 def save_grid(path: Path, grid: TextGrid) -> None:
-  logger = getLogger(__name__)
-  logger.debug("Saving grid...")
+  #logger = getLogger(__name__)
+  #logger.debug("Saving grid...")
   assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
   grid.write(path)

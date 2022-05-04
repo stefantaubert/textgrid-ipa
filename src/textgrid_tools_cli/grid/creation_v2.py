@@ -1,10 +1,15 @@
+import copy
+import logging
 import multiprocessing
+import queue
 import threading
 from argparse import ArgumentParser
 from functools import partial
-from logging import getLogger
-from multiprocessing.pool import ThreadPool
+from logging import Logger, getLogger
+from logging.handlers import QueueHandler
+from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
+from time import perf_counter
 from typing import List, Optional, Tuple
 
 from ordered_set import OrderedSet
@@ -22,6 +27,10 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
+
+
+def xtqdm(x, desc=None, total=None, unit=None):
+  yield from x
 
 
 def get_creation_v2_parser(parser: ArgumentParser):
@@ -44,35 +53,66 @@ def get_creation_v2_parser(parser: ArgumentParser):
   return app_create_grid_from_text
 
 
-def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
+def process_read_text(item: Tuple[str, Path, List[str]], encoding: str) -> Optional[str]:
   stem, path = item
   try:
-    return stem, path.read_text(encoding)
+    text = path.read_text(encoding)
   except Exception as ex:
+    logger = getLogger(stem)
+    logger.error(f"Text file '{path.absolute()}' could not be read!")
+    logger.exception(ex)
     return stem, None
 
+  return stem, text
 
-def process_read_audiodata(item: Tuple[str, Path]) -> Optional[Tuple[int, int]]:
+
+def process_read_audiodata(item: Tuple[str, Path, List[str]]) -> Tuple[str, Optional[Tuple[int, int]]]:
   stem, path = item
   try:
     sample_rate, audio_in = read_audio(path)
   except Exception as ex:
+    logger = getLogger(stem)
+    logger.error(f"Audio file '{path.absolute()}' could not be read!")
+    logger.exception(ex)
     return stem, None
   audio_samples_in = audio_in.shape[0]
   return stem, (sample_rate, audio_samples_in)
 
 
-def process_save_grid(item: Tuple[Path, TextGrid]) -> None:
-  grid_file_out_abs, grid = item
+def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
+  stem, grid_file_out_abs, grid = item
   if grid is None:
     return
   try:
     save_grid(grid_file_out_abs, grid)
   except Exception as ex:
-    pass
+    logger = getLogger(stem)
+    logger.error(f"Grid file '{grid_file_out_abs.absolute()}' could not be saved!")
+    logger.exception(ex)
+    return
+
+
+def process_create_grid(stem_data: Tuple, name: Optional[str], tier: str, speech_rate: float, n_digits: int) -> Tuple[str, Optional[TextGrid]]:
+  stem, text, meta, audio = stem_data
+  sample_rate = None
+  audio_samples_in = None
+  if audio is not None:
+    sample_rate, audio_samples_in = audio
+  logger = getLogger(stem)
+  (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
+                                           sample_rate, name, tier, speech_rate, n_digits, logger)
+
+  success = error is None
+  if success:
+    return stem, grid
+
+  logger.error(error.default_message)
+  logger.info("Skipped.")
+  return stem, None
 
 
 def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+  start = perf_counter()
   logger = getLogger(__name__)
 
   if audio_directory is None:
@@ -97,16 +137,37 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
 
   keys = OrderedSet(text_files.keys())
 
-  chunk_size = 1000
+  logging_queues = dict.fromkeys(text_files.keys())
+
+  for k in text_files.keys():
+    logger = getLogger(k)
+    logger.propagate = False
+    q = queue.Queue(-1)
+    logging_queues[k] = q
+    handler = QueueHandler(q)
+    logger.addHandler(handler)
+
+  chunk_size = 100000
   chunked_list = (keys[i:i + chunk_size] for i in range(0, len(keys), chunk_size))
   total_success = True
-  n_jobs = 1
-  maxtasksperchild = None
+  n_jobs = 2
+  n_jobs_processing = 1
+  maxtasksperchild_processing = None
   chunksize = 10
+  chunksize_processing = 10
+  single_core = False
 
   read_method_proxy = partial(
     process_read_text,
     encoding=encoding,
+  )
+
+  create_grids_proxy = partial(
+    process_create_grid,
+    name=name,
+    tier=tier,
+    speech_rate=speech_rate,
+    n_digits=n_digits,
   )
 
   chunk: OrderedSet[str]
@@ -155,32 +216,38 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       parsed_meta_files = dict(iterator)
     del process_data
 
-    created_grids = dict.fromkeys(parsed_text_files.keys(), None)
-    for file_stem, text in tqdm(parsed_text_files.items(), desc="Processing", unit="file(s)"):
-      if text is None:
-        continue
-      sample_rate = None
-      audio_samples_in = None
-      audio_data = parsed_audio_files.get(file_stem, None)
-      if audio_data is not None:
-        sample_rate, audio_samples_in = audio_data
+    process_data = (
+      (
+        file_stem,
+        text,
+        parsed_meta_files.get(file_stem, None),
+        parsed_audio_files.get(file_stem, None)
+      )
+      for file_stem, text in parsed_text_files.items()
+    )
 
-      meta = parsed_meta_files.get(file_stem, None)
+    if single_core:
+      created_grids = dict(
+        create_grids_proxy(x)
+        for x in tqdm(process_data, total=len(parsed_text_files), desc="Processing", unit="file(s)")
+      )
+    else:
+      with ThreadPool(
+        processes=n_jobs_processing,
+        # maxtasksperchild=maxtasksperchild_processing,
+      ) as pool:
+        iterator = pool.imap_unordered(create_grids_proxy, process_data, chunksize_processing)
+        iterator = tqdm(iterator, total=len(parsed_text_files),
+                        desc="Processing", unit="file(s)")
+        created_grids = dict(iterator)
+    del process_data
 
-      (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
-                                               sample_rate, name, tier, speech_rate, n_digits)
-
-      success = error is None
-      total_success &= success
-      if success:
-        created_grids[file_stem] = grid
-      else:
-        created_grids.pop(file_stem)
-        logger.error(error.default_message)
-        logger.info("Skipped.")
+    for k, val in created_grids.items():
+      if val is None:
+        created_grids.pop(k)
 
     save_files = (
-      (output_directory / f"{stem}.TextGrid", grid)
+      (stem, output_directory / f"{stem}.TextGrid", grid)
       for stem, grid in created_grids.items()
     )
 
@@ -191,4 +258,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       iterator = tqdm(iterator, total=len(created_grids), desc="Saving files", unit="file(s)")
       list(iterator)
 
+  logger = getLogger(__name__)
+  for k, q in logging_queues.items():
+    logger.info(k)
+    entries = list(q.queue)
+    for x in entries:
+      logger.handle(x)
+  duration = perf_counter() - start
+  print(duration)
   return total_success, True
