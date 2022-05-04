@@ -152,6 +152,7 @@ def __init_pool(logging_queues: Dict[str, Logger]) -> None:
 def process_grid(stem_grid: Tuple[str, TextGrid], method: Callable[[TextGrid], ExecutionResult]) -> Tuple[str, Tuple[Optional[TextGrid], bool]]:
   global process_logging_queues
   file_stem, grid = stem_grid
+  # try manual log(Level, args..) to cache
   #logger = multiprocessing.get_logger()
   logger = process_logging_queues[file_stem]
   #logger = getLogger(file_stem)
