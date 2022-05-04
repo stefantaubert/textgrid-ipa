@@ -9,8 +9,9 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.grids.grid_merging import merge_grids
 from textgrid_tools_cli.common import try_init_file_logger
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
-                                       parse_path, parse_positive_float, save_grid, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_log_argument, get_grid_files,
+                                       get_optional, parse_path, parse_positive_float, save_grid,
+                                       try_load_grid)
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
@@ -23,8 +24,7 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
                       help="insert an interval between subsequent grids having this duration and mark as content", default=None)
   parser.add_argument(
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
-  parser.add_argument("--log", type=parse_path, metavar="FILE",
-                      help="path to write the log", default=default_log_path)
+  add_log_argument(parser)
   return merge_grids_app
 
 

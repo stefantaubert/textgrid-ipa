@@ -3,7 +3,7 @@ import logging
 import sys
 from argparse import ArgumentParser
 from importlib.metadata import version
-from logging import getLogger
+from logging import Logger, getLogger
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Tuple
 
@@ -110,23 +110,34 @@ def _init_parser():
   return main_parser
 
 
-def configure_logger(productive: bool) -> None:
-  loglevel = logging.INFO if productive else logging.DEBUG
-  main_logger = getLogger()
-  main_logger.setLevel(loglevel)
-  main_logger.manager.disable = logging.NOTSET
-  if len(main_logger.handlers) > 0:
-    console = main_logger.handlers[0]
-  else:
-    console = logging.StreamHandler()
-    main_logger.addHandler(console)
-
+def add_console_out(logger: Logger):
+  console = logging.StreamHandler()
+  logger.addHandler(console)
   logging_formatter = logging.Formatter(
     '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
     '%Y/%m/%d %H:%M:%S',
   )
   console.setFormatter(logging_formatter)
-  console.setLevel(loglevel)
+
+
+def configure_logger(productive: bool) -> None:
+  productive = False
+  loglevel = logging.INFO if productive else logging.DEBUG
+  main_logger = getLogger()
+  main_logger.setLevel(loglevel)
+  main_logger.manager.disable = logging.NOTSET
+  # if len(main_logger.handlers) > 0:
+  #   console = main_logger.handlers[0]
+  # else:
+  #   console = logging.StreamHandler()
+  #   main_logger.addHandler(console)
+
+  # logging_formatter = logging.Formatter(
+  #   '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
+  #   '%Y/%m/%d %H:%M:%S',
+  # )
+  # console.setFormatter(logging_formatter)
+  # console.setLevel(loglevel)
 
 
 def parse_args(args: List[str], productive: bool = False):

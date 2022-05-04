@@ -125,14 +125,12 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int, logger_name: Optional[str] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert n_digits >= 0
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
-  if logger_name is None:
-    logger_name = __name__
-
-  logger = getLogger(logger_name)
+  if logger is None:
+    logger = getLogger(__name__)
 
   if audio_samples is not None:
     assert sample_rate is not None

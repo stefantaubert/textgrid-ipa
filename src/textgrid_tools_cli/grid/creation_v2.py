@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from functools import partial
 from logging import Logger, getLogger
 from logging.handlers import QueueHandler
+from math import inf, isinf
 from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
 from time import perf_counter
@@ -17,13 +18,16 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools import create_grid_from_text
+from textgrid_tools_cli.cli import add_console_out
+from textgrid_tools_cli.common import get_file_logger, try_init_file_logger
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_n_digits_argument, add_output_directory_argument,
-                                       add_overwrite_argument, get_audio_files, get_files_dict,
-                                       get_optional, get_text_files, parse_existing_directory,
+                                       add_log_argument, add_n_digits_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       get_audio_files, get_files_dict, get_optional,
+                                       get_text_files, parse_existing_directory,
                                        parse_non_empty_or_whitespace, parse_positive_float,
-                                       read_audio, save_grid, try_load_grid)
+                                       parse_positive_integer, read_audio, save_grid, try_load_grid)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -45,15 +49,18 @@ def get_creation_v2_parser(parser: ArgumentParser):
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")
   add_encoding_argument(parser, "encoding of text and meta files")
+  parser.add_argument("--chunk", type=parse_positive_integer,
+                      help="amount of files to process at a time", default=inf)
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
+  add_log_argument(parser)
   return app_create_grid_from_text
 
 
-def process_read_text(item: Tuple[str, Path, List[str]], encoding: str) -> Optional[str]:
+def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
   stem, path = item
   try:
     text = path.read_text(encoding)
@@ -111,9 +118,19 @@ def process_create_grid(stem_data: Tuple, name: Optional[str], tier: str, speech
   return stem, None
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: int, overwrite: bool) -> ExecutionResult:
   start = perf_counter()
   logger = getLogger(__name__)
+
+  if log is not None:
+    try_init_file_logger(log)
+
+  flogger = get_file_logger()
+  logger.parent = flogger
+  add_console_out(logger)
+
+  flogger.debug("test")
+  logger.debug("test")
 
   if audio_directory is None:
     audio_directory = directory
@@ -125,10 +142,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     output_directory = directory
 
   text_files = get_text_files(directory)
+  logger.info(f"Found {len(text_files)} text files.")
 
   audio_files = {}
   if audio_directory is not None:
     audio_files = get_audio_files(audio_directory)
+    logger.info(f"Found {len(audio_files)} audio files.")
 
   meta_files = {}
   if meta_directory is not None:
@@ -147,7 +166,10 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     handler = QueueHandler(q)
     logger.addHandler(handler)
 
-  chunk_size = 100000
+  chunk_size = chunk
+  if isinf(chunk):
+    chunk_size = len(keys)
+
   chunked_list = (keys[i:i + chunk_size] for i in range(0, len(keys), chunk_size))
   total_success = True
   n_jobs = 2
@@ -258,12 +280,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       iterator = tqdm(iterator, total=len(created_grids), desc="Saving files", unit="file(s)")
       list(iterator)
 
-  logger = getLogger(__name__)
   for k, q in logging_queues.items():
-    logger.info(k)
+    flogger.info(k)
     entries = list(q.queue)
     for x in entries:
-      logger.handle(x)
+      flogger.handle(x)
   duration = perf_counter() - start
   print(duration)
+  flogger.debug(f"Total duration (s): {duration}")
   return total_success, True
