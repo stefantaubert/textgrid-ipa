@@ -33,7 +33,7 @@ def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
   return True
 
 
-def save_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: int, chunksize: int) -> List[bool]:
+def save_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: int=1, chunksize: int=1) -> List[bool]:
 
   with ThreadPool(
     processes=n_jobs,
@@ -57,7 +57,7 @@ def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
   return stem, text
 
 
-def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_jobs: int, chunksize: int, desc: str = "text") -> Dict[str, str]:
+def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_jobs: int=1, chunksize: int=1, desc: str = "text") -> Dict[str, str]:
   read_method_proxy = partial(
     process_read_text,
     encoding=encoding,
@@ -78,7 +78,42 @@ def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_j
   return parsed_text_files
 
 
-def process_read_audiodata(item: Tuple[str, Path, List[str]]) -> Tuple[str, Optional[Tuple[int, int]]]:
+def process_read_grid(item: Tuple[str, Path], n_digits: int) -> Optional[str]:
+  stem, path = item
+  grid_in = TextGrid()
+  try:
+    grid_in.read(path, round_digits=n_digits)
+  except Exception as ex:
+    logger = getLogger(stem)
+    logger.error(f"File '{path.absolute()}' could not be read!")
+    logger.exception(ex)
+    return stem, None
+
+  return stem, grid_in
+
+
+def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
+  read_method_proxy = partial(
+    process_read_grid,
+    n_digits=n_digits,
+  )
+
+  with Pool(
+    processes=n_jobs,
+  ) as pool:
+    iterator = pool.imap_unordered(read_method_proxy, files, chunksize)
+    iterator = tqdm(iterator, total=total,
+                    desc="Reading grid files", unit="file(s)")
+    parsed_files = dict(iterator)
+
+  for k, val in parsed_files.items():
+    if val is None:
+      parsed_files.pop(k)
+
+  return parsed_files
+
+
+def process_read_audio_durations(item: Tuple[str, Path, List[str]]) -> Tuple[str, Optional[Tuple[int, int]]]:
   stem, path = item
   try:
     sample_rate, audio_in = read_audio(path)
@@ -91,11 +126,11 @@ def process_read_audiodata(item: Tuple[str, Path, List[str]]) -> Tuple[str, Opti
   return stem, (sample_rate, audio_samples_in)
 
 
-def load_audio_durations(files: Iterable[Tuple[str, Path]], total: int, n_jobs: int, chunksize: int) -> Dict[str, Tuple[int, float]]:
+def load_audio_durations(files: Iterable[Tuple[str, Path]], total: int, n_jobs: int=1, chunksize: int=1) -> Dict[str, Tuple[int, float]]:
   with ThreadPool(
     processes=n_jobs,
   ) as pool:
-    iterator = pool.imap_unordered(process_read_audiodata, files, chunksize)
+    iterator = pool.imap_unordered(process_read_audio_durations, files, chunksize)
     iterator = tqdm(iterator, total=total,
                     desc="Reading audio files", unit="file(s)")
     parsed_audio_files = dict(iterator)

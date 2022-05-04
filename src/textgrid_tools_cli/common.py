@@ -13,44 +13,44 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
 
 
-def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
-  logger = getLogger(__name__)
+# def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
+#   logger = getLogger(__name__)
 
-  if output_directory is None:
-    output_directory = directory
+#   if output_directory is None:
+#     output_directory = directory
 
-  grid_files = get_grid_files(directory)
+#   grid_files = get_grid_files(directory)
 
-  total_success = True
-  total_changed_anything = False
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
-    grid_file_out_abs = output_directory / rel_path
+#   total_success = True
+#   total_changed_anything = False
+#   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
+#     logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
+#     grid_file_out_abs = output_directory / rel_path
 
-    if grid_file_out_abs.exists() and not overwrite:
-      logger.info("Grid already exists. Skipped.")
-      continue
+#     if grid_file_out_abs.exists() and not overwrite:
+#       logger.info("Grid already exists. Skipped.")
+#       continue
 
-    grid_file_in_abs = directory / rel_path
-    grid = try_load_grid(grid_file_in_abs, n_digits)
+#     grid_file_in_abs = directory / rel_path
+#     grid = try_load_grid(grid_file_in_abs, n_digits)
 
-    error, changed_anything = method(grid)
+#     error, changed_anything = method(grid)
 
-    success = error is None
-    total_success &= success
-    total_changed_anything |= changed_anything
+#     success = error is None
+#     total_success &= success
+#     total_changed_anything |= changed_anything
 
-    if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
-      continue
+#     if not success:
+#       logger.error(error.default_message)
+#       logger.info("Skipped.")
+#       continue
 
-    if changed_anything:
-      save_grid(grid_file_out_abs, grid)
-    elif directory != output_directory:
-      copy_grid(grid_file_in_abs, grid_file_out_abs)
+#     if changed_anything:
+#       save_grid(grid_file_out_abs, grid)
+#     elif directory != output_directory:
+#       copy_grid(grid_file_in_abs, grid_file_out_abs)
 
-  return total_success, total_changed_anything
+#   return total_success, total_changed_anything
 
 
 def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:

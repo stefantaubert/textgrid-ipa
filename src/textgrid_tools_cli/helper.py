@@ -34,6 +34,8 @@ def get_chunks(keys: OrderedSet[str], chunk_size: Optional[int]) -> List[Ordered
   if chunk_size is None:
     chunk_size = len(keys)
   chunked_list = list(keys[i: i + chunk_size] for i in range(0, len(keys), chunk_size))
+  # TODO remove, only for debugging
+  chunked_list = chunked_list[:1]
   return chunked_list
 
 

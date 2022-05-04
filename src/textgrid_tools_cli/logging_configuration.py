@@ -4,7 +4,7 @@ from logging import Formatter, Handler, Logger, StreamHandler, getLogger
 from logging.handlers import QueueHandler
 from pathlib import Path
 from queue import Queue
-from typing import Dict
+from typing import Dict, Generator
 
 from ordered_set import OrderedSet
 
@@ -26,7 +26,6 @@ def init_and_get_console_logger(name: str) -> Logger:
 
 def init_file_stem_loggers(file_stems: OrderedSet[str]) -> Dict[str, Queue]:
   logging_queues = dict.fromkeys(file_stems)
-
   for k in file_stems:
     logger = getLogger(k)
     logger.propagate = False
@@ -36,6 +35,12 @@ def init_file_stem_loggers(file_stems: OrderedSet[str]) -> Dict[str, Queue]:
     logger.addHandler(handler)
 
   return logging_queues
+
+
+def get_file_stem_loggers(file_stems: OrderedSet[str]) -> Generator[Logger, None, None]:
+  for k in file_stems:
+    logger = getLogger(k)
+    yield logger
 
 
 def write_file_stem_loggers_to_file_logger(queues: Dict[str, Queue]) -> None:
