@@ -108,9 +108,7 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
       (stem, directory / grid_files[stem])
       for stem in file_chunk
     )
-
-    parsed_grid_files_as_text = load_texts(process_data, encoding, len(file_chunk))
-
+    parsed_grid_files_as_text = load_texts(process_data, encoding, len(file_chunk), desc="grid")
     parsed_grid_files = deserialize_grids(
       parsed_grid_files_as_text.items(), len(parsed_grid_files_as_text), n_jobs, chunksize)
 
@@ -129,14 +127,12 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
 
     remove_none_from_dict(process_results)
 
+    # saving grids
     process_data = (
       (stem, grid)
       for stem, (grid, changed_anything) in process_results.items()
     )
-
     serialized_grids = serialize_grids(process_data, len(process_results), n_jobs, chunksize)
-
-    # saving grids
     process_data = (
       (stem, output_directory / f"{stem}.TextGrid", text)
       for stem, text in serialized_grids.items()

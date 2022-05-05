@@ -19,14 +19,17 @@ from tqdm import tqdm
 
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_log_argument, add_n_digits_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       get_audio_files, get_chunks, get_files_dict, get_optional,
-                                       get_text_files, parse_existing_directory,
-                                       parse_non_empty_or_whitespace, parse_positive_float,
-                                       parse_positive_integer, read_audio, save_grid, try_load_grid)
-from textgrid_tools_cli.io import load_audio_durations, load_texts, save_grids
+from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_encoding_argument, add_log_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, get_audio_files, get_chunks,
+                                       get_files_dict, get_optional, get_text_files,
+                                       parse_existing_directory, parse_non_empty_or_whitespace,
+                                       parse_positive_float, parse_positive_integer, read_audio,
+                                       save_grid, try_load_grid)
+from textgrid_tools_cli.io import (deserialize_grids, load_audio_durations, load_grids, load_texts,
+                                   remove_none_from_dict, save_grids, save_texts, serialize_grids)
 from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
                                                       init_and_get_console_logger,
                                                       init_file_stem_loggers, try_init_file_logger,
@@ -59,6 +62,9 @@ def get_creation_v2_parser(parser: ArgumentParser):
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   # add_overwrite_argument(parser)
+  add_n_jobs_argument(parser)
+  add_chunksize_argument(parser)
+  add_maxtaskperchild_argument(parser)
   add_log_argument(parser)
   return app_create_grid_from_text
 
@@ -82,7 +88,7 @@ def process_create_grid(stem_data: Tuple, name: Optional[str], tier: str, speech
   return stem, None
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
+def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: Optional[int], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
   start = perf_counter()
   if log:
     try_init_file_logger(log)
@@ -118,11 +124,6 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
   chunked_list = get_chunks(file_stems, chunk)
   total_success = True
 
-  n_jobs = 1
-  n_jobs_processing = 1
-  maxtasksperchild_processing = None
-  chunksize = 100
-  chunksize_processing = 10
   single_core = False
 
   create_grids_proxy = partial(
@@ -140,7 +141,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       (stem, directory / text_files[stem])
       for stem in file_chunk
     )
-    parsed_text_files = load_texts(process_data, encoding, len(file_chunk), n_jobs, chunksize)
+    parsed_text_files = load_texts(process_data, encoding, len(file_chunk))
 
     # reading audio durations
     relevant_audio_files = set(parsed_text_files.keys()).intersection(audio_files.keys())
@@ -148,8 +149,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       (stem, audio_directory / audio_files[stem])
       for stem in relevant_audio_files
     )
-    parsed_audio_files = load_audio_durations(
-      process_data, len(relevant_audio_files), n_jobs, chunksize)
+    parsed_audio_files = load_audio_durations(process_data, len(relevant_audio_files))
 
     # reading meta files
     relevant_meta_files = set(parsed_text_files.keys()).intersection(meta_files.keys())
@@ -158,7 +158,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       for stem in relevant_meta_files
     )
     parsed_meta_files = load_texts(process_data, encoding, len(
-      relevant_meta_files), n_jobs, chunksize, "meta")
+      relevant_meta_files), desc="meta")
 
     process_data = (
       (
@@ -176,24 +176,24 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
         for x in tqdm(process_data, total=len(parsed_text_files), desc="Processing", unit="file(s)")
       )
     else:
-      with ThreadPool(
-        processes=n_jobs_processing,
-        # maxtasksperchild=maxtasksperchild_processing,
+      with Pool(
+        processes=n_jobs,
+        maxtasksperchild=maxtasksperchild,
       ) as pool:
-        iterator = pool.imap_unordered(create_grids_proxy, process_data, chunksize_processing)
+        iterator = pool.imap_unordered(create_grids_proxy, process_data, chunksize)
         iterator = tqdm(iterator, total=len(parsed_text_files),
                         desc="Processing", unit="file(s)")
         created_grids = dict(iterator)
 
-    for k, val in created_grids.items():
-      if val is None:
-        created_grids.pop(k)
+    remove_none_from_dict(created_grids)
 
-    save_files = (
-      (stem, output_directory / f"{stem}.TextGrid", grid)
-      for stem, grid in created_grids.items()
+    # saving grids
+    serialized_grids = serialize_grids(created_grids.items(), len(created_grids), n_jobs, chunksize)
+    process_data = (
+      (stem, output_directory / f"{stem}.TextGrid", text)
+      for stem, text in serialized_grids.items()
     )
-    successes = save_grids(save_files, len(created_grids), n_jobs, chunksize)
+    successes = save_texts(process_data, encoding, len(serialized_grids))
     total_success &= all(successes)
 
   write_file_stem_loggers_to_file_logger(logging_queues)
