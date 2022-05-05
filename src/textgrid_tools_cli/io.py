@@ -33,7 +33,7 @@ def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
   return True
 
 
-def save_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: int=1, chunksize: int=1) -> List[bool]:
+def save_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: int = 1, chunksize: int = 1) -> List[bool]:
 
   with ThreadPool(
     processes=n_jobs,
@@ -57,7 +57,7 @@ def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
   return stem, text
 
 
-def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_jobs: int=1, chunksize: int=1, desc: str = "text") -> Dict[str, str]:
+def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1, desc: str = "text") -> Dict[str, str]:
   read_method_proxy = partial(
     process_read_text,
     encoding=encoding,
@@ -78,11 +78,11 @@ def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_j
   return parsed_text_files
 
 
-def process_read_grid(item: Tuple[str, Path], n_digits: int) -> Optional[str]:
+def process_read_grid(item: Tuple[str, Path], n_digits: int, encoding: str) -> Optional[str]:
   stem, path = item
   grid_in = TextGrid()
   try:
-    grid_in.read(path, round_digits=n_digits)
+    grid_in.read(path, n_digits, encoding)
   except Exception as ex:
     logger = getLogger(stem)
     logger.error(f"File '{path.absolute()}' could not be read!")
@@ -92,10 +92,11 @@ def process_read_grid(item: Tuple[str, Path], n_digits: int) -> Optional[str]:
   return stem, grid_in
 
 
-def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
+def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
   read_method_proxy = partial(
     process_read_grid,
     n_digits=n_digits,
+    encoding=encoding,
   )
 
   with Pool(
@@ -126,7 +127,7 @@ def process_read_audio_durations(item: Tuple[str, Path, List[str]]) -> Tuple[str
   return stem, (sample_rate, audio_samples_in)
 
 
-def load_audio_durations(files: Iterable[Tuple[str, Path]], total: int, n_jobs: int=1, chunksize: int=1) -> Dict[str, Tuple[int, float]]:
+def load_audio_durations(files: Iterable[Tuple[str, Path]], total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, Tuple[int, float]]:
   with ThreadPool(
     processes=n_jobs,
   ) as pool:

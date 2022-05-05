@@ -64,7 +64,7 @@ from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_
 #   return total_success, total_changed_anything
 
 
-def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[Path], method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
+def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_directory: Optional[Path], method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
 
   start = perf_counter()
   if log:
@@ -84,6 +84,9 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
 
   chunked_list = get_chunks(file_stems, chunk)
 
+  # TODO remove, only for debugging
+  chunked_list = chunked_list[:2]
+  
   total_success = True
   total_changed_anything = False
 
@@ -104,7 +107,8 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
       (stem, directory / grid_files[stem])
       for stem in file_chunk
     )
-    parsed_grid_files = load_grids(process_data, n_digits, len(file_chunk), 16, 10)
+    
+    parsed_grid_files = load_grids(process_data, n_digits, encoding, len(file_chunk), 16, 100)
     loggers = dict(zip(file_chunk, get_file_stem_loggers(file_chunk)))
     # processing grids
     with Pool(
