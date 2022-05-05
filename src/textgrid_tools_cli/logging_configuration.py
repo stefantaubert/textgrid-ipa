@@ -4,7 +4,7 @@ from logging import Formatter, Handler, Logger, StreamHandler, getLogger
 from logging.handlers import QueueHandler
 from pathlib import Path
 from queue import Queue
-from typing import Dict, Generator
+from typing import Dict, Generator, List, Tuple
 
 from ordered_set import OrderedSet
 
@@ -37,6 +37,13 @@ def init_file_stem_loggers(file_stems: OrderedSet[str]) -> Dict[str, Queue]:
   return logging_queues
 
 
+def init_file_stem_logger_lists(file_stems: OrderedSet[str]) -> Dict[str, List[Tuple[int, str]]]:
+  logging_queues = dict.fromkeys(file_stems)
+  for k in file_stems:
+    logging_queues[k] = []
+  return logging_queues
+
+
 def get_file_stem_loggers(file_stems: OrderedSet[str]) -> Generator[Logger, None, None]:
   for k in file_stems:
     logger = getLogger(k)
@@ -50,6 +57,14 @@ def write_file_stem_loggers_to_file_logger(queues: Dict[str, Queue]) -> None:
     entries = list(q.queue)
     for x in entries:
       flogger.handle(x)
+
+
+def write_file_stem_logger_lists_to_file_logger(lists: Dict[str, List[Tuple[int, str]]]) -> None:
+  flogger = get_file_logger()
+  for k, l in lists.items():
+    flogger.info(f"Log messages for file: {k}")
+    for lvl, msg in l:
+      flogger.log(lvl, msg)
 
 
 def set_formatter(handler: Handler) -> None:

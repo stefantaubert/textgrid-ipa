@@ -22,7 +22,9 @@ from textgrid_tools_cli.io import (deserialize_grids, load_grids, load_texts, re
 from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
                                                       get_file_stem_loggers,
                                                       init_and_get_console_logger,
+                                                      init_file_stem_logger_lists,
                                                       init_file_stem_loggers, try_init_file_logger,
+                                                      write_file_stem_logger_lists_to_file_logger,
                                                       write_file_stem_loggers_to_file_logger)
 
 # def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
@@ -81,12 +83,12 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
 
   file_stems = OrderedSet(grid_files.keys())
 
-  logging_queues = init_file_stem_loggers(file_stems)
+  logging_queues = init_file_stem_logger_lists(file_stems)
 
   chunked_list = get_chunks(file_stems, chunk)
 
   # TODO remove, only for debugging
-  chunked_list = chunked_list[:2]
+  chunked_list = chunked_list[:1]
 
   total_success = True
   total_changed_anything = False
@@ -112,12 +114,12 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
     parsed_grid_files = deserialize_grids(
       parsed_grid_files_as_text.items(), len(parsed_grid_files_as_text), n_jobs, chunksize)
 
-    loggers = dict(zip(file_chunk, get_file_stem_loggers(file_chunk)))
+    # loggers = dict(zip(file_chunk, get_file_stem_loggers(file_chunk)))
     # processing grids
     with Pool(
       processes=n_jobs,
       initializer=__init_pool,
-      initargs=(loggers,),
+      initargs=(logging_queues,),
       maxtasksperchild=maxtasksperchild,
     ) as pool:
       iterator = pool.imap_unordered(method_proxy, parsed_grid_files.items(), chunksize)
@@ -143,7 +145,7 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
     total_changed_anything |= any(changed_anything for grid,
                                   changed_anything in process_results.values())
 
-  write_file_stem_loggers_to_file_logger(logging_queues)
+  write_file_stem_logger_lists_to_file_logger(logging_queues)
 
   duration = perf_counter() - start
   flogger.debug(f"Total duration (s): {duration}")
@@ -153,10 +155,10 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
   return total_success, total_changed_anything
 
 
-process_logging_queues: Dict[str, Logger] = None
+process_logging_queues: Dict[str, List[Tuple[int, str]]] = None
 
 
-def __init_pool(logging_queues: Dict[str, Logger]) -> None:
+def __init_pool(logging_queues: Dict[str, List[Tuple[int, str]]]) -> None:
   global process_logging_queues
   process_logging_queues = logging_queues
 
@@ -166,21 +168,21 @@ def process_grid(stem_grid: Tuple[str, TextGrid], method: Callable[[TextGrid], E
   file_stem, grid = stem_grid
   # try manual log(Level, args..) to cache
   # logger = multiprocessing.get_logger()
-  logger = process_logging_queues[file_stem]
+  logging_list = process_logging_queues[file_stem]
   # logger = getLogger(file_stem)
 
   error, changed_anything = method(grid)
   success = error is None
 
   if not success:
-    logger.error(error.default_message)
-    logger.info("Skipped.")
+    logging_list.append((logging.ERROR, error.default_message))
+    logging_list.append((logging.INFO, "Skipped."))
     assert not changed_anything
     return file_stem, None
 
-  logger.info("Applied operations successfull.")
+  logging_list.append((logging.INFO, "Applied operations successfull."))
 
   if not changed_anything:
-    logger.info("Didn't changed anything.")
+    logging_list.append((logging.INFO, "Didn't changed anything."))
 
   return file_stem, (grid, changed_anything)

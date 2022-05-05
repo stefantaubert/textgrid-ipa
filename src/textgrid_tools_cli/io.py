@@ -101,6 +101,46 @@ def serialize_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_j
   return texts
 
 
+def process_serialize_grid_v2(stem: str) -> Tuple[str, Optional[str]]:
+  global process_serialize_grid_v2_data
+  grid = process_serialize_grid_v2_data[stem]
+  assert grid is not None
+  try:
+    lines = get_lines(grid)
+    text = '\n'.join(lines)
+  except Exception as ex:
+    logger = getLogger(stem)
+    logger.error("Grid could not be serialized!")
+    logger.exception(ex)
+    return stem, None
+  print(f"serialized {stem}")
+  return stem, text
+
+
+process_serialize_grid_v2_data: Dict[str, TextGrid] = None
+
+
+def init_serialize_grids_v2_pool(data: Dict[str, TextGrid]) -> None:
+  global process_serialize_grid_v2_data
+  process_serialize_grid_v2_data = data
+
+
+def serialize_grids_v2(grids: Dict[str, TextGrid], n_jobs: int = 1, chunksize: int = 1, maxtasksperchild: Optional[int] = None) -> Dict[str, str]:
+  with Pool(
+    processes=n_jobs,
+    maxtasksperchild=maxtasksperchild,
+    initializer=init_serialize_grids_v2_pool,
+    initargs=(grids,),
+  ) as pool:
+    iterator = pool.imap_unordered(process_serialize_grid_v2, grids, chunksize)
+    iterator = tqdm(iterator, total=len(grids), desc="Serializing grids", unit="grid(s)")
+    texts = dict(iterator)
+
+  remove_none_from_dict(texts)
+
+  return texts
+
+
 def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
   stem, path = item
   try:
