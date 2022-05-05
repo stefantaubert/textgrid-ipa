@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -36,12 +36,12 @@ def get_splitting_v2_parser(parser: ArgumentParser):
   return app_split_intervals
 
 
-def app_split_intervals(directory: Path, tiers: OrderedSet[str], symbol: str, keep: bool, n_digits: int, encoding: str, output_directory: Optional[Path], n_jobs: int, chunksize: int, maxtasksperchild: Optional[int], log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
+def app_split_intervals(ns: Namespace) -> ExecutionResult:
   method = partial(
     split_intervals,
-    symbol=symbol,
-    keep=keep,
-    tier_names=tiers,
+    symbol=ns.symbol,
+    keep=ns.keep,
+    tier_names=ns.tiers,
   )
 
-  return process_grids_mp(directory, n_digits,encoding, output_directory, method, chunksize, n_jobs, maxtasksperchild, log, chunk)
+  return process_grids_mp(ns.directory, ns.n_digits,ns.encoding, ns.output_directory, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.log, ns.chunk)

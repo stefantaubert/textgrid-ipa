@@ -3,7 +3,7 @@ import logging
 import multiprocessing
 import queue
 import threading
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import Logger, getLogger
 from logging.handlers import QueueHandler
@@ -94,23 +94,26 @@ def process_create_grid(stem: str, name: Optional[str], tier: str, speech_rate: 
   return stem, None
 
 
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, log: Optional[Path], chunk: Optional[int], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   start = perf_counter()
   if log:
     try_init_file_logger(log)
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
+  audio_directory = ns.audio_directory
   if audio_directory is None:
-    audio_directory = directory
+    audio_directory = ns.directory
 
+  meta_directory = ns.meta_directory
   if meta_directory is None:
-    meta_directory = directory
+    meta_directory = ns.directory
 
+  output_directory = ns.output_directory
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
-  text_files = get_text_files(directory)
+  text_files = get_text_files(ns.directory)
   logger.info(f"Found {len(text_files)} text files.")
 
   audio_files = {}
@@ -127,7 +130,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
 
   logging_queues = init_file_stem_loggers(file_stems)
 
-  chunked_list = get_chunks(file_stems, chunk)
+  chunked_list = get_chunks(file_stems, ns.chunk)
   chunked_list = chunked_list[:1]
   total_success = True
 
@@ -135,20 +138,20 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
 
   create_grids_proxy = partial(
     process_create_grid,
-    name=name,
-    tier=tier,
-    speech_rate=speech_rate,
-    n_digits=n_digits,
+    name=ns.name,
+    tier=ns.tier,
+    speech_rate=ns.speech_rate,
+    n_digits=ns.n_digits,
   )
 
   file_chunk: OrderedSet[str]
   for file_chunk in tqdm(chunked_list, desc="Processing chunks", unit="chunk(s)", position=0):
     # reading texts
     process_data = (
-      (stem, directory / text_files[stem])
+      (stem, ns.directory / text_files[stem])
       for stem in file_chunk
     )
-    parsed_text_files = load_texts(process_data, encoding, len(file_chunk))
+    parsed_text_files = load_texts(process_data, ns.encoding, len(file_chunk))
 
     # reading audio durations
     relevant_audio_files = set(parsed_text_files.keys()).intersection(audio_files.keys())
@@ -164,7 +167,7 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
       (stem, meta_directory / meta_files[stem])
       for stem in relevant_meta_files
     )
-    parsed_meta_files = load_texts(process_data, encoding, len(
+    parsed_meta_files = load_texts(process_data, ns.encoding, len(
       relevant_meta_files), desc="meta")
 
     process_data = {
@@ -184,12 +187,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     else:
       keys = process_data.keys()
       with Pool(
-        processes=n_jobs,
-        maxtasksperchild=maxtasksperchild,
+        processes=ns.n_jobs,
+        maxtasksperchild=ns.maxtasksperchild,
         initializer=__init_pool,
         initargs=(process_data,),
       ) as pool:
-        iterator = pool.imap_unordered(create_grids_proxy, keys, chunksize)
+        iterator = pool.imap_unordered(create_grids_proxy, keys, ns.chunksize)
         iterator = tqdm(iterator, total=len(keys),
                         desc="Processing", unit="file(s)")
         created_grids = dict(iterator)
@@ -197,21 +200,22 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     remove_none_from_dict(created_grids)
 
     # saving grids
-    serialized_grids = serialize_grids_v2(created_grids, n_jobs, chunksize, maxtasksperchild)
+    serialized_grids = serialize_grids_v2(
+      created_grids, ns.n_jobs, ns.chunksize, ns.maxtasksperchild)
     process_data = (
       (stem, output_directory / f"{stem}.TextGrid", text)
       for stem, text in serialized_grids.items()
     )
-    successes = save_texts(process_data, encoding, len(serialized_grids))
+    successes = save_texts(process_data, ns.encoding, len(serialized_grids))
     total_success &= all(successes)
 
   write_file_stem_loggers_to_file_logger(logging_queues)
 
   duration = perf_counter() - start
   flogger.debug(f"Total duration (s): {duration}")
-  if log:
+  if ns.log:
     logger = getLogger()
-    logger.info(f"Written log to: {log.absolute()}")
+    logger.info(f"Written log to: {ns.log.absolute()}")
   return total_success, True
 
 
