@@ -62,7 +62,7 @@ def parse_line(line, short, to_round):
   return round(float(m.groups()[0]), to_round)
 
 
-def read(f, round_digits=DEFAULT_TEXTGRID_PRECISION, encoding=None):
+def read(f, round_digits=5, encoding=None):
   """
   Read the tiers contained in the Praat-formatted TextGrid file
   indicated by string f. Times are rounded to the specified precision.
@@ -71,7 +71,7 @@ def read(f, round_digits=DEFAULT_TEXTGRID_PRECISION, encoding=None):
   with codecs.open(f, 'r', encoding=encoding) as source:
     file_type, short = parse_header(source)
     if file_type != 'TextGrid':
-      raise TextGridError(
+      raise Exception(
         'The file could not be parsed as a TextGrid as it is lacking a proper header.')
     result.minTime = parse_line(source.readline(), short, round_digits)
     result.maxTime = parse_line(source.readline(), short, round_digits)
