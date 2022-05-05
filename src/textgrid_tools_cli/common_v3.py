@@ -16,7 +16,7 @@ from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_
                                                       try_init_file_logger)
 
 
-def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path]) -> ExecutionResult:
+def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path]) -> ExecutionResult:
   logger = getLogger(__name__)
 
   start = perf_counter()
@@ -36,16 +36,16 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
   method_proxy = partial(
     process_grid,
     method=method,
-    n_digits=n_digits,
+    encoding=encoding,
     overwrite=overwrite,
     directory=directory,
     output_directory=output_directory,
   )
 
-  logger.debug(f"Jobs: {n_jobs}")
-  logger.debug(f"Maxtask: {maxtasksperchild}")
-  logger.debug(f"Chunksize: {chunksize}")
-  logger.debug(f"Files: {len(grid_files)}")
+  flogger.debug(f"Jobs: {n_jobs}")
+  flogger.debug(f"Maxtask: {maxtasksperchild}")
+  flogger.debug(f"Chunksize: {chunksize}")
+  flogger.debug(f"Files: {len(grid_files)}")
 
   keys = grid_files.keys()
   # TODO remove
@@ -86,7 +86,7 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
   process_grid_files = grid_files
 
 
-def process_grid(file_stem: str, n_digits: int, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, LoggingQueue]]:
+def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, LoggingQueue]]:
   global process_grid_files
   lq = LoggingQueue(file_stem)
 
@@ -99,7 +99,7 @@ def process_grid(file_stem: str, n_digits: int, overwrite: bool, method: Callabl
 
   grid_file_in_abs = directory / rel_path
 
-  error, grid = try_load_grid(grid_file_in_abs, n_digits)
+  error, grid = try_load_grid(grid_file_in_abs, encoding=encoding)
 
   if error:
     lq.log(logging.ERROR, error.default_message)
@@ -116,7 +116,7 @@ def process_grid(file_stem: str, n_digits: int, overwrite: bool, method: Callabl
   else:
     lq.log(logging.INFO, "Applied operations successfully.")
     if changed_anything:
-      error = try_save_grid(grid_file_out_abs, grid)
+      error = try_save_grid(grid_file_out_abs, grid, encoding)
       if error:
         lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
         return file_stem, (False, False, lq)

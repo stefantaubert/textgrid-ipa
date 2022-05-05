@@ -80,7 +80,7 @@ def add_n_digits_argument(parser: ArgumentParser) -> None:
 #     super().__call__(parser, namespace, values, option_string)
 
 
-def add_encoding_argument(parser: ArgumentParser, help_str: str) -> None:
+def add_encoding_argument(parser: ArgumentParser, help_str: str = "encoding of the grid files") -> None:
   parser.add_argument("--encoding", type=parse_codec, metavar='CODEC',
                       help=help_str + "; see all available codecs at https://docs.python.org/3.8/library/codecs.html#standard-encodings", default=DEFAULT_ENCODING)
 
@@ -269,7 +269,7 @@ def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
   return result
 
 
-def try_load_grid(path: Path, n_digits: int, encoding: str = "UTF-8") -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
+def try_load_grid(path: Path, n_digits: int = None, encoding: str = "UTF-8") -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
   try:
     grid_in = read_file_faster(path, encoding)
   except Exception as ex:
