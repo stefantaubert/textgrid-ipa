@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
@@ -29,34 +29,35 @@ def get_importing_parser(parser: ArgumentParser):
   return import_text_to_tier_ns
 
 
-def import_text_to_tier_ns(directory: Path, tier: str, sep: str, text_directory: Optional[Path], n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-
+  
+  output_directory = ns.output_directory
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
-  grid_files = get_grid_files(directory)
-  text_dir = directory
-  if text_directory is not None:
-    text_dir = text_directory
+  grid_files = get_grid_files(ns.directory)
+  text_dir = ns.directory
+  if ns.text_directory is not None:
+    text_dir = ns.text_directory
 
   text_files = get_text_files(text_dir)
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(text_files.items(), start=1):
     logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
-    grid_file_in_abs = directory / f"{file_stem}.TextGrid"
+    grid_file_in_abs = ns.directory / f"{file_stem}.TextGrid"
 
     if not grid_file_in_abs.is_file():
       logger.warning("No corresponding grid found. Skipped.")
       continue
 
     grid_file_out_abs = output_directory / f"{file_stem}.TextGrid"
-    if grid_file_out_abs.exists() and not overwrite:
+    if grid_file_out_abs.exists() and not ns.overwrite:
       logger.info("Grid already exists. Skipped.")
       continue
 
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -65,13 +66,13 @@ def import_text_to_tier_ns(directory: Path, tier: str, sep: str, text_directory:
     assert grid is not None
 
     try:
-      text = (text_dir / rel_path).read_text(encoding)
+      text = (text_dir / rel_path).read_text(ns.encoding)
     except Exception as ex:
       logger.error("Text couldn't be loaded. Skipped")
       logger.exception(ex)
       continue
 
-    error, _ = import_text_to_tier(grid, tier, text, sep)
+    error, _ = import_text_to_tier(grid, ns.tier, text, ns.sep)
 
     success = error is None
     total_success &= success

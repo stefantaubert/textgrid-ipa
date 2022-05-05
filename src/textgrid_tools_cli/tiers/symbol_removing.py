@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -34,13 +34,13 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   return app_remove_symbols
 
 
-def app_remove_symbols(directory: Path, tiers: OrderedSet[str], text: OrderedSet[str], marks_text: OrderedSet[str], marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_remove_symbols(ns: Namespace) -> ExecutionResult:
   method = partial(
     remove_symbols,
-    tier_names=tiers,
-    text=text,
-    marks_text=marks_text,
-    marks=marks,
+    tier_names=ns.tiers,
+    text=ns.text,
+    marks_text=ns.marks_text,
+    marks=ns.marks,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

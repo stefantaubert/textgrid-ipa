@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from collections import Counter
 from itertools import chain
 from logging import getLogger
@@ -8,16 +8,14 @@ from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
-from textgrid_tools_cli.logging_configuration import get_file_logger, try_init_file_logger
-from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument,
-                                       add_encoding_argument,
-                                       add_tiers_argument, get_grid_files,
-                                       parse_path, try_load_grid)
+
 from textgrid_tools.helper import get_all_intervals
-from textgrid_tools.validation import (InvalidGridError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
+from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_tiers_argument, get_grid_files, parse_path,
+                                       try_load_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, try_init_file_logger
 
 
 def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
@@ -33,17 +31,17 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
   return get_vocabulary_parsed
 
 
-def get_vocabulary_parsed(directory: Path, tiers: OrderedSet[str], output: Path, encoding: str, log: Optional[Path]) -> ExecutionResult:
+def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-  if log is not None:
-    try_init_file_logger(log)
+  if ns.log is not None:
+    try_init_file_logger(ns.log)
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
-    grid_file_in_abs = directory / rel_path
+    grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS)
 
     if error:
@@ -60,7 +58,7 @@ def get_vocabulary_parsed(directory: Path, tiers: OrderedSet[str], output: Path,
     logger.error(error.default_message)
     return False, False
 
-  error, vocabulary = get_vocabulary(grids, tiers)
+  error, vocabulary = get_vocabulary(grids, ns.tiers)
 
   success = error is None
 
@@ -71,14 +69,14 @@ def get_vocabulary_parsed(directory: Path, tiers: OrderedSet[str], output: Path,
   logger.info("Saving vocabulary...")
   vocabulary_txt = '\n'.join(vocabulary)
   try:
-    output.write_text(vocabulary_txt, encoding)
+    ns.output.write_text(vocabulary_txt, ns.encoding)
   except:
     logger.error("Vocabulary couldn't be written!")
     return False, False
 
-  logger.info(f"Written vocabulary to: {output.absolute()}")
-  if log is not None:
-    logger.info(f"Written log to: {log.absolute()}")
+  logger.info(f"Written vocabulary to: {ns.output.absolute()}")
+  if ns.log is not None:
+    logger.info(f"Written log to: {ns.log.absolute()}")
 
   return True, True
 

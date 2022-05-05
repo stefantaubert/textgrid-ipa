@@ -1,21 +1,18 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
 from ordered_set import OrderedSet
+
+from textgrid_tools import fix_interval_boundaries
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tier_argument, add_tiers_argument,
-                                       parse_positive_float)
-from textgrid_tools import fix_interval_boundaries
+from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tier_argument,
+                                       add_tiers_argument, parse_positive_float)
 
 
 def get_boundary_fixing_parser(parser: ArgumentParser):
@@ -34,12 +31,12 @@ def get_boundary_fixing_parser(parser: ArgumentParser):
   return app_fix_interval_boundaries
 
 
-def app_fix_interval_boundaries(directory: Path, tier: str, tiers: OrderedSet[str], difference_threshold: float, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_fix_interval_boundaries(ns: Namespace) -> ExecutionResult:
   method = partial(
     fix_interval_boundaries,
-    difference_threshold=difference_threshold,
-    reference_tier_name=tier,
-    tier_names=tiers,
+    difference_threshold=ns.difference_threshold,
+    reference_tier_name=ns.tier,
+    tier_names=ns.tiers,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

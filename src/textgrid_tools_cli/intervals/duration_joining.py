@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -35,15 +35,15 @@ def get_duration_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_durations
 
 
-def app_join_intervals_on_durations(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool, n_digits: int, duration: float, include_pauses: bool, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  print(tiers)
+def app_join_intervals_on_durations(ns: Namespace) -> ExecutionResult:
+  # print(ns.tiers)
   method = partial(
     join_intervals_on_durations,
-    tier_names=tiers,
-    include_empty_intervals=include_pauses,
-    max_duration_s=duration,
-    join_with=join_with,
-    ignore_empty=not join_empty,
+    tier_names=ns.tiers,
+    include_empty_intervals=ns.include_pauses,
+    max_duration_s=ns.duration,
+    join_with=ns.join_with,
+    ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

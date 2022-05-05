@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from math import inf
@@ -54,18 +54,18 @@ def get_label_silence_parser(parser: ArgumentParser):
   return app_label_silence
 
 
-def app_label_silence(directory: Path, tiers: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, min_duration: float, max_duration: float, mark: str, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  if error := MaxNotGreaterThanMinError.validate(min_duration, max_duration):
+def app_label_silence(ns: Namespace) -> ExecutionResult:
+  if error := MaxNotGreaterThanMinError.validate(ns.min_duration, ns.max_duration):
     logger = getLogger(__name__)
     logger.error(error.default_message)
     return False, False
 
   method = partial(
     mark_silence,
-    tier_names=tiers,
-    mark=mark,
-    min_duration=min_duration,
-    max_duration=max_duration,
+    tier_names=ns.tiers,
+    mark=ns.mark,
+    min_duration=ns.min_duration,
+    max_duration=ns.max_duration,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from pathlib import Path
@@ -37,7 +37,7 @@ def get_transcription_parser(parser: ArgumentParser):
   add_n_jobs_argument(mp_group)
   add_chunksize_argument(mp_group)
   mp_group.add_argument("-sd", "--chunksize-dictionary", type=parse_positive_integer, metavar="NUMBER",
-                        help=f"amount of lines to chunk into one job", default=10000)
+                        help="amount of lines to chunk into one job", default=10000)
   add_maxtaskperchild_argument(mp_group)
   return app_transcribe_text_v2
 
@@ -55,12 +55,12 @@ def add_deserialization_group(parser: ArgumentParser) -> None:
                      help="consider weights")
 
 
-def app_transcribe_text_v2(directory: Path, tiers: OrderedSet[str], dictionary: Path, encoding: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, consider_comments: bool, consider_numbers: bool, consider_pronunciation_comments: bool, consider_weights: bool, seed: Optional[int], ignore_missing: bool, n_jobs: int, chunksize: int, chunksize_dictionary: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  mp_options = MultiprocessingOptions(n_jobs, maxtasksperchild, chunksize_dictionary)
-  options = DeserializationOptions(consider_comments, consider_numbers,
-                                   consider_pronunciation_comments, consider_weights)
+def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
+  mp_options = MultiprocessingOptions(ns.n_jobs, ns.maxtasksperchild, ns.chunksize_dictionary)
+  options = DeserializationOptions(ns.consider_comments, ns.consider_numbers,
+                                   ns.consider_pronunciation_comments, ns.consider_weights)
   try:
-    pronunciation_dictionary = load_dict(dictionary, encoding, options, mp_options)
+    pronunciation_dictionary = load_dict(ns.dictionary, ns.encoding, options, mp_options)
   except Exception as ex:
     logger = getLogger(__name__)
     logger.error("Pronunciation dictionary couldn't be read!")
@@ -69,10 +69,10 @@ def app_transcribe_text_v2(directory: Path, tiers: OrderedSet[str], dictionary: 
 
   method = partial(
     transcribe_text,
-    tier_names=tiers,
+    tier_names=ns.tiers,
     pronunciation_dictionary=pronunciation_dictionary,
-    seed=seed,
-    ignore_missing=ignore_missing,
+    seed=ns.seed,
+    ignore_missing=ns.ignore_missing,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

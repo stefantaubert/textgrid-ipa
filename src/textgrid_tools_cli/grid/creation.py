@@ -1,4 +1,5 @@
-from argparse import ArgumentParser
+from time import perf_counter
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
@@ -35,23 +36,21 @@ def get_creation_parser(parser: ArgumentParser):
   add_overwrite_argument(parser)
   return app_create_grid_from_text
 
-from time import perf_counter
 
-
-def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], meta_directory: Optional[Path], name: Optional[str], tier: str, speech_rate: float, n_digits: int, output_directory: Optional[Path], encoding: str, overwrite: bool) -> ExecutionResult:
+def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   start = perf_counter()
   logger = getLogger(__name__)
 
   if audio_directory is None:
-    audio_directory = directory
+    audio_directory = ns.directory
 
   if meta_directory is None:
-    meta_directory = directory
+    meta_directory = ns.directory
 
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
-  text_files = get_text_files(directory)
+  text_files = get_text_files(ns.directory)
 
   audio_files = {}
   if audio_directory is not None:
@@ -66,12 +65,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
   for file_nr, (file_stem, rel_path) in enumerate(text_files.items(), start=1):
     logger.info(f"Processing {file_stem} ({file_nr}/{len(text_files)})...")
     grid_file_out_abs = output_directory / f"{file_stem}.TextGrid"
-    if grid_file_out_abs.exists() and not overwrite:
+    if grid_file_out_abs.exists() and not ns.overwrite:
       logger.info("Grid already exists. Skipped.")
       continue
 
-    text_file_in_abs = directory / rel_path
-    text = text_file_in_abs.read_text(encoding)
+    text_file_in_abs = ns.directory / rel_path
+    text = text_file_in_abs.read_text(ns.encoding)
 
     audio_samples_in = None
     sample_rate = None
@@ -86,12 +85,12 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
 
     if file_stem in meta_files:
       meta_file_in_abs = meta_directory / meta_files[file_stem]
-      meta = meta_file_in_abs.read_text(encoding)
+      meta = meta_file_in_abs.read_text(ns.encoding)
     else:
       logger.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
-                                             sample_rate, name, tier, speech_rate, n_digits)
+                                             sample_rate, ns.name, ns.tier, ns.speech_rate, ns.n_digits)
 
     success = error is None
     total_success &= success
@@ -104,5 +103,5 @@ def app_create_grid_from_text(directory: Path, audio_directory: Optional[Path], 
     save_grid(grid_file_out_abs, grid)
   duration = perf_counter() - start
   print(duration)
-  
+
   return total_success, True

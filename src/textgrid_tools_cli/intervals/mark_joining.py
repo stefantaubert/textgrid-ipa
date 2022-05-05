@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from pathlib import Path
@@ -49,19 +49,19 @@ def get_mark_joining_parser(parser: ArgumentParser):
   return app_join_marks
 
 
-def app_join_marks(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool, empty: bool, marks: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  if error := NoMarkDefinedError.validate(marks, empty):
+def app_join_marks(ns: Namespace) -> ExecutionResult:
+  if error := NoMarkDefinedError.validate(ns.marks, ns.empty):
     logger = getLogger(__name__)
     logger.error(error.default_message)
     return False, False
 
   method = partial(
     join_marks,
-    tier_names=tiers,
-    join_with=join_with,
-    ignore_empty=not join_empty,
-    empty=empty,
-    marks=marks,
+    tier_names=ns.tiers,
+    join_with=ns.join_with,
+    ignore_empty=not ns.join_empty,
+    empty=ns.empty,
+    marks=ns.marks,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -38,15 +38,15 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   return app_join_intervals_between_pauses
 
 
-def app_join_intervals_between_pauses(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_between_pauses(ns: Namespace) -> ExecutionResult:
   method = partial(
     join_interval_symbols,
-    ignore_join_symbols=ignore_join_symbols,
-    join_symbols=join_symbols,
-    mode=mode,
-    tier_names=tiers,
-    join_with=join_with,
-    ignore_empty=not join_empty,
+    ignore_join_symbols=ns.ignore_join_symbols,
+    join_symbols=ns.join_symbols,
+    mode=ns.mode,
+    tier_names=ns.tiers,
+    join_with=ns.join_with,
+    ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

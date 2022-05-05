@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from tempfile import gettempdir
@@ -28,19 +28,19 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   return merge_grids_app
 
 
-def merge_grids_app(directory: Path, output: Path, log: Optional[Path], insert_duration: Optional[float], insert_mark: Optional[str]) -> ExecutionResult:
+def merge_grids_app(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-  if log is not None:
-    try_init_file_logger(log)
+  if ns.log is not None:
+    try_init_file_logger(ns.log)
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     if file_nr == 10:
       break
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
-    grid_file_in_abs = directory / rel_path
+    grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS)
 
     if error:
@@ -57,7 +57,7 @@ def merge_grids_app(directory: Path, output: Path, log: Optional[Path], insert_d
     logger.error(error.default_message)
     return False, False
 
-  (error, changed_anything), merged_grid = merge_grids(grids, insert_duration, insert_mark)
+  (error, changed_anything), merged_grid = merge_grids(grids, ns.insert_duration, ns.insert_mark)
 
   success = error is None
 
@@ -67,14 +67,14 @@ def merge_grids_app(directory: Path, output: Path, log: Optional[Path], insert_d
 
   logger.info("Saving grid...")
   try:
-    save_grid(output, merged_grid)
+    save_grid(ns.output, merged_grid)
   except Exception as ex:
     logger.error("Grid couldn't be written!")
     logger.exception(ex)
     return False, False
 
-  logger.info(f"Written grid to: {output.absolute()}")
-  if log is not None:
-    logger.info(f"Written log to: {log.absolute()}")
+  logger.info(f"Written grid to: {ns.output.absolute()}")
+  if ns.log is not None:
+    logger.info(f"Written log to: {ns.log.absolute()}")
 
   return True, True

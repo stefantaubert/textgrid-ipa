@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 
@@ -17,17 +17,17 @@ def get_stats_generation_parser(parser: ArgumentParser):
   return app_print_stats
 
 
-def app_print_stats(directory: Path, duration_threshold: float, n_digits: int) -> ExecutionResult:
+def app_print_stats(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Statistics {file_stem} ({file_nr}/{len(grid_files)}):")
 
-    grid_file_in_abs = directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = ns.directory / rel_path
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -35,7 +35,7 @@ def app_print_stats(directory: Path, duration_threshold: float, n_digits: int) -
       continue
     assert grid is not None
 
-    error, changed_anything = print_stats(grid, duration_threshold)
+    error, changed_anything = print_stats(grid, ns.duration_threshold)
     logger.info("")
     assert not changed_anything
     success = error is None

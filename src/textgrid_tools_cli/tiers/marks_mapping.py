@@ -1,5 +1,5 @@
 import json
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from pathlib import Path
@@ -40,10 +40,10 @@ def get_marks_mapping_parser(parser: ArgumentParser):
   return map_marks_ns
 
 
-def map_marks_ns(directory: Path, mapping: Path, encoding: str, tiers: OrderedSet[str], replace_unmapped: bool, mark: Optional[str], ignore: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def map_marks_ns(ns: Namespace) -> ExecutionResult:
 
   try:
-    with mapping.open(mode='r', encoding=encoding) as json_file:
+    with ns.mapping.open(mode='r', encoding=ns.encoding) as json_file:
       mapping_content = json.load(json_file)
   except Exception as ex:
     logger = getLogger(__name__)
@@ -53,11 +53,11 @@ def map_marks_ns(directory: Path, mapping: Path, encoding: str, tiers: OrderedSe
 
   method = partial(
     map_marks,
-    ignore=ignore,
+    ignore=ns.ignore,
     mapping=mapping_content,
-    replace_unmapped=replace_unmapped,
-    replace_unmapped_with=mark,
-    tier_names=tiers,
+    replace_unmapped=ns.replace_unmapped,
+    replace_unmapped_with=ns.mark,
+    tier_names=ns.tiers,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

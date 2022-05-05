@@ -1,23 +1,19 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read
-from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument,
-                                       add_n_digits_argument,
-                                       add_overwrite_argument,
-                                       add_tier_argument, get_audio_files,
-                                       get_grid_files, get_optional, try_load_grid,
-                                       parse_existing_directory, parse_path,
-                                       save_audio, save_grid)
-from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
-from textgrid_tools import split_grid_on_intervals
 from tqdm import tqdm
 
+from textgrid_tools import split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
+from textgrid_tools_cli.globals import ExecutionResult
+from textgrid_tools_cli.helper import (add_directory_argument, add_n_digits_argument,
+                                       add_overwrite_argument, add_tier_argument, get_audio_files,
+                                       get_grid_files, get_optional, parse_existing_directory,
+                                       parse_path, save_audio, save_grid, try_load_grid)
 
 
 def get_splitting_parser(parser: ArgumentParser):
@@ -39,23 +35,23 @@ def get_splitting_parser(parser: ArgumentParser):
   return app_split_grid_on_intervals
 
 
-def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path], tier: str, include_empty: bool, ignore_audio: bool, n_digits: int, output_directory: Optional[Path], output_audio_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-  assert directory.is_dir()
+  assert ns.directory.is_dir()
 
-  if audio_directory is None and not ignore_audio:
-    audio_directory = directory
+  if audio_directory is None and not ns.ignore_audio:
+    audio_directory = ns.directory
 
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
   if output_audio_directory is None:
-    output_audio_directory = directory
+    output_audio_directory = ns.directory
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   audio_files = {}
-  if not ignore_audio:
+  if not ns.ignore_audio:
     assert audio_directory is not None
     audio_files = get_audio_files(audio_directory)
 
@@ -78,8 +74,8 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
   for file_nr, file_stem in enumerate(common_files, start=1):
     logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
 
-    grid_file_in_abs = directory / grid_files[file_stem]
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = ns.directory / grid_files[file_stem]
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -96,7 +92,7 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), grids_audios = split_grid_on_intervals(
-      grid, audio, sample_rate, tier, include_empty, n_digits)
+      grid, audio, sample_rate, ns.tier, ns.include_empty, ns.n_digits)
 
     success = error is None
     total_success &= success
@@ -111,14 +107,14 @@ def app_split_grid_on_intervals(directory: Path, audio_directory: Optional[Path]
     for i, (new_grid, new_audio) in enumerate(tqdm(grids_audios), start=1):
       file_nr = number_prepend_zeros(i, len(grids_audios))
       grid_file_out_abs = output_directory / file_stem / f"{file_nr}.TextGrid"
-      if grid_file_out_abs.exists() and not overwrite:
+      if grid_file_out_abs.exists() and not ns.overwrite:
         logger.info(f"Grid {file_nr} already exists. Skipped.")
       else:
         save_grid(grid_file_out_abs, new_grid)
       if audio_provided:
         assert new_audio is not None
         audio_file_out_abs = output_audio_directory / file_stem / f"{file_nr}.wav"
-        if audio_file_out_abs.exists() and not overwrite:
+        if audio_file_out_abs.exists() and not ns.overwrite:
           logger.info(f"Audio file {file_nr} already exists. Skipped.")
         else:
           save_audio(audio_file_out_abs, new_audio, sample_rate)

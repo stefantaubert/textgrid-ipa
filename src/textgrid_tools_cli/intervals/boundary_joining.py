@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -33,13 +33,13 @@ def get_boundary_joining_parser(parser: ArgumentParser):
   return app_join_intervals_on_boundaries
 
 
-def app_join_intervals_on_boundaries(directory: Path, tiers: OrderedSet[str], join_with: str, join_empty: bool, boundary_tier: str, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_on_boundaries(ns: Namespace) -> ExecutionResult:
   method = partial(
     join_intervals_on_boundaries,
-    boundary_tier_name=boundary_tier,
-    tier_names=tiers,
-    join_with=join_with,
-    ignore_empty=not join_empty,
+    boundary_tier_name=ns.boundary_tier,
+    tier_names=ns.tiers,
+    join_with=ns.join_with,
+    ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

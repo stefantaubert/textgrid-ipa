@@ -1,18 +1,16 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
 from ordered_set import OrderedSet
-from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
-                                       add_directory_argument,
-                                       add_n_digits_argument,
-                                       add_overwrite_argument, get_grid_files,
-                                       get_optional, try_load_grid,
-                                       parse_non_empty_or_whitespace,
-                                       parse_path)
+
 from textgrid_tools import plot_interval_durations_diagram
+from textgrid_tools_cli.globals import ExecutionResult
+from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
+                                       add_n_digits_argument, add_overwrite_argument,
+                                       get_grid_files, get_optional, parse_non_empty_or_whitespace,
+                                       parse_path, try_load_grid)
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
@@ -27,13 +25,13 @@ def get_plot_interval_durations_parser(parser: ArgumentParser):
   return app_plot_interval_durations
 
 
-def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output_directory: Optional[Path], n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
@@ -42,12 +40,12 @@ def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output_
     pdf_out = output_directory / f"{rel_path.stem}.pdf"
     png_out = output_directory / f"{rel_path.stem}.png"
 
-    if not overwrite and (pdf_out.exists() or png_out.exists()):
+    if not ns.overwrite and (pdf_out.exists() or png_out.exists()):
       logger.info("Plot already exists. Skipping...")
       continue
 
-    grid_file_in_abs = directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = ns.directory / rel_path
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -55,7 +53,7 @@ def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output_
       continue
     assert grid is not None
 
-    (error, changed_anything), figure = plot_interval_durations_diagram(grid, tiers)
+    (error, changed_anything), figure = plot_interval_durations_diagram(grid, ns.tiers)
     assert not changed_anything
     success = error is None
     total_success &= success

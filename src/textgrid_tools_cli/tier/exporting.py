@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
@@ -26,24 +26,25 @@ def get_exporting_parser(parser: ArgumentParser):
   return app_convert_tier_to_text
 
 
-def app_convert_tier_to_text(directory: Path, tier: str, sep: str, n_digits: int, encoding: str, output_directory: Optional[Path], overwrite: bool) -> ExecutionResult:
+def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
 
+  output_directory = ns.output_directory
   if output_directory is None:
-    output_directory = directory
+    output_directory = ns.directory
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
     text_file_out_abs = output_directory / f"{file_stem}.txt"
-    if text_file_out_abs.exists() and not overwrite:
+    if text_file_out_abs.exists() and not ns.overwrite:
       logger.info("Text file already exists. Skipped.")
       continue
 
-    grid_file_in_abs = directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = ns.directory / rel_path
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -51,7 +52,7 @@ def app_convert_tier_to_text(directory: Path, tier: str, sep: str, n_digits: int
       continue
     assert grid is not None
 
-    (error, _), text = convert_tier_to_text(grid, tier, sep)
+    (error, _), text = convert_tier_to_text(grid, ns.tier, ns.sep)
 
     success = error is None
     total_success &= success
@@ -61,7 +62,7 @@ def app_convert_tier_to_text(directory: Path, tier: str, sep: str, n_digits: int
       logger.info("Skipped.")
       continue
 
-    save_text(text_file_out_abs, text, encoding)
+    save_text(text_file_out_abs, text, ns.encoding)
 
   logger.info(f"Written output to: {output_directory}")
   return total_success, True

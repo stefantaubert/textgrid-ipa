@@ -1,21 +1,18 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from pathlib import Path
 from typing import List
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
+
+from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (ConvertToOrderedSetAction,
-                                       add_directory_argument,
-                                       add_n_digits_argument,
-                                       add_overwrite_argument, get_grid_files,
-                                       try_load_grid,
-                                       parse_non_empty_or_whitespace,
-                                       parse_path)
+from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
+                                       add_n_digits_argument, add_overwrite_argument,
+                                       get_grid_files, parse_non_empty_or_whitespace, parse_path,
+                                       try_load_grid)
 from textgrid_tools_cli.validation import FileAlreadyExistsError
-from textgrid_tools.grids.durations_plotting import \
-    plot_grids_interval_durations_diagram
 
 
 def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
@@ -30,24 +27,24 @@ def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
   return app_plot_interval_durations
 
 
-def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output: Path, n_digits: int, overwrite: bool) -> ExecutionResult:
+def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
 
-  grid_files = get_grid_files(directory)
+  grid_files = get_grid_files(ns.directory)
 
-  if output.suffix.lower() not in {".png", ".pdf"}:
+  if ns.output.suffix.lower() not in {".png", ".pdf"}:
     logger.error("Only .png and .pdf outputs are supported!")
     return False, False
 
-  if not overwrite and (error := FileAlreadyExistsError.validate(output)):
+  if not ns.overwrite and (error := FileAlreadyExistsError.validate(ns.output)):
     logger.error(error.default_message)
     return False, False
 
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
-    grid_file_in_abs = directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, n_digits)
+    grid_file_in_abs = ns.directory / rel_path
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
 
     if error:
       logger.error(error.default_message)
@@ -57,7 +54,7 @@ def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output:
 
     grids.append(grid)
 
-  (error, _), figure = plot_grids_interval_durations_diagram(grids, tiers)
+  (error, _), figure = plot_grids_interval_durations_diagram(grids, ns.tiers)
 
   success = error is None
 
@@ -65,10 +62,10 @@ def app_plot_interval_durations(directory: Path, tiers: OrderedSet[str], output:
     logger.error(error.default_message)
     return False, False
 
-  output.parent.mkdir(parents=True, exist_ok=True)
+  ns.output.parent.mkdir(parents=True, exist_ok=True)
   getLogger('matplotlib.backends.backend_pdf').disabled = True
-  figure.savefig(output)
+  figure.savefig(ns.output)
   getLogger('matplotlib.backends.backend_pdf').disabled = False
-  logger.info(f"Exported plot to: {output}")
+  logger.info(f"Exported plot to: {ns.output}")
 
   return True, False

@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -27,10 +27,10 @@ def get_removing_parser(parser: ArgumentParser):
   return app_remove_tiers
 
 
-def app_remove_tiers(directory: Path, tiers: OrderedSet[str], n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_remove_tiers(ns: Namespace) -> ExecutionResult:
   method = partial(
     remove_tiers,
-    tier_names=tiers,
+    tier_names=ns.tiers,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

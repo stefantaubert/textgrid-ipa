@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from math import inf
 from pathlib import Path
@@ -34,13 +34,13 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   return app_join_intervals_between_pauses
 
 
-def app_join_intervals_between_pauses(directory: Path, tiers: OrderedSet[str], pause: float, join_with: str, join_empty: bool, n_digits: int, output_directory: Optional[Path], overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_join_intervals_between_pauses(ns: Namespace) -> ExecutionResult:
   method = partial(
     join_intervals_between_pauses,
-    pause=pause,
-    tier_names=tiers,
-    join_with=join_with,
-    ignore_empty=not join_empty,
+    pause=ns.pause,
+    tier_names=ns.tiers,
+    join_with=ns.join_with,
+    ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, ns.method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

@@ -131,7 +131,8 @@ def parse_args(args: List[str]):
 
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
-    success, changed_anything = invoke_handler(**params)
+    #success, changed_anything = invoke_handler(**params)
+    success, changed_anything = invoke_handler(received_args)
     # get logger after it had a change to be init with a logfile
     if success:
       logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")

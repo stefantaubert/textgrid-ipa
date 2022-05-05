@@ -1,20 +1,16 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from functools import partial
 from pathlib import Path
 from typing import Optional
 
+from textgrid_tools import move_tier
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_chunksize_argument,
-                                       add_directory_argument,
-                                       add_maxtaskperchild_argument,
-                                       add_n_digits_argument,
-                                       add_n_jobs_argument,
-                                       add_output_directory_argument,
-                                       add_overwrite_argument,
-                                       add_tier_argument,
+from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tier_argument,
                                        parse_positive_integer)
-from textgrid_tools import move_tier
 
 
 def get_moving_parser(parser: ArgumentParser):
@@ -32,11 +28,11 @@ def get_moving_parser(parser: ArgumentParser):
   return app_move_tier
 
 
-def app_move_tier(directory: Path, tier: str, n_digits: int, output_directory: Optional[Path], position: int, overwrite: bool, n_jobs: int, chunksize: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def app_move_tier(ns: Namespace) -> ExecutionResult:
   method = partial(
     move_tier,
-    tier_name=tier,
-    position_one_based=position,
+    tier_name=ns.tier,
+    position_one_based=ns.position,
   )
 
-  return process_grids_mp(directory, n_digits, output_directory, overwrite, method, chunksize, n_jobs, maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
