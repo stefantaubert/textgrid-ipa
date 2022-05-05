@@ -1,4 +1,4 @@
-# taken from textgrid
+# taken from textgrid: see https://github.com/kylebgorman/textgrid
 
 import re
 from pathlib import Path
@@ -74,8 +74,11 @@ def parse_line(line, short):
 
 def read_file_faster(path: Path, encoding: str) -> TextGrid:
   with open(path, "r", encoding=encoding) as f:
-    lines = f.read()
-  return parse_text(lines)
+    lines = f.readlines()
+  result = parse_lines(iter(lines))
+  del f
+  del lines
+  return result
 
 
 def parse_text(text: str) -> TextGrid:

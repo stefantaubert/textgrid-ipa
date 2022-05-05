@@ -22,7 +22,8 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.helper import check_is_valid_grid
 from textgrid_tools_cli.globals import (DEFAULT_ENCODING, DEFAULT_MAXTASKSPERCHILD,
                                         DEFAULT_N_DIGITS, DEFAULT_N_FILE_CHUNKSIZE, DEFAULT_N_JOBS)
-from textgrid_tools_cli.validation import GridCouldNotBeLoadedError
+from textgrid_tools_cli.textgrid_io import get_lines, parse_text, read_file_faster, save_file_faster
+from textgrid_tools_cli.validation import GridCouldNotBeLoadedError, GridCouldNotBeSavedError
 
 GRID_FILE_TYPE = ".TextGrid"
 TXT_FILE_TYPE = ".txt"
@@ -268,34 +269,47 @@ def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
   return result
 
 
-def try_load_grid(path: Path, n_digits: int) -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
-  grid_in = TextGrid()
+def try_load_grid(path: Path, n_digits: int, encoding: str = "UTF-8") -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
   try:
-    grid_in.read(path, round_digits=n_digits)
+    grid_in = read_file_faster(path, encoding)
   except Exception as ex:
-    logger = getLogger(__name__)
-    logger.debug(ex)
+    #logger = getLogger(__name__)
+    # logger.debug(ex)
     return GridCouldNotBeLoadedError(path, ex), None
   return None, grid_in
 
 
-def save_grid(path: Path, grid: TextGrid) -> None:
-  # logger = getLogger(__name__)
-  # logger.debug("Saving grid...")
+def try_save_grid(path: Path, grid: TextGrid, encoding: str = "UTF-8") -> Optional[GridCouldNotBeLoadedError]:
+  try:
+    save_grid(path, grid, encoding)
+  except Exception as ex:
+    return GridCouldNotBeSavedError(path, ex)
+  return None
+
+
+def try_copy_grid(grid_in: Path, grid_out: Path) -> Optional[GridCouldNotBeLoadedError]:
+  try:
+    copy_grid(grid_in, grid_out)
+  except Exception as ex:
+    return GridCouldNotBeSavedError(grid_out, ex)
+  return None
+
+
+def save_grid(path: Path, grid: TextGrid, encoding: str = "UTF-8") -> None:
   assert check_is_valid_grid(grid)
   path.parent.mkdir(exist_ok=True, parents=True)
-  grid.write(path)
+  save_file_faster(grid, path, encoding)
 
 
 def copy_grid(grid_in: Path, grid_out: Path) -> None:
-  logger = getLogger(__name__)
-  logger.debug("Copying grid...")
+  #logger = getLogger(__name__)
+  #logger.debug("Copying grid...")
   copy_file(grid_in, grid_out)
 
 
 def copy_audio(audio_in: Path, audio_out: Path) -> None:
-  logger = getLogger(__name__)
-  logger.debug("Copying audio...")
+  #logger = getLogger(__name__)
+  #logger.debug("Copying audio...")
   copy_file(audio_in, audio_out)
 
 
@@ -305,8 +319,8 @@ def copy_file(file_in: Path, file_out: Path) -> None:
 
 
 def save_text(path: Path, text: str, encoding: str) -> None:
-  logger = getLogger(__name__)
-  logger.debug("Saving text...")
+  #logger = getLogger(__name__)
+  #logger.debug("Saving text...")
   path.parent.mkdir(parents=True, exist_ok=True)
   path.write_text(text, encoding=encoding)
 

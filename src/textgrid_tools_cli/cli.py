@@ -9,6 +9,7 @@ from typing import Callable, Dict, Generator, List, Tuple
 from textgrid_tools_cli import *
 from textgrid_tools_cli.grid.creation_v2 import get_creation_v2_parser
 from textgrid_tools_cli.intervals.splitting_v2 import get_splitting_v2_parser
+from textgrid_tools_cli.intervals.splitting_v3 import get_splitting_v3_parser
 from textgrid_tools_cli.logging_configuration import (configure_root_logger,
                                                       init_and_get_console_logger)
 
@@ -70,6 +71,7 @@ def get_intervals_parsers() -> Parsers:
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "split", "split intervals", get_splitting_parser
   yield "split-v2", "split intervals", get_splitting_v2_parser
+  yield "split-v3", "split intervals", get_splitting_v3_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 

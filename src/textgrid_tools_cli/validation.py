@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from textgrid import TextGrid
+
 from textgrid_tools import ValidationError as ValidationErrorCore
 
 
@@ -33,4 +34,14 @@ class GridCouldNotBeLoadedError(ValidationError):
 
   @property
   def default_message(self) -> str:
-    return f"Grid couldn't be loaded!"
+    return "Grid couldn't be loaded!"
+
+class GridCouldNotBeSavedError(ValidationError):
+  def __init__(self, path: Path, exception: Exception) -> None:
+    super().__init__()
+    self.path = path
+    self.exception = exception
+
+  @property
+  def default_message(self) -> str:
+    return "Grid couldn't be saved!"
