@@ -96,8 +96,8 @@ def process_create_grid(stem: str, name: Optional[str], tier: str, speech_rate: 
 
 def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   start = perf_counter()
-  if log:
-    try_init_file_logger(log)
+  if ns.log:
+    try_init_file_logger(ns.log)
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
