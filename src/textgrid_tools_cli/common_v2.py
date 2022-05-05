@@ -17,7 +17,7 @@ from tqdm import tqdm
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import (copy_grid, get_chunks, get_grid_files, save_grid,
                                        try_load_grid)
-from textgrid_tools_cli.io import load_grids, save_grids
+from textgrid_tools_cli.io import load_grids, load_grids_from_text, load_texts, save_grids
 from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
                                                       get_file_stem_loggers,
                                                       init_and_get_console_logger,
@@ -86,7 +86,7 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
 
   # TODO remove, only for debugging
   chunked_list = chunked_list[:2]
-  
+
   total_success = True
   total_changed_anything = False
 
@@ -107,8 +107,12 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
       (stem, directory / grid_files[stem])
       for stem in file_chunk
     )
-    
-    parsed_grid_files = load_grids(process_data, n_digits, encoding, len(file_chunk), 16, 100)
+
+    parsed_grid_files_as_text = load_texts(process_data, encoding, len(file_chunk))
+
+    parsed_grid_files = load_grids_from_text(
+      parsed_grid_files_as_text.items(), len(parsed_grid_files_as_text), n_jobs, chunksize)
+
     loggers = dict(zip(file_chunk, get_file_stem_loggers(file_chunk)))
     # processing grids
     with Pool(

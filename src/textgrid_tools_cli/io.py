@@ -18,6 +18,7 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools_cli.helper import read_audio, save_grid
+from textgrid_tools_cli.textgrid_io import parse_text
 
 
 def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
@@ -71,9 +72,7 @@ def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_j
                     desc=f"Reading {desc} files", unit="file(s)")
     parsed_text_files = dict(iterator)
 
-  for k, val in parsed_text_files.items():
-    if val is None:
-      parsed_text_files.pop(k)
+  remove_none_from_dict(parsed_text_files)
 
   return parsed_text_files
 
@@ -107,11 +106,42 @@ def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, 
                     desc="Reading grid files", unit="file(s)")
     parsed_files = dict(iterator)
 
-  for k, val in parsed_files.items():
-    if val is None:
-      parsed_files.pop(k)
+  remove_none_from_dict(parsed_files)
 
   return parsed_files
+
+
+def process_read_grid_from_text(item: Tuple[str, str]) -> Tuple[str, Optional[TextGrid]]:
+  stem, text = item
+  try:
+    grid = parse_text(text)
+  except Exception as ex:
+    logger = getLogger(stem)
+    logger.error("Grid could not be parsed!")
+    logger.exception(ex)
+    return stem, None
+  return stem, grid
+
+
+def load_grids_from_text(files: Iterable[Tuple[str, str]], total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
+
+  with Pool(
+    processes=n_jobs,
+  ) as pool:
+    iterator = pool.imap_unordered(process_read_grid_from_text, files, chunksize)
+    iterator = tqdm(iterator, total=total,
+                    desc="Parsing grid files", unit="grid(s)")
+    parsed_files = dict(iterator)
+
+  remove_none_from_dict(parsed_files)
+
+  return parsed_files
+
+
+def remove_none_from_dict(d: Dict) -> None:
+  none_keys = {k for k, v in d.items() if v is None}
+  for k in none_keys:
+    d.pop(k)
 
 
 def process_read_audio_durations(item: Tuple[str, Path, List[str]]) -> Tuple[str, Optional[Tuple[int, int]]]:
@@ -136,8 +166,6 @@ def load_audio_durations(files: Iterable[Tuple[str, Path]], total: int, n_jobs: 
                     desc="Reading audio files", unit="file(s)")
     parsed_audio_files = dict(iterator)
 
-  for k, val in parsed_audio_files.items():
-    if val is None:
-      parsed_audio_files.pop(k)
+  remove_none_from_dict(parsed_audio_files)
 
   return parsed_audio_files
