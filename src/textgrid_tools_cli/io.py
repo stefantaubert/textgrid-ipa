@@ -18,7 +18,7 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools_cli.helper import read_audio, save_grid
-from textgrid_tools_cli.textgrid_io import parse_text
+from textgrid_tools_cli.textgrid_io import get_lines, parse_text
 
 
 def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
@@ -43,6 +43,62 @@ def save_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: 
     iterator = tqdm(iterator, total=total, desc="Saving grid files", unit="grid(s)")
     successes = list(iterator)
   return successes
+
+
+def process_save_text(item: Tuple[str, Path, str], encoding: str) -> None:
+  stem, path, text = item
+  assert text is not None
+  try:
+    path.write_text(text, encoding)
+  except Exception as ex:
+    logger = getLogger(stem)
+    logger.error(f"File '{path.absolute()}' could not be saved!")
+    logger.exception(ex)
+    return False
+  return True
+
+
+def save_texts(texts: Iterable[Tuple[str, Path, str]], encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1) -> List[bool]:
+  method_proxy = partial(
+    process_save_text,
+    encoding=encoding,
+  )
+
+  with ThreadPool(
+    processes=n_jobs,
+  ) as pool:
+    iterator = pool.imap_unordered(method_proxy, texts, chunksize)
+    iterator = tqdm(iterator, total=total, desc="Saving files", unit="file(s)")
+    successes = list(iterator)
+  return successes
+
+
+def process_serialize_grid(item: Tuple[str, TextGrid]) -> Tuple[str, Optional[str]]:
+  stem, grid = item
+  assert grid is not None
+  try:
+    lines = get_lines(grid)
+    text = '\n'.join(lines)
+  except Exception as ex:
+    logger = getLogger(stem)
+    logger.error("Grid could not be serialized!")
+    logger.exception(ex)
+    return stem, None
+  return stem, text
+
+
+def serialize_grids(grids: Iterable[Tuple[str, Path, TextGrid]], total: int, n_jobs: int = 1, chunksize: int = 1, maxtasksperchild: Optional[int] = None) -> Dict[str, str]:
+  with Pool(
+    processes=n_jobs,
+    maxtasksperchild=maxtasksperchild,
+  ) as pool:
+    iterator = pool.imap_unordered(process_serialize_grid, grids, chunksize)
+    iterator = tqdm(iterator, total=total, desc="Serializing grids", unit="grid(s)")
+    texts = dict(iterator)
+
+  remove_none_from_dict(texts)
+
+  return texts
 
 
 def process_read_text(item: Tuple[str, Path], encoding: str) -> Optional[str]:
@@ -91,7 +147,7 @@ def process_read_grid(item: Tuple[str, Path], n_digits: int, encoding: str) -> O
   return stem, grid_in
 
 
-def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
+def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1, maxtasksperchild: Optional[int] = None) -> Dict[str, TextGrid]:
   read_method_proxy = partial(
     process_read_grid,
     n_digits=n_digits,
@@ -100,6 +156,7 @@ def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, 
 
   with Pool(
     processes=n_jobs,
+    maxtasksperchild=maxtasksperchild,
   ) as pool:
     iterator = pool.imap_unordered(read_method_proxy, files, chunksize)
     iterator = tqdm(iterator, total=total,
@@ -123,12 +180,12 @@ def process_read_grid_from_text(item: Tuple[str, str]) -> Tuple[str, Optional[Te
   return stem, grid
 
 
-def load_grids_from_text(files: Iterable[Tuple[str, str]], total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
+def deserialize_grids(texts: Iterable[Tuple[str, str]], total: int, n_jobs: int = 1, chunksize: int = 1) -> Dict[str, TextGrid]:
 
   with Pool(
     processes=n_jobs,
   ) as pool:
-    iterator = pool.imap_unordered(process_read_grid_from_text, files, chunksize)
+    iterator = pool.imap_unordered(process_read_grid_from_text, texts, chunksize)
     iterator = tqdm(iterator, total=total,
                     desc="Parsing grid files", unit="grid(s)")
     parsed_files = dict(iterator)

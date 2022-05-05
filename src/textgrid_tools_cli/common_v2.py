@@ -17,7 +17,8 @@ from tqdm import tqdm
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import (copy_grid, get_chunks, get_grid_files, save_grid,
                                        try_load_grid)
-from textgrid_tools_cli.io import load_grids, load_grids_from_text, load_texts, save_grids
+from textgrid_tools_cli.io import (deserialize_grids, load_grids, load_texts, remove_none_from_dict,
+                                   save_grids, save_texts, serialize_grids)
 from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
                                                       get_file_stem_loggers,
                                                       init_and_get_console_logger,
@@ -110,7 +111,7 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
 
     parsed_grid_files_as_text = load_texts(process_data, encoding, len(file_chunk))
 
-    parsed_grid_files = load_grids_from_text(
+    parsed_grid_files = deserialize_grids(
       parsed_grid_files_as_text.items(), len(parsed_grid_files_as_text), n_jobs, chunksize)
 
     loggers = dict(zip(file_chunk, get_file_stem_loggers(file_chunk)))
@@ -125,17 +126,24 @@ def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_direc
       iterator = tqdm(iterator, total=len(parsed_grid_files),
                       desc="Processing", unit="file(s)")
       process_results: Dict[str, Tuple[Optional[TextGrid], bool]] = dict(iterator)
-    for k, (grid, changed_anything) in process_results.items():
-      if grid is None:
-        process_results.pop(k)
 
-    # saving grids
-    save_files = (
-      (stem, output_directory / f"{stem}.TextGrid", grid)
+    remove_none_from_dict(process_results)
+
+    process_data = (
+      (stem, grid)
       for stem, (grid, changed_anything) in process_results.items()
     )
-    successes = save_grids(save_files, len(process_results))
-    total_success &= all(successes)
+
+    serialized_grids = serialize_grids(process_data, len(process_results), n_jobs, chunksize)
+
+    # saving grids
+    process_data = (
+      (stem, output_directory / f"{stem}.TextGrid", text)
+      for stem, text in serialized_grids.items()
+    )
+    successes = save_texts(process_data, encoding, len(serialized_grids))
+
+    total_success &= all(successes) and len(successes) == len(file_chunk)
     total_changed_anything |= any(changed_anything for grid,
                                   changed_anything in process_results.values())
 
@@ -157,13 +165,13 @@ def __init_pool(logging_queues: Dict[str, Logger]) -> None:
   process_logging_queues = logging_queues
 
 
-def process_grid(stem_grid: Tuple[str, TextGrid], method: Callable[[TextGrid], ExecutionResult]) -> Tuple[str, Tuple[Optional[TextGrid], bool]]:
+def process_grid(stem_grid: Tuple[str, TextGrid], method: Callable[[TextGrid], ExecutionResult]) -> Tuple[str, Optional[Tuple[TextGrid, bool]]]:
   global process_logging_queues
   file_stem, grid = stem_grid
   # try manual log(Level, args..) to cache
-  #logger = multiprocessing.get_logger()
+  # logger = multiprocessing.get_logger()
   logger = process_logging_queues[file_stem]
-  #logger = getLogger(file_stem)
+  # logger = getLogger(file_stem)
 
   error, changed_anything = method(grid)
   success = error is None
@@ -172,7 +180,7 @@ def process_grid(stem_grid: Tuple[str, TextGrid], method: Callable[[TextGrid], E
     logger.error(error.default_message)
     logger.info("Skipped.")
     assert not changed_anything
-    return file_stem, (None, False)
+    return file_stem, None
 
   logger.info("Applied operations successfull.")
 
