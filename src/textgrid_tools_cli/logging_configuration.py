@@ -9,10 +9,42 @@ from typing import Dict, Generator, List, Tuple
 from ordered_set import OrderedSet
 
 
+class ConsoleFormatter(logging.Formatter):
+  """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
+
+  grey = '\x1b[38;21m'
+  # blue = '\x1b[38;5;39m'
+  yellow = '\x1b[38;5;226m'
+  red = '\x1b[1;49;31m'
+  bold_red = '\x1b[1;49;31m'
+  reset = '\x1b[0m'
+
+  def __init__(self):
+    super().__init__()
+    self.datefmt = '%H:%M:%S'
+    fmt = '(%(levelname)s) %(message)s'
+    fmt_info = '%(message)s'
+
+    self.fmts = {
+        logging.NOTSET: self.grey + fmt + self.reset,
+        logging.DEBUG: self.grey + fmt + self.reset,
+        logging.INFO: fmt_info,
+        logging.WARNING: self.yellow + fmt + self.reset,
+        logging.ERROR: self.red + fmt + self.reset,
+        logging.CRITICAL: self.bold_red + fmt + self.reset,
+    }
+
+  def format(self, record):
+    log_fmt = self.fmts.get(record.levelno)
+    formatter = logging.Formatter(log_fmt, self.datefmt)
+
+    return formatter.format(record)
+
+
 def add_console_out(logger: Logger):
   console = StreamHandler()
   logger.addHandler(console)
-  set_formatter(console, False)
+  set_console_formatter(console)
 
 
 def init_and_get_console_logger(name: str) -> Logger:
@@ -67,17 +99,21 @@ def write_file_stem_logger_lists_to_file_logger(lists: Dict[str, List[Tuple[int,
       flogger.log(lvl, msg)
 
 
-def set_formatter(handler: Handler, add_ms: bool) -> None:
-  fmt = '[%(asctime)s] (%(levelname)s) %(message)s'
-  if add_ms:
-    fmt = '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s'
-  logging_formatter = Formatter(fmt, '%Y/%m/%d %H:%M:%S')
+def set_console_formatter(handler: Handler) -> None:
+  logging_formatter = ConsoleFormatter()
+  handler.setFormatter(logging_formatter)
+
+
+def set_logfile_formatter(handler: Handler) -> None:
+  fmt = '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s'
+  datefmt = '%Y/%m/%d %H:%M:%S'
+  logging_formatter = Formatter(fmt, datefmt)
   handler.setFormatter(logging_formatter)
 
 
 def configure_root_logger() -> None:
   # productive = False
-  #loglevel = logging.INFO if productive else logging.DEBUG
+  # loglevel = logging.INFO if productive else logging.DEBUG
   main_logger = getLogger()
   main_logger.setLevel(logging.DEBUG)
   main_logger.manager.disable = logging.NOTSET
@@ -87,7 +123,7 @@ def configure_root_logger() -> None:
     console = logging.StreamHandler()
     main_logger.addHandler(console)
 
-  set_formatter(console, False)
+  set_console_formatter(console)
   console.setLevel(logging.DEBUG)
 
 
@@ -117,7 +153,7 @@ def try_init_file_logger(path: Path, debug: bool = False) -> bool:
     logger.exception(ex)
     return False
 
-  set_formatter(fh, True)
+  set_logfile_formatter(fh)
 
   level = logging.DEBUG if debug else logging.INFO
   fh.setLevel(level)

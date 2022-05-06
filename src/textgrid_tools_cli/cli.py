@@ -130,7 +130,7 @@ def parse_args(args: List[str]) -> None:
     logger.debug(f"Received arguments: {str(args)}")
 
   parser = _init_parser()
-  
+
   try:
     ns = parser.parse_args(args)
   except SystemExit:
@@ -177,12 +177,12 @@ def parse_args(args: List[str]) -> None:
       flogger.info("Everything was successfull!")
     else:
       if log_to_file:
-        logger.warning(
-          f"{CONSOLE_PNT_RED}Not everything was successfull! See log for details.{CONSOLE_PNT_RST}")
+        logger.error(
+          "Not everything was successfull! See log for details.")
       else:
-        logger.warning(
-          f"{CONSOLE_PNT_RED}Not everything was successfull!{CONSOLE_PNT_RST}")
-      flogger.warning("Not everything was successfull!")
+        logger.error(
+          "Not everything was successfull!")
+      flogger.error("Not everything was successfull!")
 
     if not changed_anything:
       logger.info("Didn't changed anything.")
