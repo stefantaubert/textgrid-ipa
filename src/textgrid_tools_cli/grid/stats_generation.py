@@ -1,6 +1,5 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
 
 from textgrid_tools import print_stats
 from textgrid_tools_cli.globals import ExecutionResult

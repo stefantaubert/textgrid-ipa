@@ -2,10 +2,7 @@ from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from math import inf
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import mark_silence
 from textgrid_tools_cli.common import process_grids_mp

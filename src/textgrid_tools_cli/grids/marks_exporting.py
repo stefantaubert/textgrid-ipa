@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from textgrid.textgrid import TextGrid
 
@@ -9,8 +8,8 @@ from textgrid_tools.grids.marks_exporting import get_marks_txt
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_n_digits_argument, add_overwrite_argument,
-                                       get_grid_files, get_optional, parse_non_empty,
-                                       parse_non_empty_or_whitespace, parse_path, try_load_grid)
+                                       get_grid_files, parse_non_empty_or_whitespace, parse_path,
+                                       try_load_grid)
 from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 

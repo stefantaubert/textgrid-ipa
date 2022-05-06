@@ -1,4 +1,3 @@
-from logging import getLogger
 from math import ceil
 from typing import Generator, Iterable, List, Optional, Set, cast
 

@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Set, cast
+from typing import Generator, Iterable, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
 

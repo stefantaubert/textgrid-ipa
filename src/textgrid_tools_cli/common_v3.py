@@ -1,9 +1,7 @@
 import logging
 from functools import partial
-from logging import getLogger
 from multiprocessing import Pool
 from pathlib import Path
-from time import perf_counter
 from typing import Callable, Dict, Optional, OrderedDict, Tuple
 
 from textgrid.textgrid import TextGrid
@@ -12,8 +10,7 @@ from tqdm import tqdm
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
-from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
-                                                      try_init_file_logger)
+from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger)
 
 
 def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path]) -> ExecutionResult:

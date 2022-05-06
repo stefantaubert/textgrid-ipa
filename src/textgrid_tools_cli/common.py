@@ -1,7 +1,5 @@
-import logging
-import os
 from functools import partial
-from logging import Logger, getLogger
+from logging import getLogger
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, List, Optional, OrderedDict, Tuple

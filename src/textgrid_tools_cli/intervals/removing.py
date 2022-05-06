@@ -1,7 +1,5 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read

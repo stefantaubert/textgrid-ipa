@@ -1,4 +1,4 @@
-from typing import Collection, List
+from typing import List
 
 from textgrid import Interval
 from textgrid_tools.comparison import (check_interval_is_equal,

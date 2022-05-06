@@ -6,8 +6,7 @@ import numpy as np
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.grid.audio_synchronization import (
-    LastIntervalToShortError, can_set_maxTime, set_end_to_audio_len,
-    set_maxTime, set_maxTime_tier)
+    LastIntervalToShortError, set_end_to_audio_len, set_maxTime_tier)
 from textgrid_tools.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,

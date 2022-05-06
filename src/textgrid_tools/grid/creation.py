@@ -1,7 +1,6 @@
 from logging import Logger, getLogger
 from typing import Optional, Tuple
 
-import numpy as np
 from textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult

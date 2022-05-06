@@ -4,15 +4,13 @@ import os
 from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
 from functools import partial
-from logging import getLogger
-from math import inf, isinf
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
 from tempfile import gettempdir
-from typing import Callable, Generator, List, Literal, Optional
+from typing import Callable, Generator, List, Optional
 from typing import OrderedDict as OrderedDictType
-from typing import Set, Tuple, TypeVar, Union
+from typing import Set, Tuple, TypeVar
 
 import numpy as np
 from ordered_set import OrderedSet
@@ -22,7 +20,7 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.helper import check_is_valid_grid
 from textgrid_tools_cli.globals import (DEFAULT_ENCODING, DEFAULT_MAXTASKSPERCHILD,
                                         DEFAULT_N_DIGITS, DEFAULT_N_FILE_CHUNKSIZE, DEFAULT_N_JOBS)
-from textgrid_tools_cli.textgrid_io import get_lines, parse_text, read_file_faster, save_file_faster
+from textgrid_tools_cli.textgrid_io import read_file_faster, save_file_faster
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError, GridCouldNotBeSavedError
 
 GRID_FILE_TYPE = ".TextGrid"

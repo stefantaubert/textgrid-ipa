@@ -1,8 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
 from textgrid_tools import rename_tier
 from textgrid_tools.validation import NonDistinctTiersError

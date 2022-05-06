@@ -1,7 +1,5 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
 from textgrid_tools.tier.importing import import_text_to_tier
 from textgrid_tools_cli.globals import ExecutionResult

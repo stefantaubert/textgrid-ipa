@@ -1,10 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from math import inf
-from pathlib import Path
-from typing import List, Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import join_intervals_between_pauses
 from textgrid_tools_cli.common import process_grids_mp

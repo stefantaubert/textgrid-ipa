@@ -1,17 +1,9 @@
-import copy
-import logging
-import multiprocessing
-import queue
-import threading
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from logging import Logger, getLogger
-from logging.handlers import QueueHandler
-from math import inf, isinf
-from multiprocessing.pool import Pool, ThreadPool
-from pathlib import Path
+from logging import getLogger
+from multiprocessing.pool import Pool
 from time import perf_counter
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
@@ -20,21 +12,17 @@ from tqdm import tqdm
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_encoding_argument, add_log_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, get_audio_files, get_chunks,
-                                       get_files_dict, get_optional, get_text_files,
-                                       parse_existing_directory, parse_non_empty_or_whitespace,
-                                       parse_positive_float, parse_positive_integer, read_audio,
-                                       save_grid, try_load_grid)
-from textgrid_tools_cli.io import (deserialize_grids, load_audio_durations, load_grids, load_texts,
-                                   remove_none_from_dict, save_grids, save_texts, serialize_grids,
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, get_audio_files,
+                                       get_chunks, get_files_dict, get_optional,
+                                       get_text_files, parse_existing_directory, parse_non_empty_or_whitespace,
+                                       parse_positive_float, parse_positive_integer)
+from textgrid_tools_cli.io import (load_audio_durations, load_texts, remove_none_from_dict, save_texts,
                                    serialize_grids_v2)
-from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
-                                                      init_and_get_console_logger,
-                                                      init_file_stem_loggers, try_init_file_logger,
-                                                      write_file_stem_loggers_to_file_logger)
+from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
+                                                      init_file_stem_loggers,
+                                                      try_init_file_logger, write_file_stem_loggers_to_file_logger)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"

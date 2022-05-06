@@ -1,16 +1,14 @@
 import logging
-from collections import Counter, OrderedDict
-from typing import (Any, Dict, Generator, Iterable, List, Optional, Set, Tuple,
-                    cast)
+from collections import OrderedDict
+from typing import (Dict, List, Optional, Set, Tuple, cast)
 
 import numpy as np
-import pandas as pd
 from matplotlib import collections
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.ticker import AutoMinorLocator, FixedLocator, MultipleLocator
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from matplotlib.ticker import FixedLocator
+from textgrid.textgrid import TextGrid
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import (InvalidGridError,

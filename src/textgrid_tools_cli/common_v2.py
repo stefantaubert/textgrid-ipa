@@ -1,13 +1,10 @@
 import logging
-import multiprocessing
-import os
 from functools import partial
-from logging import Logger, getLogger
+from logging import getLogger
 from multiprocessing import Pool
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from time import perf_counter
-from typing import Callable, Dict, List, Optional, OrderedDict, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
@@ -15,17 +12,13 @@ from textgrid.textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools_cli.helper import (copy_grid, get_chunks, get_grid_files, save_grid,
-                                       try_load_grid)
-from textgrid_tools_cli.io import (deserialize_grids, load_grids, load_texts, remove_none_from_dict,
-                                   save_grids, save_texts, serialize_grids)
-from textgrid_tools_cli.logging_configuration import (add_console_out, get_file_logger,
-                                                      get_file_stem_loggers,
-                                                      init_and_get_console_logger,
+from textgrid_tools_cli.helper import (get_chunks, get_grid_files)
+from textgrid_tools_cli.io import (deserialize_grids, load_texts, remove_none_from_dict, save_texts,
+                                   serialize_grids)
+from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
                                                       init_file_stem_logger_lists,
-                                                      init_file_stem_loggers, try_init_file_logger,
-                                                      write_file_stem_logger_lists_to_file_logger,
-                                                      write_file_stem_loggers_to_file_logger)
+                                                      try_init_file_logger,
+                                                      write_file_stem_logger_lists_to_file_logger)
 
 # def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
 #   logger = getLogger(__name__)

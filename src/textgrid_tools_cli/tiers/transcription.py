@@ -1,10 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 from pronunciation_dictionary import DeserializationOptions, MultiprocessingOptions, load_dict
 
 from textgrid_tools import transcribe_text

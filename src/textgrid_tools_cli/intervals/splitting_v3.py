@@ -1,18 +1,14 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import split_intervals
 from textgrid_tools_cli.common_v3 import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_encoding_argument, add_log_argument,
-                                       add_maxtaskperchild_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       add_tiers_argument)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument)
 
 
 def get_splitting_v3_parser(parser: ArgumentParser):
@@ -28,7 +24,6 @@ def get_splitting_v3_parser(parser: ArgumentParser):
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
   add_maxtaskperchild_argument(parser)
-  # add_log_argument(parser)
   return app_split_intervals
 
 

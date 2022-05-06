@@ -1,1 +1,0 @@
-from textgrid_tools.tiers.symbol_removing import get_updated_mark

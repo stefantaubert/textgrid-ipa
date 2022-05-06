@@ -1,9 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import plot_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult

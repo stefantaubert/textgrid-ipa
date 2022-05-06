@@ -1,7 +1,5 @@
 from pathlib import Path
-from typing import Optional
 
-from textgrid import TextGrid
 
 from textgrid_tools import ValidationError as ValidationErrorCore
 

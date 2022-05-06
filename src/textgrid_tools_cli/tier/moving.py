@@ -1,7 +1,5 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from pathlib import Path
-from typing import Optional
 
 from textgrid_tools import move_tier
 from textgrid_tools_cli.common import process_grids_mp

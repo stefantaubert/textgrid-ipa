@@ -1,9 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import map_tier
 from textgrid_tools_cli.common import process_grids_mp

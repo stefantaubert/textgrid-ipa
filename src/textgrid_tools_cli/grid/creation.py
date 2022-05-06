@@ -1,8 +1,6 @@
 from time import perf_counter
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
-from typing import Optional
 
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult

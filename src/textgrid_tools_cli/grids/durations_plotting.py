@@ -1,9 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from pathlib import Path
 from typing import List
 
-from ordered_set import OrderedSet
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram

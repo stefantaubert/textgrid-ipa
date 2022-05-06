@@ -1,9 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from pathlib import Path
-from typing import Optional
 
-from ordered_set import OrderedSet
 
 from textgrid_tools import join_intervals_on_boundaries
 from textgrid_tools.globals import ExecutionResult

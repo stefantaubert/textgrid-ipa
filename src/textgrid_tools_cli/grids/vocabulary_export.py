@@ -2,8 +2,6 @@ from argparse import ArgumentParser, Namespace
 from collections import Counter
 from itertools import chain
 from logging import getLogger
-from pathlib import Path
-from tempfile import gettempdir
 from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
