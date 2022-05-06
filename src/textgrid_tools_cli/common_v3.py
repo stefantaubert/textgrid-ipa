@@ -35,17 +35,18 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
     output_directory=output_directory,
   )
 
-  flogger.debug(f"Jobs: {n_jobs}")
-  flogger.debug(f"Maxtask: {maxtasksperchild}")
-  flogger.debug(f"Chunksize: {chunksize}")
-  flogger.debug(f"Files: {len(grid_files)}")
-
   keys = grid_files.keys()
   # TODO remove
   keys = list(keys)[:10]
 
+  flogger.debug(f"Files: {len(keys)}")
+  flogger.debug(f"Chunksize: {chunksize}")
+  flogger.debug(f"Maxtask: {maxtasksperchild}")
+  flogger.debug(f"Jobs: {n_jobs}")
+
   amount_of_jobs_required = ceil(len(keys) / chunksize)
   n_jobs = min(n_jobs, amount_of_jobs_required)
+  flogger.debug(f"Jobs (final): {n_jobs}")
 
   with Pool(
     processes=n_jobs,
