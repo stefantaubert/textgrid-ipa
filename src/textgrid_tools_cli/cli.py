@@ -181,7 +181,7 @@ def parse_args(args: List[str]):
 
     if not changed_anything:
       logger.info("Didn't changed anything.")
-      flogger.warning("Didn't changed anything.")
+      flogger.info("Didn't changed anything.")
 
   else:
     parser.print_help()

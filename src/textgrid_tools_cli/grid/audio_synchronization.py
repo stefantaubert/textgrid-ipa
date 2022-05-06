@@ -23,10 +23,12 @@ def get_audio_synchronization_parser(parser: ArgumentParser):
 
 def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-
+  
+  audio_directory = ns.audio_directory
   if audio_directory is None:
     audio_directory = ns.directory
-
+  
+  output_directory = ns.output_directory
   if output_directory is None:
     output_directory = ns.directory
 
