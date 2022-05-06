@@ -2,10 +2,10 @@ from logging import getLogger
 from typing import Set
 
 from textgrid import TextGrid
+
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals, is_silence
-from textgrid_tools.validation import (InvalidGridError,
-                                       NotExistingTierError)
+from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
 def mark_silence(grid: TextGrid, tier_names: Set[str], min_duration: float, max_duration: float, mark: str) -> ExecutionResult:

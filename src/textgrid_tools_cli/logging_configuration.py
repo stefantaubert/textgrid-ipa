@@ -12,7 +12,7 @@ from ordered_set import OrderedSet
 def add_console_out(logger: Logger):
   console = StreamHandler()
   logger.addHandler(console)
-  set_formatter(console)
+  set_formatter(console, False)
 
 
 def init_and_get_console_logger(name: str) -> Logger:
@@ -67,11 +67,11 @@ def write_file_stem_logger_lists_to_file_logger(lists: Dict[str, List[Tuple[int,
       flogger.log(lvl, msg)
 
 
-def set_formatter(handler: Handler) -> None:
-  logging_formatter = Formatter(
-    '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s',
-    '%Y/%m/%d %H:%M:%S',
-  )
+def set_formatter(handler: Handler, add_ms: bool) -> None:
+  fmt = '[%(asctime)s] (%(levelname)s) %(message)s'
+  if add_ms:
+    fmt = '[%(asctime)s.%(msecs)03d] (%(levelname)s) %(message)s'
+  logging_formatter = Formatter(fmt, '%Y/%m/%d %H:%M:%S')
   handler.setFormatter(logging_formatter)
 
 
@@ -87,7 +87,7 @@ def configure_root_logger() -> None:
     console = logging.StreamHandler()
     main_logger.addHandler(console)
 
-  set_formatter(console)
+  set_formatter(console, False)
   console.setLevel(logging.DEBUG)
 
 
@@ -117,7 +117,7 @@ def try_init_file_logger(path: Path, debug: bool = False) -> bool:
     logger.exception(ex)
     return False
 
-  set_formatter(fh)
+  set_formatter(fh, True)
 
   level = logging.DEBUG if debug else logging.INFO
   fh.setLevel(level)

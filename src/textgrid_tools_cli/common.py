@@ -3,6 +3,7 @@ from functools import partial
 from math import ceil
 from multiprocessing import Pool
 from pathlib import Path
+from time import perf_counter
 from typing import Callable, Dict, Optional, OrderedDict, Tuple
 
 from textgrid import TextGrid
@@ -22,7 +23,7 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
     output_directory = directory
 
   grid_files = get_grid_files(directory)
-  logger.info(f"Found {len(grid_files)} grid files.")
+  logger.info(f"Found {len(grid_files)} grid file(s).")
 
   total_success = True
   total_changed_anything = False
@@ -80,12 +81,14 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
 def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, LoggingQueue]]:
   global process_grid_files
   lq = LoggingQueue(file_stem)
+  start = perf_counter()
 
   rel_path = process_grid_files[file_stem]
   grid_file_out_abs = output_directory / rel_path
 
   if grid_file_out_abs.exists() and not overwrite:
     lq.log(logging.INFO, "Grid already exists. Skipped.")
+    lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
     return file_stem, (True, False, lq)
 
   grid_file_in_abs = directory / rel_path
@@ -94,6 +97,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
 
   if error:
     lq.log(logging.ERROR, error.default_message)
+    lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
     return file_stem, (False, False, lq)
   assert grid is not None
 
@@ -110,6 +114,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
       error = try_save_grid(grid_file_out_abs, grid, encoding)
       if error:
         lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
+        lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
         return file_stem, (False, False, lq)
       lq.log(logging.INFO, f"Saved the grid to: {grid_file_out_abs.absolute()}")
     elif directory != output_directory:
@@ -122,4 +127,5 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
         lq.log(logging.INFO, f"Copied the grid to: {grid_file_out_abs.absolute()}")
 
   del grid
+  lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
   return file_stem, (success, changed_anything, lq)

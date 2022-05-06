@@ -121,7 +121,7 @@ def _init_parser():
   return main_parser
 
 
-def parse_args(args: List[str]):
+def parse_args(args: List[str]) -> None:
   configure_root_logger()
   logger = getLogger()
 
@@ -130,7 +130,12 @@ def parse_args(args: List[str]):
     logger.debug(f"Received arguments: {str(args)}")
 
   parser = _init_parser()
-  ns = parser.parse_args(args)
+  
+  try:
+    ns = parser.parse_args(args)
+  except SystemExit:
+    # invalid command supplied
+    return
 
   if hasattr(ns, INVOKE_HANDLER_VAR):
     invoke_handler: Callable[..., ExecutionResult] = getattr(ns, INVOKE_HANDLER_VAR)

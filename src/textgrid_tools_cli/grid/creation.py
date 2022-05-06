@@ -56,7 +56,7 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   meta_files = {}
   if meta_directory is not None:
     meta_files = get_files_dict(meta_directory, filetypes={META_FILE_TYPE})
-    logger.info(f"Found {len(meta_files)} meta files.")
+    logger.info(f"Found {len(meta_files)} meta file(s).")
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(text_files.items(), start=1):
