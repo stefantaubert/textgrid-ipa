@@ -42,11 +42,11 @@ dependencies = [
   "scipy",
   "numpy",
   "tqdm",
-  "TextGrid",
+  "TextGrid>=1.5",
   "pandas",
-  "ordered_set",
-  "matplotlib",  
-  "pronunciation_dictionary",
+  "ordered_set>=4.1.0",
+  "matplotlib",
+  "pronunciation_dictionary>=0.0.4",
 ]
 
 [project.urls]

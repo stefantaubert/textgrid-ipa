@@ -46,7 +46,6 @@ CLI to modify TextGrids and their corresponding audio files.
 ## Roadmap
 
 - Performance improvement
-- Better logging
 - Adding more tests
 
 ## Installation
@@ -66,7 +65,7 @@ textgrid-tools-cli
 - scipy
 - numpy
 - tqdm
-- TextGrid
+- TextGrid >= 1.5
 - pandas
 - matplotlib
 - ordered-set >=4.1.0
