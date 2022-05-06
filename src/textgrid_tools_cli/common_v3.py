@@ -17,11 +17,6 @@ from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_
 
 
 def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path]) -> ExecutionResult:
-  logger = getLogger(__name__)
-
-  start = perf_counter()
-  if log:
-    try_init_file_logger(log)
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
@@ -68,12 +63,6 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
 
   total_success = all(success for success, _, _ in result.values())
   total_changed_anything = any(changed_anything for _, changed_anything, _ in result.values())
-
-  duration = perf_counter() - start
-  flogger.debug(f"Total duration (s): {duration}")
-  if log:
-    logger = getLogger()
-    logger.info(f"Written log to: {log.absolute()}")
 
   return total_success, total_changed_anything
 

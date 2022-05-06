@@ -28,7 +28,7 @@ def get_splitting_v3_parser(parser: ArgumentParser):
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
   add_maxtaskperchild_argument(parser)
-  add_log_argument(parser)
+  # add_log_argument(parser)
   return app_split_intervals
 
 

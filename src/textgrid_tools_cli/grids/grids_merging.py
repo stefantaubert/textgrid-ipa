@@ -24,7 +24,7 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
                       help="insert an interval between subsequent grids having this duration and mark as content", default=None)
   parser.add_argument(
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
-  add_log_argument(parser)
+  #add_log_argument(parser)
   return merge_grids_app
 
 

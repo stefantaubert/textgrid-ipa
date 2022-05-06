@@ -20,14 +20,13 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, try_init_f
 
 def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command creates an vocabulary out of all words from multiple tiers in the grid files."
-  default_log_path = Path(gettempdir()) / "textgrid-tools.log"
+  #default_log_path = Path(gettempdir()) / "textgrid-tools.log"
   add_directory_argument(parser)
   add_tiers_argument(parser, "tiers that contains the words as intervals")
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated vocabulary")
   add_encoding_argument(parser, "vocabulary encoding")
-  parser.add_argument("--log", type=parse_path, metavar="FILE",
-                      help="path to write the log", default=default_log_path)
+  #parser.add_argument("--log", type=parse_path, metavar="FILE", help="path to write the log", default=default_log_path)
   return get_vocabulary_parsed
 
 

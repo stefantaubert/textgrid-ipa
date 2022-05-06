@@ -98,10 +98,13 @@ def get_file_logger() -> Logger:
   return logger
 
 
-def try_init_file_logger(path: Path) -> bool:
+def try_init_file_logger(path: Path, debug: bool = False) -> bool:
   if path.is_dir():
     logger = getLogger(__name__)
-    logger.error("Path is a directory!")
+    logger.error("Logging path is a directory!")
+    return False
+  flogger = get_file_logger()
+  assert len(flogger.handlers) == 0
   try:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_file():
@@ -116,7 +119,7 @@ def try_init_file_logger(path: Path) -> bool:
 
   set_formatter(fh)
 
-  fh.setLevel(logging.DEBUG)
-  flogger = get_file_logger()
+  level = logging.DEBUG if debug else logging.INFO
+  fh.setLevel(level)
   flogger.addHandler(fh)
   return True

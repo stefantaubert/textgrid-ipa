@@ -1,17 +1,22 @@
 import argparse
+import platform
 import sys
 from argparse import ArgumentParser
 from importlib.metadata import version
 from logging import getLogger
 from pathlib import Path
+from pkgutil import iter_modules
+from tempfile import gettempdir
+from time import perf_counter
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools_cli import *
 from textgrid_tools_cli.grid.creation_v2 import get_creation_v2_parser
+from textgrid_tools_cli.helper import get_optional, parse_path
 from textgrid_tools_cli.intervals.splitting_v2 import get_splitting_v2_parser
 from textgrid_tools_cli.intervals.splitting_v3 import get_splitting_v3_parser
-from textgrid_tools_cli.logging_configuration import (configure_root_logger,
-                                                      init_and_get_console_logger)
+from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
+                                                      try_init_file_logger)
 
 __version__ = version("textgrid-tools")
 
@@ -102,6 +107,7 @@ def _init_parser():
   )
   main_parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
   subparsers = main_parser.add_subparsers(help="description")
+  default_log_path = Path(gettempdir()) / "textgrid-tools.log"
 
   parsers = get_parsers()
   for parser_name, (methods, help_str) in parsers.items():
@@ -113,8 +119,16 @@ def _init_parser():
       method_parser.set_defaults(**{
         INVOKE_HANDLER_VAR: method(method_parser),
       })
+      method_parser.add_argument("--log", type=get_optional(parse_path), metavar="FILE",
+                                 nargs="?", const=None, help="path to write the log", default=default_log_path)
+      method_parser.add_argument("--debug", action="store_true",
+                                 help="include debugging information in log")
 
   return main_parser
+
+
+def get_modules():
+  yield from (p.name for p in iter_modules())
 
 
 def parse_args(args: List[str]):
@@ -122,25 +136,63 @@ def parse_args(args: List[str]):
   logger = getLogger()
 
   if debug_file_exists():
-    logger.debug("Received args:")
-    logger.debug(args)
+    logger.debug(f"Received arguments: {str(args)}")
 
   parser = _init_parser()
-  received_args = parser.parse_args(args)
-  params = vars(received_args)
+  ns = parser.parse_args(args)
+  params = vars(ns)
 
   if INVOKE_HANDLER_VAR in params:
     invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
-    #success, changed_anything = invoke_handler(**params)
-    success, changed_anything = invoke_handler(received_args)
-    # get logger after it had a change to be init with a logfile
+    # success, changed_anything = invoke_handler(**params)
+    assert "log" in params
+    log_to_file = ns.log is not None
+    if log_to_file:
+      log_to_file = try_init_file_logger(ns.log, ns.debug)
+      if not log_to_file:
+        logger.warning("Logging to file is not possible.")
+
+    sys_version = sys.version.replace('\n', '')
+    flogger = get_file_logger()
+    flogger.debug(f"CLI version: {__version__}")
+    flogger.debug(f"Python version: {sys_version}")
+    flogger.debug("Modules: %s", ', '.join(sorted(get_modules())))
+
+    my_system = platform.uname()
+    flogger.debug(f"System: {my_system.system}")
+    flogger.debug(f"Node Name: {my_system.node}")
+    flogger.debug(f"Release: {my_system.release}")
+    flogger.debug(f"Version: {my_system.version}")
+    flogger.debug(f"Machine: {my_system.machine}")
+    flogger.debug(f"Processor: {my_system.processor}")
+
+    flogger.debug(f"Received arguments: {str(args)}")
+    flogger.debug(f"Parsed arguments: {str(ns)}")
+
+    start = perf_counter()
+    success, changed_anything = invoke_handler(ns)
+    duration = perf_counter() - start
+    flogger.debug(f"Total duration (s): {duration}")
+
+    if log_to_file:
+      logger.info(f"Written log to: {ns.log.absolute()}")
+
     if success:
       logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
+      flogger.info("Everything was successfull!")
     else:
-      logger.warning(
-        f"{CONSOLE_PNT_RED}Not everything was successfull! See log for details.{CONSOLE_PNT_RST}")
+      if log_to_file:
+        logger.warning(
+          f"{CONSOLE_PNT_RED}Not everything was successfull! See log for details.{CONSOLE_PNT_RST}")
+      else:
+        logger.warning(
+          f"{CONSOLE_PNT_RED}Not everything was successfull!{CONSOLE_PNT_RST}")
+      flogger.warning("Not everything was successfull!")
+
     if not changed_anything:
       logger.info("Didn't changed anything.")
+      flogger.warning("Didn't changed anything.")
+
   else:
     parser.print_help()
 
@@ -155,13 +207,14 @@ def run_prod():
 
 
 def debug_file_exists():
-  return Path("/tmp/debug").is_file()
+  return Path("/tmp/textgrid-tools-debug").is_file()
 
 
 def create_debug_file():
-  Path("/tmp/debug").write_text("", "UTF-8")
+  Path("/tmp/textgrid-tools-debug").write_text("", "UTF-8")
 
 
 if __name__ == "__main__":
   # print_features()
+  # create_debug_file()
   run()
