@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 from collections import OrderedDict
 from math import inf
 from typing import Iterable, List, Optional, Tuple, cast
@@ -28,7 +29,7 @@ def get_tier_names(grid: TextGrid):
   return tier_names
 
 
-def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str], lq: LoggingQueue = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(grids) > 0
 
   if len(grids) == 1:

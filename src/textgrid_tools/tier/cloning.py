@@ -1,16 +1,16 @@
 from ordered_set import OrderedSet
 from textgrid import TextGrid
+
 from textgrid_tools.cloning import copy_tier
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_single_tier
-from textgrid_tools.validation import (ExistingTierError,
-                                       InvalidGridError,
-                                       MultipleTiersWithThatNameError,
-                                       NonDistinctTiersError,
+from textgrid_tools.logging_queue import LoggingQueue
+from textgrid_tools.validation import (ExistingTierError, InvalidGridError,
+                                       MultipleTiersWithThatNameError, NonDistinctTiersError,
                                        NotExistingTierError)
 
 
-def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str], ignore_marks: bool) -> ExecutionResult:
+def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str], ignore_marks: bool, lq: LoggingQueue = None) -> ExecutionResult:
   assert len(output_tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

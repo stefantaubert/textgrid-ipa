@@ -1,14 +1,12 @@
 from typing import Generator, Iterable, List, Set
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import (get_all_tiers, get_single_tier,
-                                   interval_is_None_or_whitespace)
-from textgrid_tools.validation import (InvalidGridError,
-                                       MultipleTiersWithThatNameError,
-                                       NonDistinctTiersError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_tools.helper import get_all_tiers, get_single_tier, interval_is_None_or_whitespace
+from textgrid_tools.logging_queue import LoggingQueue
+from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
+                                       NonDistinctTiersError, NotExistingTierError, ValidationError)
 
 
 class UnequalIntervalAmountError(ValidationError):
@@ -34,7 +32,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, lq: LoggingQueue = None) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """

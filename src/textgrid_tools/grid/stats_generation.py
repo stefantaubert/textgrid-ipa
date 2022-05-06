@@ -12,6 +12,7 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_mark
+from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools.validation import InvalidGridError
 
 # warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
@@ -25,7 +26,7 @@ SPACE_DISPL = "␣"
 NOT_AVAIL_VAL = "N/A"
 
 
-def print_stats(grid: TextGrid, duration_threshold: float) -> ExecutionResult:
+def print_stats(grid: TextGrid, duration_threshold: float, lq: LoggingQueue = None) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

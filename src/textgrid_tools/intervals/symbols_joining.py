@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 from typing import Generator, List, Set, Tuple, cast
 
 from ordered_set import OrderedSet
@@ -26,7 +27,7 @@ class InvalidModeError(ValidationError):
     return "Mode needs to be 'right', 'left' or 'together'!"
 
 
-def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool) -> ExecutionResult:
+def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool, lq: LoggingQueue = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

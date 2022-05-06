@@ -1,10 +1,10 @@
 from textgrid import TextGrid
+
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_single_tier
-from textgrid_tools.validation import (InvalidGridError,
-                                       MultipleTiersWithThatNameError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_tools.logging_queue import LoggingQueue
+from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
+                                       NotExistingTierError, ValidationError)
 
 
 class InvalidPositionError(ValidationError):
@@ -24,7 +24,7 @@ class InvalidPositionError(ValidationError):
     return f"Position {self.position} is not valid, it needs to be between [1, {len(self.grid.tiers)})."
 
 
-def move_tier(grid: TextGrid, tier_name: str, position_one_based: int) -> ExecutionResult:
+def move_tier(grid: TextGrid, tier_name: str, position_one_based: int, lq: LoggingQueue = None) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

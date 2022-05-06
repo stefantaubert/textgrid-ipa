@@ -1,11 +1,10 @@
 from typing import List, Set
 
 from textgrid.textgrid import IntervalTier, TextGrid
+
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers
-from textgrid_tools.validation import (InvalidGridError,
-                                       NotExistingTierError,
-                                       ValidationError)
+from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
 class AllTiersRemoveError(ValidationError):
@@ -23,9 +22,10 @@ class AllTiersRemoveError(ValidationError):
   @property
   def default_message(self) -> str:
     return "Removing all tiers is not possible!"
+from textgrid_tools.logging_queue import LoggingQueue
 
 
-def remove_tiers(grid: TextGrid, tier_names: Set[str]) -> ExecutionResult:
+def remove_tiers(grid: TextGrid, tier_names: Set[str], lq: LoggingQueue = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

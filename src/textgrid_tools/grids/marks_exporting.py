@@ -4,10 +4,11 @@ from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_mark, get_single_tier, number_prepend_zeros
+from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def get_marks_txt(grids: List[TextGrid], tier_name: str, interval_sep: Optional[str]) -> Tuple[ExecutionResult, Optional[str]]:
+def get_marks_txt(grids: List[TextGrid], tier_name: str, interval_sep: Optional[str], lq: LoggingQueue = None) -> Tuple[ExecutionResult, Optional[str]]:
   for grid in grids:
     if error := InvalidGridError.validate(grid):
       return (error, False), None

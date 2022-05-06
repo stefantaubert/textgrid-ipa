@@ -101,7 +101,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
     return file_stem, (False, False, lq)
   assert grid is not None
 
-  error, changed_anything = method(grid)
+  error, changed_anything = method(grid, lq=lq)
   success = error is None
 
   if not success:

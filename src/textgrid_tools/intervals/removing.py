@@ -1,25 +1,25 @@
+from textgrid_tools.logging_queue import LoggingQueue
 import math
 from logging import getLogger
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.grid.audio_synchronization import (
-    LastIntervalToShortError, set_end_to_audio_len, set_maxTime_tier)
-from textgrid_tools.helper import (
-    check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
-    get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,
-    get_intervals_on_tier, get_single_tier, interval_is_None_or_whitespace,
-    s_to_samples)
-from textgrid_tools.intervals.boundary_fixing import fix_timepoint
-from textgrid_tools.validation import (AudioAndGridLengthMismatchError,
-                                       BoundaryError, InternalError,
-                                       InvalidGridError,
-                                       MultipleTiersWithThatNameError,
-                                       NotExistingTierError,
-                                       ValidationError)
 from tqdm import tqdm
+
+from textgrid_tools.globals import ExecutionResult
+from textgrid_tools.grid.audio_synchronization import (LastIntervalToShortError,
+                                                       set_end_to_audio_len, set_maxTime_tier)
+from textgrid_tools.helper import (check_is_valid_grid,
+                                   check_timepoints_exist_on_all_tiers_as_boundaries,
+                                   get_boundary_timepoints_from_intervals,
+                                   get_boundary_timepoints_from_tier, get_intervals_on_tier,
+                                   get_single_tier, interval_is_None_or_whitespace, s_to_samples)
+from textgrid_tools.intervals.boundary_fixing import fix_timepoint
+from textgrid_tools.validation import (AudioAndGridLengthMismatchError, BoundaryError,
+                                       InternalError, InvalidGridError,
+                                       MultipleTiersWithThatNameError, NotExistingTierError,
+                                       ValidationError)
 
 
 class NothingDefinedToRemoveError(ValidationError):

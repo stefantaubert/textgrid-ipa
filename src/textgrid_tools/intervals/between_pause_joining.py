@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 from typing import Generator, Iterable, List, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
@@ -26,7 +27,7 @@ class PauseTooLowError(ValidationError):
     return f"Pause needs to be greater than or equal to zero but was \"{self.pause}\"!"
 
 
-def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str, ignore_empty: bool) -> ExecutionResult:
+def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str, ignore_empty: bool, lq: LoggingQueue = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 from logging import Logger, getLogger
 from typing import Optional, Tuple
 
@@ -124,7 +125,7 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, logger: Optional[Logger] = None, lq: LoggingQueue = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
   if logger is None:

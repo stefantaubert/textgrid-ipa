@@ -1,11 +1,11 @@
 from logging import getLogger
 
 import numpy as np
-from textgrid import IntervalTier
-from textgrid import TextGrid
+from textgrid import IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import check_is_valid_grid, samples_to_s
+from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools.validation import InvalidGridError, ValidationError
 
 
@@ -27,7 +27,7 @@ class LastIntervalToShortError(ValidationError):
     return "Couldn't change maxTime because it would be <= than minTime of last interval!"
 
 
-def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int) -> ExecutionResult:
+def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, lq: LoggingQueue = None) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

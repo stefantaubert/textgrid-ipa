@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 import logging
 from collections import OrderedDict
 from typing import Dict, List, Optional, Set, Tuple, cast
@@ -32,7 +33,7 @@ def get_plot_mark_name(mark: str) -> str:
   return mark
 
 
-def plot_grids_interval_durations_diagram(grids: List[TextGrid], tier_names: Set[str]) -> Tuple[ExecutionResult, Optional[Figure]]:
+def plot_grids_interval_durations_diagram(grids: List[TextGrid], tier_names: Set[str], lq: LoggingQueue = None) -> Tuple[ExecutionResult, Optional[Figure]]:
   for grid in grids:
     if error := InvalidGridError.validate(grid):
       return (error, False), None

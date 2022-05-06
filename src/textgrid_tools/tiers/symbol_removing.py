@@ -1,3 +1,4 @@
+from textgrid_tools.logging_queue import LoggingQueue
 from logging import getLogger
 from typing import Set
 
@@ -20,7 +21,7 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Anything to remove needs to be set!"
 
 
-def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_text: Set[str], marks: Set[str]) -> ExecutionResult:
+def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_text: Set[str], marks: Set[str], lq: LoggingQueue = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):
