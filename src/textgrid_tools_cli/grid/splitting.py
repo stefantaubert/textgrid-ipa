@@ -1,6 +1,5 @@
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
-from logging import getLogger
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read

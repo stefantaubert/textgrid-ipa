@@ -1,7 +1,5 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from logging import getLogger
 from math import inf
 
 from textgrid_tools import mark_silence
@@ -12,6 +10,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_arg
                                        add_n_jobs_argument, add_output_directory_argument,
                                        add_overwrite_argument, add_tiers_argument, parse_non_empty,
                                        parse_non_negative_float)
+from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 from textgrid_tools_cli.validation import ValidationError
 
 

@@ -1,7 +1,5 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from logging import getLogger
 
 from pronunciation_dictionary import DeserializationOptions, MultiprocessingOptions, load_dict
 
@@ -14,6 +12,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_arg
                                        add_overwrite_argument, add_tiers_argument, get_optional,
                                        parse_existing_file, parse_non_negative_integer,
                                        parse_positive_integer)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_transcription_parser(parser: ArgumentParser):
@@ -61,7 +60,8 @@ def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
   except Exception as ex:
     logger = init_and_get_console_logger(__name__)
     logger.error("Pronunciation dictionary couldn't be read!")
-    logger.debug(ex)
+    flogger = get_file_logger()
+    flogger.exception(ex)
     return False, False
 
   method = partial(

@@ -1,6 +1,5 @@
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
-from logging import getLogger
 
 from textgrid_tools.tier.importing import import_text_to_tier
 from textgrid_tools_cli.globals import ExecutionResult

@@ -1,4 +1,3 @@
-from textgrid_tools.logging_queue import LoggingQueue
 import math
 from logging import getLogger
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast

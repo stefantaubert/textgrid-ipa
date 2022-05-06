@@ -1,8 +1,6 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 import json
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from logging import getLogger
 
 from ordered_set import OrderedSet
 
@@ -15,6 +13,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
                                        add_output_directory_argument, add_overwrite_argument,
                                        add_tiers_argument, get_optional, parse_existing_file,
                                        parse_non_empty)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_marks_mapping_parser(parser: ArgumentParser):
@@ -46,7 +45,8 @@ def map_marks_ns(ns: Namespace) -> ExecutionResult:
   except Exception as ex:
     logger = init_and_get_console_logger(__name__)
     logger.error("Mapping couldn't be read!")
-    logger.exception(ex)
+    flogger = get_file_logger()
+    flogger.exception(ex)
     return False, False
 
   method = partial(

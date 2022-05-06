@@ -1,5 +1,4 @@
 import logging
-from logging import getLogger
 from typing import Iterable, List, Optional, Tuple, cast
 
 import numpy as np

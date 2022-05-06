@@ -1,7 +1,6 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from logging import getLogger
 
 from textgrid_tools import rename_tier
 from textgrid_tools.validation import NonDistinctTiersError

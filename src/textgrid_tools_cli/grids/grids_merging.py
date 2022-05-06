@@ -1,7 +1,4 @@
 from argparse import ArgumentParser, Namespace
-from logging import getLogger
-from pathlib import Path
-from tempfile import gettempdir
 from typing import Callable, List
 
 from textgrid import TextGrid
@@ -11,7 +8,6 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        get_grid_files, get_optional, parse_path,
                                        parse_positive_float, try_load_grid, try_save_grid)
-from textgrid_tools_cli.logging_configuration import try_init_file_logger
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:

@@ -25,7 +25,7 @@ def get_plot_interval_durations_parser(parser: ArgumentParser):
 def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-  
+
   grid_files = get_grid_files(ns.directory)
 
   if output_directory is None:
