@@ -9,10 +9,10 @@ from textgrid_tools.intervals.removing import NothingDefinedToRemoveError
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
                                        add_encoding_argument, add_overwrite_argument,
-                                       add_tier_argument, copy_audio, copy_grid,
-                                       get_audio_files, get_grid_files, get_optional, parse_existing_directory,
-                                       parse_non_empty, parse_path, save_audio,
-                                       try_save_grid, try_load_grid)
+                                       add_tier_argument, copy_audio, copy_grid, get_audio_files,
+                                       get_grid_files, get_optional, parse_existing_directory,
+                                       parse_non_empty, parse_path, save_audio, try_load_grid,
+                                       try_save_grid)
 
 # TODO tiers support
 

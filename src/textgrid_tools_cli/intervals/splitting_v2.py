@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
-
 from textgrid_tools import split_intervals
 from textgrid_tools_cli.common_v2 import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult

@@ -64,4 +64,4 @@ def app_label_silence(ns: Namespace) -> ExecutionResult:
     max_duration=ns.max_duration,
   )
 
-  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

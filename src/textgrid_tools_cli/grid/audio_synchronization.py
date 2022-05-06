@@ -5,9 +5,9 @@ from textgrid_tools import sync_grid_to_audio
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_output_directory_argument, add_overwrite_argument,
-                                       copy_grid, get_audio_files, get_grid_files,
-                                       get_optional, parse_existing_directory, read_audio,
-                                       try_load_grid, try_save_grid)
+                                       copy_grid, get_audio_files, get_grid_files, get_optional,
+                                       parse_existing_directory, read_audio, try_load_grid,
+                                       try_save_grid)
 
 
 def get_audio_synchronization_parser(parser: ArgumentParser):

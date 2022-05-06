@@ -1,15 +1,15 @@
-from time import perf_counter
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
+from time import perf_counter
 
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_output_directory_argument, add_overwrite_argument,
                                        get_audio_files, get_files_dict, get_optional,
-                                       get_text_files, parse_existing_directory, parse_non_empty_or_whitespace,
-                                       parse_positive_float, read_audio,
-                                       try_save_grid)
+                                       get_text_files, parse_existing_directory,
+                                       parse_non_empty_or_whitespace, parse_positive_float,
+                                       read_audio, try_save_grid)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"

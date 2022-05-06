@@ -8,10 +8,10 @@ from tqdm import tqdm
 from textgrid_tools import split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, add_overwrite_argument,
-                                       add_tier_argument, get_audio_files, get_grid_files,
-                                       get_optional, parse_existing_directory, parse_path,
-                                       save_audio, try_save_grid, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_overwrite_argument, add_tier_argument, get_audio_files,
+                                       get_grid_files, get_optional, parse_existing_directory,
+                                       parse_path, save_audio, try_load_grid, try_save_grid)
 
 
 def get_splitting_parser(parser: ArgumentParser):

@@ -71,4 +71,4 @@ def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
     ignore_missing=ns.ignore_missing,
   )
 
-  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

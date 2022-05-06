@@ -33,4 +33,4 @@ def app_move_tier(ns: Namespace) -> ExecutionResult:
     position_one_based=ns.position,
   )
 
-  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
