@@ -1,7 +1,8 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from collections import Counter
 from itertools import chain
-from logging import getLogger
+from logging import Logger, getLogger
 from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
@@ -24,13 +25,12 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
                       help="path to write the generated vocabulary")
   add_encoding_argument(parser, "vocabulary encoding")
   return get_vocabulary_parsed
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-  
+
   grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []
@@ -53,7 +53,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  error, vocabulary = get_vocabulary(grids, ns.tiers)
+  error, vocabulary = get_vocabulary(grids, ns.tiers, logger)
 
   success = error is None
 
@@ -74,11 +74,9 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   return True, True
 
 
-def get_vocabulary(grids: List[TextGrid], tier_names: Set[str]) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
+def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], logger: Logger) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
-
-  logger = getLogger(__name__)
 
   all_intervals = None
   for grid in grids:
