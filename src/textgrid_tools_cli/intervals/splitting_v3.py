@@ -3,7 +3,7 @@ from functools import partial
 
 
 from textgrid_tools import split_intervals
-from textgrid_tools_cli.common_v3 import process_grids_mp
+from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,

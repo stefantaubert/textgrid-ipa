@@ -1,15 +1,14 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
-
 from textgrid_tools import fix_interval_boundaries
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tier_argument,
-                                       add_tiers_argument, parse_positive_float)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tier_argument, add_tiers_argument, parse_positive_float)
 
 
 def get_boundary_fixing_parser(parser: ArgumentParser):
@@ -20,6 +19,7 @@ def get_boundary_fixing_parser(parser: ArgumentParser):
   parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005,
                       help="difference threshold to which boundaries should be fixed; needs to be greater than zero")
   add_output_directory_argument(parser)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)

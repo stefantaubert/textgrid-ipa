@@ -7,10 +7,10 @@ from textgrid_tools.validation import NonDistinctTiersError
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tier_argument,
-                                       parse_non_empty_or_whitespace)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tier_argument, parse_non_empty_or_whitespace)
 
 
 def get_renaming_parser(parser: ArgumentParser):
@@ -19,6 +19,7 @@ def get_renaming_parser(parser: ArgumentParser):
   add_tier_argument(parser, "tier which should be renamed")
   parser.add_argument("name", type=parse_non_empty_or_whitespace, metavar="tier",
                       help="new name of tier")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

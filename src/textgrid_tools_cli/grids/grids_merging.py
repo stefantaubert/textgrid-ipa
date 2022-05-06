@@ -9,9 +9,10 @@ from textgrid.textgrid import TextGrid
 from textgrid_tools.grids.grid_merging import merge_grids
 from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
-                                       parse_path, parse_positive_float, save_grid, try_load_grid)
+                                       parse_path, parse_positive_float, try_save_grid, try_load_grid)
 from textgrid_tools_cli.logging_configuration import try_init_file_logger
 
+from textgrid_tools_cli.helper import add_encoding_argument
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command merges grid files."
@@ -23,7 +24,8 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
                       help="insert an interval between subsequent grids having this duration and mark as content", default=None)
   parser.add_argument(
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
-  #add_log_argument(parser)
+  add_encoding_argument(parser)
+  # add_log_argument(parser)
   return merge_grids_app
 
 
@@ -40,7 +42,7 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
       break
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS)
+    error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS, ns.encoding)
 
     if error:
       logger.error(error.default_message)
@@ -66,7 +68,7 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
 
   logger.info("Saving grid...")
   try:
-    save_grid(ns.output, merged_grid)
+    try_save_grid(ns.output, merged_grid, ns.encoding)
   except Exception as ex:
     logger.error("Grid couldn't be written!")
     logger.exception(ex)

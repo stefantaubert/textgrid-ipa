@@ -8,11 +8,11 @@ from textgrid_tools import remove_intervals
 from textgrid_tools.intervals.removing import NothingDefinedToRemoveError
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_n_digits_argument, add_overwrite_argument,
-                                       add_tier_argument, copy_audio, copy_grid, get_audio_files,
-                                       get_grid_files, get_optional, parse_existing_directory,
-                                       parse_non_empty, parse_path, save_audio, save_grid,
-                                       try_load_grid)
+                                       add_encoding_argument, add_n_digits_argument,
+                                       add_overwrite_argument, add_tier_argument, copy_audio,
+                                       copy_grid, get_audio_files, get_grid_files, get_optional,
+                                       parse_existing_directory, parse_non_empty, parse_path,
+                                       save_audio, try_save_grid, try_load_grid)
 
 # TODO tiers support
 
@@ -33,6 +33,7 @@ def get_removing_parser(parser: ArgumentParser):
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
                       help="the directory where to output the modified audio files if not to directory.")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_remove_intervals
@@ -87,7 +88,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
       continue
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)
@@ -121,7 +122,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
       continue
 
     if changed_anything:
-      save_grid(grid_file_out_abs, grid)
+      try_save_grid(grid_file_out_abs, grid, ns.encoding)
     elif ns.directory != output_directory:
       copy_grid(grid_file_in_abs, grid_file_out_abs)
 

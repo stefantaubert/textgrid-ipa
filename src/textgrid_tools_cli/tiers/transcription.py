@@ -41,7 +41,7 @@ def get_transcription_parser(parser: ArgumentParser):
 
 def add_deserialization_group(parser: ArgumentParser) -> None:
   group = parser.add_argument_group('deserialization arguments')
-  add_encoding_argument(group, "encoding of the dictionary")
+  add_encoding_argument(group, "encoding of the grid files and the dictionary")
   group.add_argument("-cc", "--consider-comments", action="store_true",
                      help="consider line comments while deserialization")
   group.add_argument("-cn", "--consider-numbers", action="store_true",

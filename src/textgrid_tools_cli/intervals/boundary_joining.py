@@ -1,15 +1,14 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
-
 from textgrid_tools import join_intervals_on_boundaries
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument,
-                                       parse_non_empty_or_whitespace)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tiers_argument, parse_non_empty_or_whitespace)
 from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 
 
@@ -21,6 +20,7 @@ def get_boundary_joining_parser(parser: ArgumentParser):
   add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_join_with_argument(parser)
   add_join_empty_argument(parser)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

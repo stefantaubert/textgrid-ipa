@@ -7,7 +7,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from textgrid import TextGrid
 from tqdm import tqdm
 
-from textgrid_tools_cli.helper import read_audio, save_grid
+from textgrid_tools_cli.helper import read_audio, try_save_grid
 from textgrid_tools_cli.textgrid_io import get_lines, parse_text
 
 
@@ -15,7 +15,7 @@ def process_save_grid(item: Tuple[str, Path, TextGrid]) -> None:
   stem, grid_file_out_abs, grid = item
   assert grid is not None
   try:
-    save_grid(grid_file_out_abs, grid)
+    try_save_grid(grid_file_out_abs, grid, "UTF-8")
   except Exception as ex:
     logger = getLogger(stem)
     logger.error(f"Grid file '{grid_file_out_abs.absolute()}' could not be saved!")

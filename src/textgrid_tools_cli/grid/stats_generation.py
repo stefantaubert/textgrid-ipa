@@ -3,7 +3,7 @@ from logging import getLogger
 
 from textgrid_tools import print_stats
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_n_digits_argument,
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, add_n_digits_argument,
                                        get_grid_files, parse_positive_float, try_load_grid)
 
 
@@ -12,6 +12,7 @@ def get_stats_generation_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002,
                       help="warn at intervals smaller than this duration (in seconds)")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   return app_print_stats
 
@@ -26,7 +27,7 @@ def app_print_stats(ns: Namespace) -> ExecutionResult:
     logger.info(f"Statistics {file_stem} ({file_nr}/{len(grid_files)}):")
 
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)

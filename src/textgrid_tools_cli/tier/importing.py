@@ -7,7 +7,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
                                        add_n_digits_argument, add_overwrite_argument,
                                        add_tier_argument, get_grid_files, get_optional,
                                        get_text_files, parse_existing_directory, parse_path,
-                                       save_grid, try_load_grid)
+                                       try_save_grid, try_load_grid)
 
 
 def get_importing_parser(parser: ArgumentParser):
@@ -15,7 +15,7 @@ def get_importing_parser(parser: ArgumentParser):
 
   add_directory_argument(parser)
   add_tier_argument(parser, "new tier to which the content should be written")
-  add_encoding_argument(parser, "encoding of text files")
+  add_encoding_argument(parser, "encoding of grid and text files")
   parser.add_argument("--text-directory", metavar='PATH', type=get_optional(parse_existing_directory),
                       help="directory where to read the text files; defaults to dictionary if not set", default=None)
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
@@ -29,7 +29,7 @@ def get_importing_parser(parser: ArgumentParser):
 
 def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-  
+
   output_directory = ns.output_directory
   if output_directory is None:
     output_directory = ns.directory
@@ -55,7 +55,7 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
       logger.info("Grid already exists. Skipped.")
       continue
 
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)
@@ -80,7 +80,7 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
       logger.info("Skipped.")
       continue
 
-    save_grid(grid_file_out_abs, grid)
+    try_save_grid(grid_file_out_abs, grid, ns.encoding)
 
   logger.info(f"Written output to: {output_directory.absolute()}")
   return total_success, True

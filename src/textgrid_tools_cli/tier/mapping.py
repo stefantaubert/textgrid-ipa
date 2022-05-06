@@ -1,15 +1,15 @@
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
-
 from textgrid_tools import map_tier
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_chunksize_argument,
-                                       add_directory_argument, add_maxtaskperchild_argument,
-                                       add_n_digits_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       add_tier_argument, parse_non_empty_or_whitespace)
+                                       add_directory_argument, add_encoding_argument,
+                                       add_maxtaskperchild_argument, add_n_digits_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tier_argument,
+                                       parse_non_empty_or_whitespace)
 
 
 def get_mapping_parser(parser: ArgumentParser):
@@ -21,6 +21,7 @@ def get_mapping_parser(parser: ArgumentParser):
   parser.add_argument("--include-pauses", action="store_true",
                       help="include mapping from and to pause intervals, i.e., those which contain nothing or only whitespace")
   add_output_directory_argument(parser)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)

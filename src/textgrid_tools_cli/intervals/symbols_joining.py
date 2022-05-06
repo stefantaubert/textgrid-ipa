@@ -1,3 +1,4 @@
+from textgrid_tools_cli.helper import add_encoding_argument
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
@@ -28,6 +29,7 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   add_join_with_argument(parser)
   add_join_empty_argument(parser)
   add_output_directory_argument(parser)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)

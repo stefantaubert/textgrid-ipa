@@ -28,7 +28,7 @@ def get_marks_mapping_parser(parser: ArgumentParser):
                       help="custom mark to replace unmapped symbols", default=None)
   parser.add_argument("--ignore", metavar="SYMBOL", type=str, nargs="*",
                       help="ignore these marks while mapping, i.e., keep them as they are", action=ConvertToOrderedSetAction, default=OrderedSet(("",)))
-  add_encoding_argument(parser, "encoding of mapping")
+  add_encoding_argument(parser, "encoding of grids and mapping")
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

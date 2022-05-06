@@ -1,79 +1,52 @@
+import logging
 from functools import partial
-from logging import getLogger
+from math import ceil
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Callable, List, Optional, OrderedDict, Tuple
+from typing import Callable, Dict, Optional, OrderedDict, Tuple
 
 from textgrid.textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools_cli.helper import copy_grid, get_grid_files, save_grid, try_load_grid
+from textgrid_tools.logging_queue import LoggingQueue
+from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
-# def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
-#   logger = getLogger(__name__)
-
-#   if output_directory is None:
-#     output_directory = directory
-
-#   grid_files = get_grid_files(directory)
-
-#   total_success = True
-#   total_changed_anything = False
-#   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-#     logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
-#     grid_file_out_abs = output_directory / rel_path
-
-#     if grid_file_out_abs.exists() and not overwrite:
-#       logger.info("Grid already exists. Skipped.")
-#       continue
-
-#     grid_file_in_abs = directory / rel_path
-#     grid = try_load_grid(grid_file_in_abs, n_digits)
-
-#     error, changed_anything = method(grid)
-
-#     success = error is None
-#     total_success &= success
-#     total_changed_anything |= changed_anything
-
-#     if not success:
-#       logger.error(error.default_message)
-#       logger.info("Skipped.")
-#       continue
-
-#     if changed_anything:
-#       save_grid(grid_file_out_abs, grid)
-#     elif directory != output_directory:
-#       copy_grid(grid_file_in_abs, grid_file_out_abs)
-
-#   return total_success, total_changed_anything
-
-
-def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
-  logger = getLogger(__name__)
+def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   if output_directory is None:
     output_directory = directory
 
   grid_files = get_grid_files(directory)
+  logger.info(f"Found {len(grid_files)} grid files.")
 
   total_success = True
   total_changed_anything = False
   method_proxy = partial(
     process_grid,
     method=method,
-    n_digits=n_digits,
+    encoding=encoding,
     overwrite=overwrite,
     directory=directory,
     output_directory=output_directory,
   )
 
-  logger.debug(f"Jobs: {n_jobs}")
-  logger.debug(f"Maxtask: {maxtasksperchild}")
-  logger.debug(f"Chunksize: {chunksize}")
-  logger.debug(f"Files: {len(grid_files)}")
+  keys = grid_files.keys()
+  # TODO remove
+  keys = list(keys)[:10]
+
+  flogger.debug(f"Files: {len(keys)}")
+  flogger.debug(f"Chunksize: {chunksize}")
+  flogger.debug(f"Maxtask: {maxtasksperchild}")
+  flogger.debug(f"Jobs: {n_jobs}")
+
+  amount_of_jobs_required = ceil(len(keys) / chunksize)
+  n_jobs = min(n_jobs, amount_of_jobs_required)
+  flogger.debug(f"Jobs (final): {n_jobs}")
 
   with Pool(
     processes=n_jobs,
@@ -81,13 +54,17 @@ def process_grids_mp(directory: Path, n_digits: int, output_directory: Optional[
     initargs=(grid_files,),
     maxtasksperchild=maxtasksperchild,
   ) as pool:
-    iterator = pool.imap_unordered(method_proxy, enumerate(
-      grid_files.keys(), start=1), chunksize=chunksize)
-    iterator = tqdm(iterator, total=len(grid_files), desc="Processing", unit="file(s)")
-    result: List[Tuple[bool, bool]] = list(iterator)
+    iterator = pool.imap_unordered(method_proxy, keys, chunksize=chunksize)
+    iterator = tqdm(iterator, total=len(keys), desc="Processing", unit="file(s)")
+    result: Dict[str, Tuple[bool, bool, LoggingQueue]] = dict(iterator)
 
-  total_success = all(success for success, _ in result)
-  total_changed_anything = any(changed_anything for _, changed_anything in result)
+  for stem, (_, _, logging_queue) in result.items():
+    flogger.info(f"Log messages for file: {stem}")
+    for x in logging_queue.records:
+      flogger.handle(x)
+
+  total_success = all(success for success, _, _ in result.values())
+  total_changed_anything = any(changed_anything for _, changed_anything, _ in result.values())
 
   return total_success, total_changed_anything
 
@@ -100,38 +77,49 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
   process_grid_files = grid_files
 
 
-def process_grid(i_file_stem: str, n_digits: int, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[bool, bool]:
-  logger = getLogger(__name__)
+def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, LoggingQueue]]:
   global process_grid_files
-  file_nr, file_stem = i_file_stem
+  lq = LoggingQueue(file_stem)
+
   rel_path = process_grid_files[file_stem]
-  logger_prepend = f"[{file_stem}]"
-  #logger.info(f"Processing {file_stem} ({file_nr}/{len(process_grid_files)})...")
   grid_file_out_abs = output_directory / rel_path
 
   if grid_file_out_abs.exists() and not overwrite:
-    logger.info(f"{logger_prepend} Grid already exists. Skipped.")
-    return True, False
+    lq.log(logging.INFO, "Grid already exists. Skipped.")
+    return file_stem, (True, False, lq)
 
   grid_file_in_abs = directory / rel_path
 
-  error, grid = try_load_grid(grid_file_in_abs, n_digits)
+  error, grid = try_load_grid(grid_file_in_abs, encoding=encoding)
 
   if error:
-    logger.error(error.default_message)
-    return False, False
+    lq.log(logging.ERROR, error.default_message)
+    return file_stem, (False, False, lq)
   assert grid is not None
 
   error, changed_anything = method(grid)
   success = error is None
 
   if not success:
-    logger.error(f"{logger_prepend} {error.default_message}")
-    logger.info(f"{logger_prepend} Skipped.")
+    lq.log(logging.ERROR, error.default_message)
+    lq.log(logging.INFO, "Skipped.")
     assert not changed_anything
   else:
+    lq.log(logging.INFO, "Applied operations successfully.")
     if changed_anything:
-      save_grid(grid_file_out_abs, grid)
+      error = try_save_grid(grid_file_out_abs, grid, encoding)
+      if error:
+        lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
+        return file_stem, (False, False, lq)
+      lq.log(logging.INFO, f"Saved the grid to: {grid_file_out_abs.absolute()}")
     elif directory != output_directory:
-      copy_grid(grid_file_in_abs, grid_file_out_abs)
-  return success, changed_anything
+      lq.log(logging.INFO,
+             "Didn't changed anything.")
+      error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
+      if error:
+        lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
+      else:
+        lq.log(logging.INFO, f"Copied the grid to: {grid_file_out_abs.absolute()}")
+
+  del grid
+  return file_stem, (success, changed_anything, lq)

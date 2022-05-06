@@ -14,15 +14,15 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,
                                        add_n_digits_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, get_audio_files,
-                                       get_chunks, get_files_dict, get_optional,
-                                       get_text_files, parse_existing_directory, parse_non_empty_or_whitespace,
+                                       add_output_directory_argument, get_audio_files, get_chunks,
+                                       get_files_dict, get_optional, get_text_files,
+                                       parse_existing_directory, parse_non_empty_or_whitespace,
                                        parse_positive_float, parse_positive_integer)
-from textgrid_tools_cli.io import (load_audio_durations, load_texts, remove_none_from_dict, save_texts,
-                                   serialize_grids_v2)
+from textgrid_tools_cli.io import (load_audio_durations, load_texts, remove_none_from_dict,
+                                   save_texts, serialize_grids_v2)
 from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
-                                                      init_file_stem_loggers,
-                                                      try_init_file_logger, write_file_stem_loggers_to_file_logger)
+                                                      init_file_stem_loggers, try_init_file_logger,
+                                                      write_file_stem_loggers_to_file_logger)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -43,7 +43,7 @@ def get_creation_v2_parser(parser: ArgumentParser):
                       help="directory containing meta files; defaults to directory if not specified", default=None)
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")
-  add_encoding_argument(parser, "encoding of text and meta files")
+  add_encoding_argument(parser, "encoding of grid, text and meta files")
   parser.add_argument("--chunk", type=parse_positive_integer,
                       help="amount of files to process at a time; defaults to all items if not defined", default=None)
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
@@ -54,7 +54,7 @@ def get_creation_v2_parser(parser: ArgumentParser):
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
   add_maxtaskperchild_argument(parser)
-  #add_log_argument(parser)
+  # add_log_argument(parser)
   return app_create_grid_from_text
 
 

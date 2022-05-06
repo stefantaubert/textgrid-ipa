@@ -2,15 +2,14 @@ from argparse import ArgumentParser, Namespace
 from functools import partial
 from math import inf
 
-
 from textgrid_tools import join_intervals_between_pauses
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument,
-                                       parse_non_negative_float)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_digits_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tiers_argument, parse_non_negative_float)
 from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 
 
@@ -23,6 +22,7 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   add_join_with_argument(parser)
   add_join_empty_argument(parser)
   add_output_directory_argument(parser)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)

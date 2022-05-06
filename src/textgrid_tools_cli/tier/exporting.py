@@ -14,7 +14,7 @@ def get_exporting_parser(parser: ArgumentParser):
 
   add_directory_argument(parser)
   add_tier_argument(parser, "tier from which the content should be written")
-  add_encoding_argument(parser, "encoding of text files")
+  add_encoding_argument(parser, "encoding of grid and text files")
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the text files if not to the same directory", default=None)
   parser.add_argument('--sep', type=str, metavar="SYMBOL",
@@ -42,7 +42,7 @@ def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
       continue
 
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)

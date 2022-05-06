@@ -1,13 +1,12 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
-
 from textgrid_tools import plot_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_n_digits_argument, add_overwrite_argument,
-                                       get_grid_files, get_optional, parse_non_empty_or_whitespace,
-                                       parse_path, try_load_grid)
+                                       add_encoding_argument, add_n_digits_argument,
+                                       add_overwrite_argument, get_grid_files, get_optional,
+                                       parse_non_empty_or_whitespace, parse_path, try_load_grid)
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
@@ -17,6 +16,7 @@ def get_plot_interval_durations_parser(parser: ArgumentParser):
                       help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the plots if not to the same directory")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_plot_interval_durations
@@ -42,7 +42,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
       continue
 
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)

@@ -9,7 +9,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
                                        add_overwrite_argument, get_audio_files, get_files_dict,
                                        get_optional, get_text_files, parse_existing_directory,
                                        parse_non_empty_or_whitespace, parse_positive_float,
-                                       read_audio, save_grid)
+                                       read_audio, try_save_grid)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -26,7 +26,7 @@ def get_creation_parser(parser: ArgumentParser):
                       help="directory containing meta files; defaults to directory if not specified", default=None)
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")
-  add_encoding_argument(parser, "encoding of text and meta files")
+  add_encoding_argument(parser, "encoding of grid, text and meta files")
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
   add_n_digits_argument(parser)
@@ -98,7 +98,7 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       logger.info("Skipped.")
       continue
 
-    save_grid(grid_file_out_abs, grid)
+    try_save_grid(grid_file_out_abs, grid, ns.encoding)
   duration = perf_counter() - start
   print(duration)
 

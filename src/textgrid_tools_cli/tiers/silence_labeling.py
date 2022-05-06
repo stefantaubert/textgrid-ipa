@@ -1,8 +1,8 @@
+from textgrid_tools_cli.helper import add_encoding_argument
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
 from math import inf
-
 
 from textgrid_tools import mark_silence
 from textgrid_tools_cli.common import process_grids_mp
@@ -42,6 +42,7 @@ def get_label_silence_parser(parser: ArgumentParser):
                       help="inclusive minimum duration of silence in seconds", default=0)
   parser.add_argument("--max-duration", type=parse_non_negative_float,
                       help="exclusive maximum duration of silence in seconds", default=inf)
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

@@ -22,7 +22,7 @@ def get_marks_exporting_parser(parser: ArgumentParser):
                       help="path to output the marks (*.txt)")
   parser.add_argument("--sep", type=str,
                       help="separator for intervals in output", default="|")
-  add_encoding_argument(parser, "output encoding")
+  add_encoding_argument(parser, "encoding of input grid files and output text files")
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_plot_interval_durations
@@ -45,7 +45,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)

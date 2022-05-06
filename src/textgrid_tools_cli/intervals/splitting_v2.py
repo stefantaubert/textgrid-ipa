@@ -22,7 +22,7 @@ def get_splitting_v2_parser(parser: ArgumentParser):
 
   parser.add_argument("--chunk", type=parse_positive_integer,
                       help="amount of files to process at a time; defaults to all items if not defined", default=None)
-  add_encoding_argument(parser, "grid encoding")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_n_jobs_argument(parser)

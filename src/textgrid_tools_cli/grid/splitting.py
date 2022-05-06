@@ -8,10 +8,10 @@ from tqdm import tqdm
 from textgrid_tools import split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_n_digits_argument,
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, add_n_digits_argument,
                                        add_overwrite_argument, add_tier_argument, get_audio_files,
                                        get_grid_files, get_optional, parse_existing_directory,
-                                       parse_path, save_audio, save_grid, try_load_grid)
+                                       parse_path, save_audio, try_save_grid, try_load_grid)
 
 
 def get_splitting_parser(parser: ArgumentParser):
@@ -28,6 +28,7 @@ def get_splitting_parser(parser: ArgumentParser):
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the modified audios if not to directory")
+  add_encoding_argument(parser)
   add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_split_grid_on_intervals
@@ -73,7 +74,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
     logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits)
+    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
 
     if error:
       logger.error(error.default_message)
@@ -108,7 +109,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       if grid_file_out_abs.exists() and not ns.overwrite:
         logger.info(f"Grid {file_nr} already exists. Skipped.")
       else:
-        save_grid(grid_file_out_abs, new_grid)
+        try_save_grid(grid_file_out_abs, new_grid, ns.encoding)
       if audio_provided:
         assert new_audio is not None
         audio_file_out_abs = output_audio_directory / file_stem / f"{file_nr}.wav"
