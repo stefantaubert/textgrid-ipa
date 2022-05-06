@@ -34,6 +34,9 @@ class NothingDefinedToRemoveError(ValidationError):
 
 
 def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
+  if logger is None:
+    logger = getLogger(__name__)
+
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 

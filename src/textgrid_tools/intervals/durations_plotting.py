@@ -1,6 +1,7 @@
-from logging import Logger
+from logging import getLogger
 import logging
 from collections import OrderedDict
+from logging import Logger
 from typing import Dict, List, Optional, Set, Tuple, cast
 
 import numpy as np
@@ -13,7 +14,6 @@ from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 # warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
@@ -35,6 +35,9 @@ def get_plot_mark_name(mark: str) -> str:
 
 
 def plot_interval_durations_diagram(grid: TextGrid, tier_names: Set[str], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure]]:
+  if logger is None:
+    logger = getLogger(__name__)
+
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 

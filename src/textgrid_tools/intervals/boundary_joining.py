@@ -1,4 +1,4 @@
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
@@ -9,7 +9,6 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_boundary_timepoints_from_tier,
                                    get_intervals_part_of_timespan_from_intervals, get_single_tier)
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
-
 from textgrid_tools.validation import (BoundaryError, InvalidGridError,
                                        MultipleTiersWithThatNameError, NonDistinctTiersError,
                                        NotExistingTierError)
@@ -17,6 +16,9 @@ from textgrid_tools.validation import (BoundaryError, InvalidGridError,
 
 def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False

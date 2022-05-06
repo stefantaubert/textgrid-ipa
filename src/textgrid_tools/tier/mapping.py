@@ -1,3 +1,4 @@
+from logging import getLogger
 from logging import Logger
 from typing import Generator, Iterable, List, Optional, Set
 
@@ -5,7 +6,6 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers, get_single_tier, interval_is_None_or_whitespace
-
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NonDistinctTiersError, NotExistingTierError, ValidationError)
 
@@ -38,6 +38,8 @@ def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], includ
   only_symbols: ignore intervals which marks contain only these symbols
   """
   # ignore_marks and only_symbols can be removed because it is in symbol_removing
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False

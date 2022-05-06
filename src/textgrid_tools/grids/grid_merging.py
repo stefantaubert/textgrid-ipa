@@ -1,6 +1,5 @@
-from logging import Logger
-
 from collections import OrderedDict
+from logging import Logger, getLogger
 from math import inf
 from typing import Iterable, List, Optional, Tuple, cast
 
@@ -32,6 +31,9 @@ def get_tier_names(grid: TextGrid):
 
 def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(grids) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if len(grids) == 1:
     return (None, False), grids[0]
@@ -72,7 +74,7 @@ def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_
 
   if len(target_tiers) > 1:
     tier_names = list(target_tiers.keys())
-    fix_interval_boundaries(result, grid.tiers[0].name, tier_names[1:], inf)
+    fix_interval_boundaries(result, grid.tiers[0].name, tier_names[1:], inf, logger)
   return (None, True), result
 
 

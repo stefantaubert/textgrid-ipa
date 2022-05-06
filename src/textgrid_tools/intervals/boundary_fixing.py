@@ -16,6 +16,9 @@ from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNa
 def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert difference_threshold > 0
+  
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False

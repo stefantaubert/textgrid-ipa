@@ -1,15 +1,17 @@
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Optional
 
 from textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import check_is_valid_grid, set_intervals_consecutive
-
 from textgrid_tools.validation import ExistingTierError, InvalidGridError
 
 
 def import_text_to_tier(grid: TextGrid, tier_name: str, text: str, sep: str, logger: Optional[Logger]) -> ExecutionResult:
+  if logger is None:
+    logger = getLogger(__name__)
+
   if error := InvalidGridError.validate(grid):
     return error, False
 

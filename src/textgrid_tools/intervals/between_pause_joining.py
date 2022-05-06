@@ -1,4 +1,4 @@
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Optional, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
@@ -30,6 +30,9 @@ class PauseTooLowError(ValidationError):
 
 def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+  
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False

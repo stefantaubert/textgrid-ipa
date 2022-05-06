@@ -8,7 +8,6 @@ from textgrid_tools.comparison import check_intervals_are_equal
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers, get_mark
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
@@ -26,10 +25,13 @@ class InvalidModeError(ValidationError):
   @property
   def default_message(self) -> str:
     return "Mode needs to be 'right', 'left' or 'together'!"
+from logging import getLogger
 
 
 def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
