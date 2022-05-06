@@ -17,7 +17,6 @@ from textgrid_tools_cli.helper import add_encoding_argument
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command merges grid files."
-  default_log_path = Path(gettempdir()) / "textgrid-tools.log"
   add_directory_argument(parser)
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated grid")
@@ -26,14 +25,11 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   parser.add_argument(
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
   add_encoding_argument(parser)
-  # add_log_argument(parser)
   return merge_grids_app
 
 
 def merge_grids_app(ns: Namespace) -> ExecutionResult:
   logger = getLogger(__name__)
-  if ns.log is not None:
-    try_init_file_logger(ns.log)
 
   grid_files = get_grid_files(ns.directory)
 
@@ -76,7 +72,5 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     return False, False
 
   logger.info(f"Written grid to: {ns.output.absolute()}")
-  if ns.log is not None:
-    logger.info(f"Written log to: {ns.log.absolute()}")
 
   return True, True
