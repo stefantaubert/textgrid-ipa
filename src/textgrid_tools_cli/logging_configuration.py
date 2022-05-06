@@ -1,12 +1,41 @@
 import logging
 import os
-from logging import Formatter, Handler, Logger, StreamHandler, getLogger
+from logging import DEBUG, Formatter, Handler, Logger, LogRecord, StreamHandler, getLogger
 from logging.handlers import QueueHandler
 from pathlib import Path
 from queue import Queue
 from typing import Dict, Generator, List, Tuple
 
 from ordered_set import OrderedSet
+
+# class StoreRecordsHandler(Handler):
+# slower than other impl (maybe due to lock-things)
+#   def __init__(self, level: int = DEBUG) -> None:
+#     super().__init__(level)
+#     self.__records = []
+
+#   def handle(self, record) -> None:
+#     self.__records.append(record)
+
+#   def emit(self, record: LogRecord) -> None:
+#     pass
+
+#   @property
+#   def records(self) -> List[LogRecord]:
+#     return self.__records
+
+
+class StoreRecordsHandler():
+  def __init__(self) -> None:
+    self.__records = []
+    self.level = DEBUG
+
+  def handle(self, record) -> None:
+    self.__records.append(record)
+
+  @property
+  def records(self) -> List[LogRecord]:
+    return self.__records
 
 
 class ConsoleFormatter(logging.Formatter):

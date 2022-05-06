@@ -10,9 +10,9 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools_cli.logging_queue import StoreRecordsHandlerFaster
 from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from textgrid_tools_cli.logging_configuration import (StoreRecordsHandler, get_file_logger,
+                                                      init_and_get_console_logger)
 
 
 def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
@@ -59,10 +59,14 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
     iterator = tqdm(iterator, total=len(keys), desc="Processing", unit="file(s)")
     result: Dict[str, Tuple[bool, bool, List[LogRecord]]] = dict(iterator)
 
-  for stem, (_, _, records) in result.items():
-    flogger.info(f"Log messages for file: {stem}")
-    for x in records:
-      flogger.handle(x)
+  stored_records = (
+    record
+    for _, _, records in result.values()
+    for record in records
+  )
+
+  for record in stored_records:
+    flogger.handle(record)
 
   total_success = all(success for success, _, _ in result.values())
   total_changed_anything = any(changed_anything for _, changed_anything, _ in result.values())
@@ -80,12 +84,14 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
 
 def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, List[LogRecord]]]:
   global process_grid_files
-  handler = StoreRecordsHandlerFaster()
+
+  start = perf_counter()
+  handler = StoreRecordsHandler()
   logger = getLogger(file_stem)
   logger.propagate = False
   logger.addHandler(handler)
 
-  start = perf_counter()
+  logger.info(f"Processing {file_stem}")
 
   rel_path = process_grid_files[file_stem]
   grid_file_out_abs = output_directory / rel_path
