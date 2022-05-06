@@ -202,11 +202,11 @@ def run_prod():
 
 
 def debug_file_exists():
-  return Path("/tmp/textgrid-tools-debug").is_file()
+  return (Path(gettempdir()) / "textgrid-tools-debug").is_file()
 
 
 def create_debug_file():
-  Path("/tmp/textgrid-tools-debug").write_text("", "UTF-8")
+  (Path(gettempdir()) / "textgrid-tools-debug").write_text("", "UTF-8")
 
 
 if __name__ == "__main__":
