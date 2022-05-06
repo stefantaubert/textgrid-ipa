@@ -24,9 +24,12 @@ def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
   add_overwrite_argument(parser)
   return app_plot_interval_durations
 
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+
 
 def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   grid_files = get_grid_files(ns.directory)
 

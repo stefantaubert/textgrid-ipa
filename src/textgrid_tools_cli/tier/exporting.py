@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
@@ -23,7 +24,8 @@ def get_exporting_parser(parser: ArgumentParser):
 
 
 def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   output_directory = ns.output_directory
   if output_directory is None:

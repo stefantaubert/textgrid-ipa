@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
@@ -39,7 +40,8 @@ def get_removing_parser(parser: ArgumentParser):
 
 
 def app_remove_intervals(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   if error := NothingDefinedToRemoveError.validate(ns.marks, ns.pauses):
     logger.error(error.default_message)

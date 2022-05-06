@@ -1,4 +1,4 @@
-from textgrid_tools_cli.helper import add_encoding_argument
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
@@ -8,9 +8,10 @@ from textgrid_tools import mark_silence
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       add_tiers_argument, parse_non_empty, parse_non_negative_float)
+                                       add_encoding_argument, add_maxtaskperchild_argument,
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument, parse_non_empty,
+                                       parse_non_negative_float)
 from textgrid_tools_cli.validation import ValidationError
 
 
@@ -52,7 +53,7 @@ def get_label_silence_parser(parser: ArgumentParser):
 
 def app_label_silence(ns: Namespace) -> ExecutionResult:
   if error := MaxNotGreaterThanMinError.validate(ns.min_duration, ns.max_duration):
-    logger = getLogger(__name__)
+    logger = init_and_get_console_logger(__name__)
     logger.error(error.default_message)
     return False, False
 

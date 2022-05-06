@@ -1,3 +1,4 @@
+import logging
 from logging import getLogger
 from typing import Iterable, List, Optional, Tuple, cast
 
@@ -61,12 +62,11 @@ def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_
     result.append((extracted_grid, extracted_audio))
 
   durations = list(res_grid.maxTime for res_grid, _ in result)
-  logger = getLogger(__name__)
-  logger.info(f"# Files: {len(result)}")
-  logger.info(f"Min duration: {min(durations):.2f}s")
-  logger.info(f"Max duration: {max(durations):.2f}s")
-  logger.info(f"Mean duration: {np.mean(durations):.2f}s")
-  logger.info(f"Total duration: {sum(durations):.2f}s ({sum(durations)/60:.2f}min)")
+  lq.log(logging.INFO, f"# Files: {len(result)}")
+  lq.log(logging.INFO, f"Min duration: {min(durations):.2f}s")
+  lq.log(logging.INFO, f"Max duration: {max(durations):.2f}s")
+  lq.log(logging.INFO, f"Mean duration: {np.mean(durations):.2f}s")
+  lq.log(logging.INFO, f"Total duration: {sum(durations):.2f}s ({sum(durations)/60:.2f}min)")
   return (None, True), result
 
 

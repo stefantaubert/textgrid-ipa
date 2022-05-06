@@ -32,11 +32,12 @@ def get_creation_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_create_grid_from_text
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
-  start = perf_counter()
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   if audio_directory is None:
     audio_directory = ns.directory
@@ -98,7 +99,5 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       continue
 
     try_save_grid(grid_file_out_abs, grid, ns.encoding)
-  duration = perf_counter() - start
-  print(duration)
 
   return total_success, True

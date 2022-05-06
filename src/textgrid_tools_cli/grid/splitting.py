@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
@@ -5,7 +6,7 @@ from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from tqdm import tqdm
 
-from textgrid_tools import split_grid_on_intervals
+from textgrid_tools import LoggingQueue, split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
@@ -34,8 +35,10 @@ def get_splitting_parser(parser: ArgumentParser):
 
 
 def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
   assert ns.directory.is_dir()
+
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   if audio_directory is None and not ns.ignore_audio:
     audio_directory = ns.directory
@@ -70,6 +73,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
   total_success = True
   total_changed_anything = False
   for file_nr, file_stem in enumerate(common_files, start=1):
+    lq = LoggingQueue(file_stem)
     logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
@@ -90,7 +94,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), grids_audios = split_grid_on_intervals(
-      grid, audio, sample_rate, ns.tier, ns.include_empty)
+      grid, audio, sample_rate, ns.tier, ns.include_empty, lq)
 
     success = error is None
     total_success &= success

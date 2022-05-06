@@ -1,13 +1,13 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
 from textgrid_tools.tier.importing import import_text_to_tier
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_overwrite_argument, add_tier_argument,
-                                       get_grid_files, get_optional, get_text_files,
-                                       parse_existing_directory, parse_path, try_save_grid,
-                                       try_load_grid)
+                                       add_overwrite_argument, add_tier_argument, get_grid_files,
+                                       get_optional, get_text_files, parse_existing_directory,
+                                       parse_path, try_load_grid, try_save_grid)
 
 
 def get_importing_parser(parser: ArgumentParser):
@@ -27,7 +27,8 @@ def get_importing_parser(parser: ArgumentParser):
 
 
 def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   output_directory = ns.output_directory
   if output_directory is None:

@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
@@ -10,8 +11,8 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,
                                        add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument,
-                                       get_optional, parse_existing_file, parse_non_negative_integer,
+                                       add_overwrite_argument, add_tiers_argument, get_optional,
+                                       parse_existing_file, parse_non_negative_integer,
                                        parse_positive_integer)
 
 
@@ -58,7 +59,7 @@ def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
   try:
     pronunciation_dictionary = load_dict(ns.dictionary, ns.encoding, options, mp_options)
   except Exception as ex:
-    logger = getLogger(__name__)
+    logger = init_and_get_console_logger(__name__)
     logger.error("Pronunciation dictionary couldn't be read!")
     logger.debug(ex)
     return False, False

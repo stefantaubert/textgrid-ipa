@@ -8,11 +8,10 @@ from textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
-                                       parse_path, parse_positive_float, try_save_grid, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       get_grid_files, get_optional, parse_path,
+                                       parse_positive_float, try_load_grid, try_save_grid)
 from textgrid_tools_cli.logging_configuration import try_init_file_logger
-
-from textgrid_tools_cli.helper import add_encoding_argument
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
@@ -26,11 +25,13 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
   add_encoding_argument(parser)
   return merge_grids_app
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def merge_grids_app(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
-
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
+  
   grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []

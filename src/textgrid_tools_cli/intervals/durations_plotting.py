@@ -7,6 +7,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_
                                        add_encoding_argument, add_overwrite_argument,
                                        get_grid_files, get_optional, parse_non_empty_or_whitespace,
                                        parse_path, try_load_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
@@ -22,8 +23,9 @@ def get_plot_interval_durations_parser(parser: ArgumentParser):
 
 
 def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
-
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
+  
   grid_files = get_grid_files(ns.directory)
 
   if output_directory is None:

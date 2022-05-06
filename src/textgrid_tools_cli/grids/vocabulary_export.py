@@ -24,11 +24,13 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
                       help="path to write the generated vocabulary")
   add_encoding_argument(parser, "vocabulary encoding")
   return get_vocabulary_parsed
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
-
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
+  
   grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []

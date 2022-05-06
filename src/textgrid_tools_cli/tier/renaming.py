@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
 from logging import getLogger
@@ -31,9 +32,8 @@ def get_renaming_parser(parser: ArgumentParser):
 def app_rename_tier(ns: Namespace) -> ExecutionResult:
   assert len(ns.name.strip()) > 0
 
-  logger = getLogger(__name__)
-
   if error := NonDistinctTiersError.validate(ns.tier, ns.name):
+    logger = init_and_get_console_logger(__name__)
     logger.error(error.default_message)
     return False, False
 

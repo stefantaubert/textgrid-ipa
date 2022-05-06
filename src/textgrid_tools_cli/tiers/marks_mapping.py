@@ -1,3 +1,4 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 import json
 from argparse import ArgumentParser, Namespace
 from functools import partial
@@ -43,7 +44,7 @@ def map_marks_ns(ns: Namespace) -> ExecutionResult:
     with ns.mapping.open(mode='r', encoding=ns.encoding) as json_file:
       mapping_content = json.load(json_file)
   except Exception as ex:
-    logger = getLogger(__name__)
+    logger = init_and_get_console_logger(__name__)
     logger.error("Mapping couldn't be read!")
     logger.exception(ex)
     return False, False

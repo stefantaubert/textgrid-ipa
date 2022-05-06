@@ -3,8 +3,9 @@ from logging import getLogger
 
 from textgrid_tools import print_stats
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, get_grid_files,
-                                       parse_positive_float, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       get_grid_files, parse_positive_float, try_load_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_stats_generation_parser(parser: ArgumentParser):
@@ -17,7 +18,8 @@ def get_stats_generation_parser(parser: ArgumentParser):
 
 
 def app_print_stats(ns: Namespace) -> ExecutionResult:
-  logger = getLogger(__name__)
+  logger = init_and_get_console_logger(__name__)
+  flogger = get_file_logger()
 
   grid_files = get_grid_files(ns.directory)
 
