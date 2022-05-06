@@ -1,5 +1,4 @@
-from logging import getLogger
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Optional, Set
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid

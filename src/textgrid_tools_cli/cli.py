@@ -113,9 +113,10 @@ def _init_parser():
       method_parser.set_defaults(**{
         INVOKE_HANDLER_VAR: method(method_parser),
       })
-      method_parser.add_argument("--log", type=get_optional(parse_path), metavar="FILE",
+      logging_group = method_parser.add_argument_group("logging arguments")
+      logging_group.add_argument("--log", type=get_optional(parse_path), metavar="FILE",
                                  nargs="?", const=None, help="path to write the log", default=default_log_path)
-      method_parser.add_argument("--debug", action="store_true",
+      logging_group.add_argument("--debug", action="store_true",
                                  help="include debugging information in log")
 
   return main_parser
@@ -166,11 +167,6 @@ def parse_args(args: List[str]) -> None:
 
     start = perf_counter()
     success, changed_anything = invoke_handler(ns)
-    duration = perf_counter() - start
-    flogger.debug(f"Total duration (s): {duration}")
-
-    if log_to_file:
-      logger.info(f"Written log to: {ns.log.absolute()}")
 
     if success:
       logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
@@ -187,6 +183,12 @@ def parse_args(args: List[str]) -> None:
     if not changed_anything:
       logger.info("Didn't changed anything.")
       flogger.info("Didn't changed anything.")
+
+    duration = perf_counter() - start
+    flogger.debug(f"Total duration (s): {duration}")
+
+    if log_to_file:
+      logger.info(f"Written log to: {ns.log.absolute()}")
 
   else:
     parser.print_help()
