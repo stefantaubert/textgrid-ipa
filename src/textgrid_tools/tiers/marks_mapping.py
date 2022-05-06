@@ -9,8 +9,11 @@ from textgrid_tools.helper import get_all_intervals, get_mark
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], replace_unmapped: bool, replace_unmapped_with: Optional[str], ignore: Set[str], logger: Optional[Logger] = None) -> ExecutionResult:
+def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], replace_unmapped: bool, replace_unmapped_with: Optional[str], ignore: Set[str], logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -20,8 +23,6 @@ def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], rep
       return error, False
 
   intervals = list(get_all_intervals(grid, tier_names))
-
-  logger = getLogger(__name__)
 
   changed_anything = False
 

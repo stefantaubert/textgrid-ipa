@@ -12,7 +12,6 @@ from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_mark
-
 from textgrid_tools.validation import InvalidGridError
 
 # warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
@@ -26,23 +25,24 @@ SPACE_DISPL = "␣"
 NOT_AVAIL_VAL = "N/A"
 
 
-def print_stats(grid: TextGrid, duration_threshold: float, logger: Optional[Logger] = None) -> ExecutionResult:
+def print_stats(grid: TextGrid, duration_threshold: float, logger: Optional[Logger]) -> ExecutionResult:
+  if logger is None:
+    logger = getLogger(__name__)
+
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  logger = getLogger(__name__)
   logger.info(f"Start: {grid.minTime}")
   logger.info(f"End: {grid.maxTime}")
   logger.info(f"Duration: {grid.maxTime - grid.minTime}s")
   logger.info(f"# Tiers: {len(grid.tiers)}")
   for nr, tier in enumerate(cast(Iterable[IntervalTier], grid.tiers), start=1):
     logger.info(f"== Tier {nr} ==")
-    print_stats_tier(tier, duration_threshold)
+    print_stats_tier(tier, duration_threshold, logger)
   return None, False
 
 
-def print_stats_tier(tier: IntervalTier, duration_threshold: float) -> None:
-  logger = getLogger(__name__)
+def print_stats_tier(tier: IntervalTier, duration_threshold: float, logger: Logger) -> None:
   logger.info(f"Name: {tier.name}")
   logger.info(f"# Intervals: {len(tier.intervals)}")
   if len(tier.intervals) == 0:

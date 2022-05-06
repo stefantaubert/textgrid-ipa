@@ -8,13 +8,15 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers
 from textgrid_tools.intervals.common import (group_adjacent_pauses, merge_intervals,
                                              replace_intervals)
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str], ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str], ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert empty or len(marks) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -43,7 +45,6 @@ def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool
       else:
         ignored_count += len(chunk)
 
-  logger = getLogger(__name__)
   logger.info(
     f"Joined {joined_count} intervals to {joined_to_count} intervals. Didn't joined {ignored_count} intervals.")
   return None, changed_anything

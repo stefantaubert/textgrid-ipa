@@ -15,7 +15,7 @@ from textgrid_tools.validation import (AudioAndGridLengthMismatchError, Boundary
 from logging import Logger
 
 
-def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, include_empty_intervals: bool, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, List[Tuple[TextGrid, Optional[np.ndarray]]]]:
+def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, include_empty_intervals: bool, logger: Optional[Logger]) -> Tuple[ExecutionResult, List[Tuple[TextGrid, Optional[np.ndarray]]]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 

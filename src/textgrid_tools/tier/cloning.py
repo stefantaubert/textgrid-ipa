@@ -13,7 +13,7 @@ from textgrid_tools.validation import (ExistingTierError, InvalidGridError,
                                        NotExistingTierError)
 
 
-def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str], ignore_marks: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def clone_tier(grid: TextGrid, tier_name: str, output_tier_names: OrderedSet[str], ignore_marks: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(output_tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

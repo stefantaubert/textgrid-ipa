@@ -11,7 +11,7 @@ from textgrid_tools.helper import (get_all_tiers, get_mark, interval_is_None_or_
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def split_intervals(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def split_intervals(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

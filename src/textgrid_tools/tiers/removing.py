@@ -26,7 +26,7 @@ class AllTiersRemoveError(ValidationError):
     return "Removing all tiers is not possible!"
 
 
-def remove_tiers(grid: TextGrid, tier_names: Set[str], logger: Optional[Logger] = None) -> ExecutionResult:
+def remove_tiers(grid: TextGrid, tier_names: Set[str], logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

@@ -9,7 +9,7 @@ from textgrid_tools.helper import check_is_valid_grid, set_intervals_consecutive
 from textgrid_tools.validation import ExistingTierError, InvalidGridError
 
 
-def import_text_to_tier(grid: TextGrid, tier_name: str, text: str, sep: str, logger: Optional[Logger] = None) -> ExecutionResult:
+def import_text_to_tier(grid: TextGrid, tier_name: str, text: str, sep: str, logger: Optional[Logger]) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

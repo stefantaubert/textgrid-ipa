@@ -27,7 +27,7 @@ class InvalidPositionError(ValidationError):
     return f"Position {self.position} is not valid, it needs to be between [1, {len(self.grid.tiers)})."
 
 
-def move_tier(grid: TextGrid, tier_name: str, position_one_based: int, logger: Optional[Logger] = None) -> ExecutionResult:
+def move_tier(grid: TextGrid, tier_name: str, position_one_based: int, logger: Optional[Logger]) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

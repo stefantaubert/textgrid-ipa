@@ -11,7 +11,7 @@ from textgrid_tools.validation import (ExistingTierError, InvalidGridError,
                                        NotExistingTierError)
 
 
-def rename_tier(grid: TextGrid, tier_name: str, output_tier_name: str, logger: Optional[Logger] = None) -> ExecutionResult:
+def rename_tier(grid: TextGrid, tier_name: str, output_tier_name: str, logger: Optional[Logger]) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 

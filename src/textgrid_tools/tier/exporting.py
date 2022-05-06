@@ -10,7 +10,10 @@ from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNa
                                        NotExistingTierError)
 
 
-def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[str]]:
+def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[str]]:
+  if logger is None:
+    logger = getLogger(__name__)
+
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
@@ -26,7 +29,6 @@ def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str, logger: Optio
   if sep != "":
     any_mark_contains_sep = any(sep in mark for mark in marks)
     if any_mark_contains_sep:
-      logger = getLogger(__name__)
       logger.warning("Separator occurs in at least one mark!")
 
   result = sep.join(marks)

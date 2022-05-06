@@ -34,7 +34,7 @@ def get_plot_mark_name(mark: str) -> str:
   return mark
 
 
-def plot_interval_durations_diagram(grid: TextGrid, tier_names: Set[str], logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[Figure]]:
+def plot_interval_durations_diagram(grid: TextGrid, tier_names: Set[str], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 

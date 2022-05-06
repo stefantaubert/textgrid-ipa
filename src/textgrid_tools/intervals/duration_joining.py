@@ -29,8 +29,11 @@ class DurationTooLowError(ValidationError):
     return f"Duration needs to be greater than zero but was \"{self.duration}\"!"
 
 
-def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool, ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -49,7 +52,6 @@ def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
     for interval in intervals_copy:
       if interval.duration() > max_duration_s:
-        logger = getLogger(__name__)
         logger.warning(
           f"The duration of interval {get_interval_readable(interval)} ({interval.duration()}s) is bigger than {max_duration_s}!")
     # TODO fix bug

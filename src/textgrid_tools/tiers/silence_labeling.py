@@ -9,10 +9,13 @@ from textgrid_tools.helper import get_all_intervals, is_silence
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def mark_silence(grid: TextGrid, tier_names: Set[str], min_duration: float, max_duration: float, mark: str, logger: Optional[Logger] = None) -> ExecutionResult:
+def mark_silence(grid: TextGrid, tier_names: Set[str], min_duration: float, max_duration: float, mark: str, logger: Optional[Logger]) -> ExecutionResult:
   assert min_duration < max_duration
   assert len(mark) > 0
   assert len(tier_names) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -36,7 +39,6 @@ def mark_silence(grid: TextGrid, tier_names: Set[str], min_duration: float, max_
       else:
         count_unchanged += 1
   total_count = count_unchanged + count_changed
-  logger = getLogger(__name__)
   if total_count == 0:
     logger.info("Found no silence intervals.")
   else:

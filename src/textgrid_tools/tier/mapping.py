@@ -33,7 +33,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, logger: Optional[Logger]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """

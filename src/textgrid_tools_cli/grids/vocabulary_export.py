@@ -52,7 +52,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  error, vocabulary = get_vocabulary(grids, ns.tiers, logger)
+  error, vocabulary = get_vocabulary(grids, ns.tiers, flogger)
 
   success = error is None
 

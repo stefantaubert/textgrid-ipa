@@ -20,8 +20,11 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Anything to remove needs to be set!"
 
 
-def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_text: Set[str], marks: Set[str], logger: Optional[Logger] = None) -> ExecutionResult:
+def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_text: Set[str], marks: Set[str], logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
+
+  if logger is None:
+    logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
     return error, False
@@ -32,7 +35,6 @@ def remove_symbols(grid: TextGrid, tier_names: Set[str], text: Set[str], marks_t
 
   intervals = list(get_all_intervals(grid, tier_names))
 
-  logger = getLogger(__name__)
   logger.debug(f"Removing text: {' '.join(sorted(text))}...")
   logger.debug(f"Removing marks: {' '.join(sorted(marks))}...")
   logger.debug(f"Removing marks containing only text: {' '.join(sorted(marks_text))}...")

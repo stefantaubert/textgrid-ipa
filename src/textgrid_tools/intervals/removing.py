@@ -33,7 +33,7 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Marks and/or remove pauses need to be set!"
 
 
-def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
+def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
@@ -51,7 +51,8 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
     if error := AudioAndGridLengthMismatchError.validate(grid, audio, sample_rate):
       return (error, False), None
 
-  logger = getLogger(__name__)
+  if logger is None:
+    logger = getLogger(__name__)
 
   ref_tier = get_single_tier(grid, tier_name)
 
@@ -84,7 +85,7 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
       set_maxTime_tier(tier, ref_tier.maxTime)
 
     for timepoint in sync_timepoints:
-      fix_timepoint(timepoint, tier, threshold=math.inf)
+      fix_timepoint(timepoint, tier, math.inf, logger)
 
   all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
     sync_timepoints, grid.tiers)

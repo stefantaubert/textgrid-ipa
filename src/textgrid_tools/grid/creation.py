@@ -125,7 +125,7 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
   if logger is None:
@@ -141,7 +141,7 @@ def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optiona
     if error := InvalidMetaFormatError.validate(meta):
       return (error, False), None
 
-    start, end = parse_meta_content(meta)
+    start, end = parse_meta_content(meta, logger)
 
     # if start is not None and sample_rate is not None:
     #   new_start = get_closest_sample_rate_s(start, sample_rate)
@@ -251,7 +251,7 @@ def get_grid(grid_name: str, tier_name: str, min_time: float, min_time_text_inte
   return grid
 
 
-def parse_meta_content(meta_content: str) -> Tuple[Optional[float], Optional[float]]:
+def parse_meta_content(meta_content: str, logger: Logger) -> Tuple[Optional[float], Optional[float]]:
   assert can_parse_meta_content(meta_content)
   lines = meta_content.split("\n")
   start = None
@@ -261,7 +261,6 @@ def parse_meta_content(meta_content: str) -> Tuple[Optional[float], Optional[flo
   if len(lines) >= 2:
     end = float(lines[1])
 
-  logger = getLogger(__name__)
   logger.debug(f"Parsed meta content: [{start}, {end}].")
   return start, end
 

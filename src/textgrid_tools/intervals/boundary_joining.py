@@ -15,7 +15,7 @@ from textgrid_tools.validation import (BoundaryError, InvalidGridError,
                                        NotExistingTierError)
 
 
-def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

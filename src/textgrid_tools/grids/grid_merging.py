@@ -30,7 +30,7 @@ def get_tier_names(grid: TextGrid):
   return tier_names
 
 
-def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str], logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
+def merge_grids(grids: List[TextGrid], insert_duration: Optional[float], insert_mark: Optional[str], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(grids) > 0
 
   if len(grids) == 1:

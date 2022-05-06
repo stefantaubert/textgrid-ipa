@@ -28,7 +28,7 @@ class InvalidModeError(ValidationError):
     return "Mode needs to be 'right', 'left' or 'together'!"
 
 
-def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
+def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

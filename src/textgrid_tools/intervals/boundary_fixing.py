@@ -9,12 +9,11 @@ from textgrid_tools.helper import (check_is_valid_grid, get_all_tiers,
                                    get_boundary_timepoints_from_tier, get_interval_from_maxTime,
                                    get_interval_from_minTime, get_single_tier,
                                    timepoint_is_boundary)
-
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NonDistinctTiersError, NotExistingTierError)
 
 
-def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, logger: Optional[Logger] = None) -> ExecutionResult:
+def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert difference_threshold > 0
 
@@ -34,7 +33,8 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
     if error := NonDistinctTiersError.validate(tier_name, reference_tier_name):
       return error, False
 
-  logger = getLogger(__name__)
+  if logger is None:
+    logger = getLogger(__name__)
 
   ref_tier = get_single_tier(grid, reference_tier_name)
 
@@ -47,7 +47,7 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
   for tier in cast(Iterable[IntervalTier], tqdm(tiers, desc="Tier", position=0, unit="t")):
     logger.info(f"Fixing tier {tier.name} ...")
     for timepoint in tqdm(synchronize_timepoints, desc="Interval", position=1, unit="in"):
-      success, changed_anything = fix_timepoint(timepoint, tier, difference_threshold)
+      success, changed_anything = fix_timepoint(timepoint, tier, difference_threshold, logger)
       total_success &= success
       total_changed_anything |= changed_anything
 
@@ -70,7 +70,7 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
   return None, total_changed_anything
 
 
-def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: float) -> Tuple[bool, ChangedAnything]:
+def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: float, logger: Logger) -> Tuple[bool, ChangedAnything]:
   is_already_fixed = timepoint_is_boundary(timepoint, tier)
   if is_already_fixed:
     return True, False
@@ -79,7 +79,7 @@ def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: float) -> Tup
   prev_interval = get_interval_from_maxTime(tier, interval.minTime)
   next_interval = get_interval_from_minTime(tier, interval.maxTime)
   fixed, changed_anything = fix_timepoint_interval(
-    timepoint, prev_interval, interval, next_interval, threshold)
+    timepoint, prev_interval, interval, next_interval, threshold, logger)
 
   if changed_anything:
     is_first_interval = prev_interval is None
@@ -104,9 +104,8 @@ def get_interval_from_time(tier: IntervalTier, time: float) -> Interval:
   assert False
 
 
-def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], interval: Interval, next_interval: Optional[Interval], threshold: float) -> Tuple[bool, ChangedAnything]:
+def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], interval: Interval, next_interval: Optional[Interval], threshold: float, logger: Logger) -> Tuple[bool, ChangedAnything]:
   assert interval.minTime <= timepoint < interval.maxTime
-  logger = getLogger(__name__)
 
   min_time_difference = timepoint - interval.minTime
   max_time_difference = interval.maxTime - timepoint

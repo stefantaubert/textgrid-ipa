@@ -92,7 +92,7 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       flogger.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
-                                             sample_rate, ns.name, ns.tier, ns.speech_rate)
+                                             sample_rate, ns.name, ns.tier, ns.speech_rate, flogger)
 
     success = error is None
     total_success &= success
