@@ -1,6 +1,6 @@
 [project]
 name = "textgrid-tools"
-version = "0.0.1"
+version = "0.0.2"
 description = "CLI to modify TextGrids and their corresponding audio files."
 readme = "README.md"
 requires-python = ">=3.6"
