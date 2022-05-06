@@ -14,15 +14,15 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,
                                        add_n_jobs_argument, add_output_directory_argument,
-                                       get_audio_files, get_chunks, get_files_dict,
-                                       get_optional, get_text_files, parse_existing_directory,
+                                       get_audio_files, get_chunks, get_files_dict, get_optional,
+                                       get_text_files, parse_existing_directory,
                                        parse_non_empty_or_whitespace, parse_positive_float,
                                        parse_positive_integer)
-from textgrid_tools_cli.io import (load_audio_durations, load_texts, remove_none_from_dict,
-                                   save_texts, serialize_grids_v2)
 from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
                                                       init_file_stem_loggers, try_init_file_logger,
                                                       write_file_stem_loggers_to_file_logger)
+from textgrid_tools_old.app.io import (load_audio_durations, load_texts, remove_none_from_dict,
+                                       save_texts, serialize_grids_v2)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"

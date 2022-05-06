@@ -12,12 +12,12 @@ from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools_cli.helper import get_chunks, get_grid_files
-from textgrid_tools_cli.io import (deserialize_grids, load_texts, remove_none_from_dict, save_texts,
-                                   serialize_grids)
 from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,
                                                       init_file_stem_logger_lists,
                                                       try_init_file_logger,
                                                       write_file_stem_logger_lists_to_file_logger)
+from textgrid_tools_old.app.io import (deserialize_grids, load_texts, remove_none_from_dict,
+                                       save_texts, serialize_grids)
 
 # def process_grids(directory: Path, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
 #   logger = getLogger(__name__)

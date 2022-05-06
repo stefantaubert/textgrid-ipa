@@ -11,9 +11,7 @@ from time import perf_counter
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools_cli import *
-from textgrid_tools_cli.grid.creation_v2 import get_creation_v2_parser
 from textgrid_tools_cli.helper import get_optional, parse_path
-from textgrid_tools_cli.intervals.splitting_v2 import get_splitting_v2_parser
 from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                       try_init_file_logger)
 
@@ -43,7 +41,6 @@ def get_grids_parsers() -> Parsers:
 
 def get_grid_parsers() -> Parsers:
   yield "create", "convert text files to grid files", get_creation_parser
-  yield "create-v2", "convert text files to grid files", get_creation_v2_parser
   yield "sync", "synchronize grid minTime and maxTime according to the corresponding audio file", get_audio_synchronization_parser
   yield "split", "split a grid file on intervals into multiple grid files (incl. audio files)", get_grid_splitting_parser
   yield "print-stats", "print statistics", get_stats_generation_parser
@@ -74,7 +71,6 @@ def get_intervals_parsers() -> Parsers:
   yield "join-symbols", "join intervals containing specific symbols", get_symbols_joining_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "split", "split intervals", get_splitting_parser
-  yield "split-v2", "split intervals", get_splitting_v2_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
 
