@@ -8,10 +8,10 @@ from tqdm import tqdm
 from textgrid_tools import split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, add_n_digits_argument,
-                                       add_overwrite_argument, add_tier_argument, get_audio_files,
-                                       get_grid_files, get_optional, parse_existing_directory,
-                                       parse_path, save_audio, try_save_grid, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument, add_overwrite_argument,
+                                       add_tier_argument, get_audio_files, get_grid_files,
+                                       get_optional, parse_existing_directory, parse_path,
+                                       save_audio, try_save_grid, try_load_grid)
 
 
 def get_splitting_parser(parser: ArgumentParser):
@@ -29,7 +29,6 @@ def get_splitting_parser(parser: ArgumentParser):
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the modified audios if not to directory")
   add_encoding_argument(parser)
-  add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_split_grid_on_intervals
 
@@ -74,7 +73,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
     logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
+    error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
       logger.error(error.default_message)
@@ -91,7 +90,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), grids_audios = split_grid_on_intervals(
-      grid, audio, sample_rate, ns.tier, ns.include_empty, ns.n_digits)
+      grid, audio, sample_rate, ns.tier, ns.include_empty)
 
     success = error is None
     total_success &= success

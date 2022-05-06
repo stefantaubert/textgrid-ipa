@@ -4,9 +4,8 @@ from logging import getLogger
 from textgrid_tools import convert_tier_to_text
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_n_digits_argument, add_overwrite_argument,
-                                       add_tier_argument, get_grid_files, get_optional, parse_path,
-                                       save_text, try_load_grid)
+                                       add_overwrite_argument, add_tier_argument, get_grid_files,
+                                       get_optional, parse_path, save_text, try_load_grid)
 
 
 def get_exporting_parser(parser: ArgumentParser):
@@ -19,7 +18,6 @@ def get_exporting_parser(parser: ArgumentParser):
                       help="directory where to output the text files if not to the same directory", default=None)
   parser.add_argument('--sep', type=str, metavar="SYMBOL",
                       help="use this symbol to separate the marks of each interval", default="\n")
-  add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   return app_convert_tier_to_text
 
@@ -42,7 +40,7 @@ def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
       continue
 
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, ns.n_digits, ns.encoding)
+    error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
       logger.error(error.default_message)

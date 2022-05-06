@@ -3,23 +3,23 @@ from logging import getLogger
 import numpy as np
 from textgrid import IntervalTier
 from textgrid.textgrid import TextGrid
+
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import check_is_valid_grid, samples_to_s
 from textgrid_tools.validation import InvalidGridError, ValidationError
 
 
 class LastIntervalToShortError(ValidationError):
-  def __init__(self, grid: TextGrid, audio: np.ndarray, sample_rate: int, n_digits: int) -> None:
+  def __init__(self, grid: TextGrid, audio: np.ndarray, sample_rate: int) -> None:
     super().__init__()
     self.grid = grid
     self.audio = audio
     self.sample_rate = sample_rate
-    self.n_digits = n_digits
 
   @classmethod
-  def validate(cls, grid: TextGrid, audio: np.ndarray, sample_rate: int, n_digits: int):
-    if not can_set_end_to_audio_len(grid, audio, sample_rate, n_digits):
-      return cls(grid, audio, sample_rate, n_digits)
+  def validate(cls, grid: TextGrid, audio: np.ndarray, sample_rate: int):
+    if not can_set_end_to_audio_len(grid, audio, sample_rate):
+      return cls(grid, audio, sample_rate)
     return None
 
   @property
@@ -27,12 +27,11 @@ class LastIntervalToShortError(ValidationError):
     return "Couldn't change maxTime because it would be <= than minTime of last interval!"
 
 
-def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_digits: int) -> ExecutionResult:
-  assert n_digits >= 0
+def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int) -> ExecutionResult:
   if error := InvalidGridError.validate(grid):
     return error, False
 
-  if error := LastIntervalToShortError.validate(grid, audio, sample_rate, n_digits):
+  if error := LastIntervalToShortError.validate(grid, audio, sample_rate):
     return error, False
 
   logger = getLogger(__name__)
@@ -46,7 +45,7 @@ def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_di
     logger.info(f"Adjusted start from {old_min_time} to 0.")
 
   old_max_time = grid.maxTime
-  set_end_to_audio_len(grid, audio, sample_rate, n_digits)
+  set_end_to_audio_len(grid, audio, sample_rate)
 
   if old_max_time != grid.maxTime:
     changed_something = True
@@ -55,16 +54,16 @@ def sync_grid_to_audio(grid: TextGrid, audio: np.ndarray, sample_rate: int, n_di
   return None, changed_something
 
 
-def can_set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool, n_digits: int) -> bool:
+def can_set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool) -> bool:
   audio_duration_s = samples_to_s(audio.shape[0], sample_rate)
-  audio_duration_s = round(audio_duration_s, n_digits)
+  #audio_duration_s = round(audio_duration_s, n_digits)
   return can_set_maxTime(grid, audio_duration_s)
 
 
-def set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool, n_digits: int) -> None:
-  assert can_set_end_to_audio_len(grid, audio, sample_rate, n_digits)
+def set_end_to_audio_len(grid: TextGrid, audio: np.ndarray, sample_rate: bool) -> None:
+  assert can_set_end_to_audio_len(grid, audio, sample_rate)
   audio_duration_s = samples_to_s(audio.shape[0], sample_rate)
-  audio_duration_s = round(audio_duration_s, n_digits)
+  #audio_duration_s = round(audio_duration_s, n_digits)
 
   set_maxTime(grid, audio_duration_s)
 

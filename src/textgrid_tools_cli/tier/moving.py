@@ -6,9 +6,9 @@ from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,
-                                       add_n_digits_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       add_tier_argument, parse_positive_integer)
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tier_argument,
+                                       parse_positive_integer)
 
 
 def get_moving_parser(parser: ArgumentParser):
@@ -18,7 +18,6 @@ def get_moving_parser(parser: ArgumentParser):
   parser.add_argument("position", type=parse_positive_integer, metavar="position",
                       help="move tier to this position (1 = first tier)")
   add_encoding_argument(parser)
-  add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)
@@ -34,4 +33,4 @@ def app_move_tier(ns: Namespace) -> ExecutionResult:
     position_one_based=ns.position,
   )
 
-  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

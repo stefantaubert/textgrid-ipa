@@ -20,7 +20,7 @@ from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_
                                                       try_init_file_logger,
                                                       write_file_stem_logger_lists_to_file_logger)
 
-# def process_grids(directory: Path, n_digits: int, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
+# def process_grids(directory: Path, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult]) -> ExecutionResult:
 #   logger = getLogger(__name__)
 
 #   if output_directory is None:
@@ -60,7 +60,7 @@ from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_
 #   return total_success, total_changed_anything
 
 
-def process_grids_mp(directory: Path, n_digits: int, encoding: str, output_directory: Optional[Path], method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
+def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], log: Optional[Path], chunk: Optional[int]) -> ExecutionResult:
 
   start = perf_counter()
   if log:

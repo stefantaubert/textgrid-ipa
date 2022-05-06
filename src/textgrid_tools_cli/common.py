@@ -90,7 +90,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
 
   grid_file_in_abs = directory / rel_path
 
-  error, grid = try_load_grid(grid_file_in_abs, encoding=encoding)
+  error, grid = try_load_grid(grid_file_in_abs, encoding)
 
   if error:
     lq.log(logging.ERROR, error.default_message)

@@ -9,7 +9,7 @@ from textgrid.textgrid import TextGrid
 
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
-from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
+from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_tiers_argument, get_grid_files, parse_path,
                                        try_load_grid)
@@ -39,7 +39,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS, ns.encoding)
+    error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
       logger.error(error.default_message)

@@ -7,7 +7,7 @@ from typing import Callable, List
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
-from textgrid_tools_cli.globals import DEFAULT_N_DIGITS, ExecutionResult
+from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, get_optional,
                                        parse_path, parse_positive_float, try_save_grid, try_load_grid)
 from textgrid_tools_cli.logging_configuration import try_init_file_logger
@@ -42,7 +42,7 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
       break
     logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
     grid_file_in_abs = ns.directory / rel_path
-    error, grid = try_load_grid(grid_file_in_abs, DEFAULT_N_DIGITS, ns.encoding)
+    error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
       logger.error(error.default_message)

@@ -18,7 +18,7 @@ from textgrid.textgrid import TextGrid
 
 from textgrid_tools.helper import check_is_valid_grid
 from textgrid_tools_cli.globals import (DEFAULT_ENCODING, DEFAULT_MAXTASKSPERCHILD,
-                                        DEFAULT_N_DIGITS, DEFAULT_N_FILE_CHUNKSIZE, DEFAULT_N_JOBS)
+                                        DEFAULT_N_FILE_CHUNKSIZE, DEFAULT_N_JOBS)
 from textgrid_tools_cli.textgrid_io import read_file_faster, save_file_faster
 from textgrid_tools_cli.validation import GridCouldNotBeLoadedError, GridCouldNotBeSavedError
 
@@ -65,7 +65,7 @@ class ConvertToOrderedSetAction(argparse._StoreAction):
 
 
 def add_n_digits_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("--n-digits", type=int, default=DEFAULT_N_DIGITS, metavar='COUNT',
+  parser.add_argument("--n-digits", type=int, default=16, metavar='COUNT',
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
 
 
@@ -260,7 +260,7 @@ def get_text_files(folder: Path) -> OrderedDictType[str, Path]:
   return result
 
 
-def try_load_grid(path: Path, n_digits: int = None, encoding: str = "UTF-8") -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
+def try_load_grid(path: Path, encoding: str = "UTF-8") -> Tuple[Optional[GridCouldNotBeLoadedError], Optional[TextGrid]]:
   try:
     grid_in = read_file_faster(path, encoding)
   except Exception as ex:

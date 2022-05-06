@@ -11,7 +11,7 @@ from textgrid_tools.helper import (
     check_is_valid_grid, check_timepoints_exist_on_all_tiers_as_boundaries,
     get_boundary_timepoints_from_intervals, get_boundary_timepoints_from_tier,
     get_intervals_on_tier, get_single_tier, interval_is_None_or_whitespace,
-    s_to_samples, set_precision_interval)
+    s_to_samples)
 from textgrid_tools.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.validation import (AudioAndGridLengthMismatchError,
                                        BoundaryError, InternalError,
@@ -34,8 +34,7 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Marks and/or remove pauses need to be set!"
 
 
-def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, n_digits: int) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
-  assert n_digits >= 0
+def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
@@ -67,8 +66,8 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
     for interval_on_tier in get_intervals_on_tier(interval, ref_tier):
       ref_tier.removeInterval(interval_on_tier)
   if len(ref_tier.intervals) > 0:
-    move_interval(ref_tier.intervals[0], 0, n_digits)
-    set_times_consecutively_tier(ref_tier, n_digits)
+    move_interval(ref_tier.intervals[0], 0)
+    set_times_consecutively_tier(ref_tier)
 
   sync_timepoints = get_boundary_timepoints_from_tier(ref_tier)
 
@@ -79,8 +78,8 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
       for interval_on_tier in get_intervals_on_tier(interval, tier):
         tier.removeInterval(interval_on_tier)
     if len(tier.intervals) > 0:
-      move_interval(tier.intervals[0], 0, n_digits)
-      set_times_consecutively_tier(tier, n_digits)
+      move_interval(tier.intervals[0], 0)
+      set_times_consecutively_tier(tier)
       if not ref_tier.maxTime > tier.minTime:
         raise InternalError()
       set_maxTime_tier(tier, ref_tier.maxTime)
@@ -111,11 +110,11 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
     res_audio = np.delete(audio, remove_range, axis=0)
 
     # after multiple removals in audio some difference occurs
-    if error := LastIntervalToShortError.validate(grid, res_audio, sample_rate, n_digits):
+    if error := LastIntervalToShortError.validate(grid, res_audio, sample_rate):
       internal_error = InternalError()
       return (internal_error, False), None
 
-    set_end_to_audio_len(grid, res_audio, sample_rate, n_digits)
+    set_end_to_audio_len(grid, res_audio, sample_rate)
 
   removed_duration = sum(interval.duration() for interval in intervals_to_remove)
   logger.info(f"Removed {len(intervals_to_remove)} intervals ({removed_duration:.2f}s).")
@@ -123,8 +122,8 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
   return (None, True), res_audio
 
 
-def set_times_consecutively_tier(tier: IntervalTier, n_digits: int):
-  set_times_consecutively_intervals(tier.intervals, n_digits)
+def set_times_consecutively_tier(tier: IntervalTier):
+  set_times_consecutively_intervals(tier.intervals)
 
   if len(tier.intervals) > 0:
     if cast(Interval, tier.intervals[0]).minTime != tier.minTime:
@@ -134,7 +133,7 @@ def set_times_consecutively_tier(tier: IntervalTier, n_digits: int):
       tier.maxTime = cast(Interval, tier.intervals[-1]).maxTime
 
 
-def set_times_consecutively_intervals(intervals: List[Interval], n_digits: int):
+def set_times_consecutively_intervals(intervals: List[Interval]):
   # could be the case that imprecisions are induced e.g. 0.95000000000000002
   for i in range(1, len(intervals)):
     prev_interval = cast(Interval, intervals[i - 1])
@@ -142,16 +141,16 @@ def set_times_consecutively_intervals(intervals: List[Interval], n_digits: int):
     gap_exists = current_interval.minTime != prev_interval.maxTime
     if gap_exists:
       assert prev_interval.maxTime < current_interval.minTime
-      move_interval(current_interval, prev_interval.maxTime, n_digits)
+      move_interval(current_interval, prev_interval.maxTime)
 
 
-def move_interval(interval: Interval, new_minTime: float, n_digits: int) -> None:
+def move_interval(interval: Interval, new_minTime: float) -> None:
   if interval.minTime == new_minTime:
     return
   duration = interval.duration()
   interval.minTime = new_minTime
   interval.maxTime = interval.minTime + duration
-  set_precision_interval(interval, n_digits)
+  # set_precision_interval(interval, n_digits)
 
 
 def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:

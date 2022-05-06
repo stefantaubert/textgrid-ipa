@@ -3,24 +3,18 @@ from typing import Iterable, List, Optional, Tuple, cast
 
 import numpy as np
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
+
 from textgrid_tools.cloning import copy_intervals
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.grid.audio_synchronization import (
-    LastIntervalToShortError, set_end_to_audio_len)
-from textgrid_tools.helper import (get_boundary_timepoints_from_tier,
-                                   get_intervals_on_tier, get_single_tier,
-                                   interval_is_None_or_whitespace,
-                                   s_to_samples)
-from textgrid_tools.validation import (AudioAndGridLengthMismatchError,
-                                       BoundaryError, InternalError,
-                                       InvalidGridError,
-                                       MultipleTiersWithThatNameError,
-                                       NotExistingTierError)
+from textgrid_tools.grid.audio_synchronization import LastIntervalToShortError, set_end_to_audio_len
+from textgrid_tools.helper import (get_boundary_timepoints_from_tier, get_intervals_on_tier,
+                                   get_single_tier, interval_is_None_or_whitespace, s_to_samples)
+from textgrid_tools.validation import (AudioAndGridLengthMismatchError, BoundaryError,
+                                       InternalError, InvalidGridError,
+                                       MultipleTiersWithThatNameError, NotExistingTierError)
 
 
-def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, include_empty_intervals: bool, n_digits: int) -> Tuple[ExecutionResult, List[Tuple[TextGrid, Optional[np.ndarray]]]]:
-  assert n_digits >= 0
-
+def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, include_empty_intervals: bool) -> Tuple[ExecutionResult, List[Tuple[TextGrid, Optional[np.ndarray]]]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
@@ -51,17 +45,17 @@ def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_
     if not include_empty_intervals and interval_is_None_or_whitespace(interval):
       continue
 
-    extracted_grid = extract_grid(grid, interval, n_digits)
+    extracted_grid = extract_grid(grid, interval)
     extracted_audio = None
     if audio is not None:
       extracted_audio = extract_audio(audio, sample_rate, interval)
 
       # after multiple removals in audio some difference occurs
-      if error := LastIntervalToShortError.validate(extracted_grid, extracted_audio, sample_rate, n_digits):
+      if error := LastIntervalToShortError.validate(extracted_grid, extracted_audio, sample_rate):
         internal_error = InternalError()
         return (internal_error, False), None
 
-      set_end_to_audio_len(extracted_grid, extracted_audio, sample_rate, n_digits)
+      set_end_to_audio_len(extracted_grid, extracted_audio, sample_rate)
 
     result.append((extracted_grid, extracted_audio))
 
@@ -75,7 +69,7 @@ def split_grid_on_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_
   return (None, True), result
 
 
-def extract_grid(grid: TextGrid, interval: Interval, n_digits: int) -> TextGrid:
+def extract_grid(grid: TextGrid, interval: Interval) -> TextGrid:
   assert len(grid.tiers) > 0
   extracted_grid = TextGrid(
     name=grid.name,
@@ -89,12 +83,13 @@ def extract_grid(grid: TextGrid, interval: Interval, n_digits: int) -> TextGrid:
 
     min_time_first_interval = grids_tier_intervals[0].minTime
     for grids_tier_interval in grids_tier_intervals:
-      grids_tier_interval.minTime = round(
-        grids_tier_interval.minTime - min_time_first_interval, n_digits)
-      grids_tier_interval.maxTime = round(
-        grids_tier_interval.maxTime - min_time_first_interval, n_digits)
+      grids_tier_interval.minTime = grids_tier_interval.minTime - min_time_first_interval
+      # grids_tier_interval.minTime = round(grids_tier_interval.minTime - min_time_first_interval, n_digits)
+      grids_tier_interval.maxTime = grids_tier_interval.maxTime - min_time_first_interval
+      # grids_tier_interval.maxTime = round(grids_tier_interval.maxTime - min_time_first_interval, n_digits)
     # assert no time between intervals
-    max_time = round(grids_tier_intervals[-1].maxTime, n_digits)
+    max_time = grids_tier_intervals[-1].maxTime
+    #max_time = round(grids_tier_intervals[-1].maxTime, n_digits)
     grids_tier_excerpt = IntervalTier(
       grids_tier.name,
       minTime=0,

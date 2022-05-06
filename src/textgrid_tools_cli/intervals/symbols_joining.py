@@ -9,9 +9,8 @@ from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import DEFAULT_PUNCTUATION, ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_chunksize_argument,
                                        add_directory_argument, add_maxtaskperchild_argument,
-                                       add_n_digits_argument, add_n_jobs_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       add_tiers_argument)
+                                       add_n_jobs_argument, add_output_directory_argument,
+                                       add_overwrite_argument, add_tiers_argument)
 from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 
 
@@ -30,7 +29,6 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   add_join_empty_argument(parser)
   add_output_directory_argument(parser)
   add_encoding_argument(parser)
-  add_n_digits_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
@@ -49,4 +47,4 @@ def app_join_intervals_between_pauses(ns: Namespace) -> ExecutionResult:
     ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

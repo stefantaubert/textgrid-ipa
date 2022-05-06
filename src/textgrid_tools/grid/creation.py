@@ -124,8 +124,7 @@ class TextEmptyError(ValidationError):
     return f"Text content must not be empty:\n\n```\n{self.text}\n```!"
 
 
-def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, n_digits: int, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
-  assert n_digits >= 0
+def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optional[int], sample_rate: Optional[int], grid_name: Optional[str], tier_name: str, characters_per_second: float, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[TextGrid]]:
   assert len(tier_name.strip()) > 0
   assert characters_per_second > 0
   if logger is None:
@@ -187,17 +186,20 @@ def create_grid_from_text(text: str, meta: Optional[str], audio_samples: Optiona
     logger.debug(f"Total grid duration is {duration_s}s.")
 
   min_time = 0
-  max_time = round(duration_s, n_digits)
+  max_time = duration_s
+  #max_time = round(duration_s, n_digits)
 
   min_time_text_interval = min_time
   max_time_text_interval = max_time
 
   if start is not None:
-    min_time_text_interval = round(start, n_digits)
+    min_time_text_interval = start
+    # min_time_text_interval = round(start, n_digits)
     logger.debug(f"Set start of grid to {start}.")
 
   if end is not None:
-    max_time_text_interval = round(end, n_digits)
+    max_time_text_interval = end
+    #max_time_text_interval = round(end, n_digits)
     logger.debug(f"Set end of grid to {end}.")
 
   result = get_grid(grid_name, tier_name, min_time, min_time_text_interval,

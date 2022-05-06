@@ -163,11 +163,11 @@ def load_texts(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_j
   return parsed_text_files
 
 
-def process_read_grid(item: Tuple[str, Path], n_digits: int, encoding: str) -> Optional[str]:
+def process_read_grid(item: Tuple[str, Path], encoding: str) -> Optional[str]:
   stem, path = item
   grid_in = TextGrid()
   try:
-    grid_in.read(path, n_digits, encoding)
+    grid_in.read(path, 16, encoding)
   except Exception as ex:
     logger = getLogger(stem)
     logger.error(f"File '{path.absolute()}' could not be read!")
@@ -177,10 +177,9 @@ def process_read_grid(item: Tuple[str, Path], n_digits: int, encoding: str) -> O
   return stem, grid_in
 
 
-def load_grids(files: Iterable[Tuple[str, Path]], n_digits: int, encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1, maxtasksperchild: Optional[int] = None) -> Dict[str, TextGrid]:
+def load_grids(files: Iterable[Tuple[str, Path]], encoding: str, total: int, n_jobs: int = 1, chunksize: int = 1, maxtasksperchild: Optional[int] = None) -> Dict[str, TextGrid]:
   read_method_proxy = partial(
     process_read_grid,
-    n_digits=n_digits,
     encoding=encoding,
   )
 

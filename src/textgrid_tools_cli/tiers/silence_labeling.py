@@ -8,10 +8,9 @@ from textgrid_tools import mark_silence
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_maxtaskperchild_argument, add_n_digits_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument, parse_non_empty,
-                                       parse_non_negative_float)
+                                       add_maxtaskperchild_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tiers_argument, parse_non_empty, parse_non_negative_float)
 from textgrid_tools_cli.validation import ValidationError
 
 
@@ -43,7 +42,6 @@ def get_label_silence_parser(parser: ArgumentParser):
   parser.add_argument("--max-duration", type=parse_non_negative_float,
                       help="exclusive maximum duration of silence in seconds", default=inf)
   add_encoding_argument(parser)
-  add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   add_n_jobs_argument(parser)
@@ -66,4 +64,4 @@ def app_label_silence(ns: Namespace) -> ExecutionResult:
     max_duration=ns.max_duration,
   )
 
-  return process_grids_mp(ns.directory, ns.n_digits, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

@@ -5,11 +5,11 @@ from logging import getLogger
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_n_digits_argument, add_output_directory_argument,
-                                       add_overwrite_argument, get_audio_files, get_files_dict,
-                                       get_optional, get_text_files, parse_existing_directory,
-                                       parse_non_empty_or_whitespace, parse_positive_float,
-                                       read_audio, try_save_grid)
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       get_audio_files, get_files_dict, get_optional,
+                                       get_text_files, parse_existing_directory, parse_non_empty_or_whitespace,
+                                       parse_positive_float, read_audio,
+                                       try_save_grid)
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -29,7 +29,6 @@ def get_creation_parser(parser: ArgumentParser):
   add_encoding_argument(parser, "encoding of grid, text and meta files")
   parser.add_argument("--speech-rate", type=parse_positive_float, default=DEFAULT_CHARACTERS_PER_SECOND, metavar='SPEED',
                       help="the speech rate (characters per second) which should be used to calculate the duration of the grids if no corresponding audio file exists")
-  add_n_digits_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_create_grid_from_text
@@ -88,7 +87,7 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       logger.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
-                                             sample_rate, ns.name, ns.tier, ns.speech_rate, ns.n_digits)
+                                             sample_rate, ns.name, ns.tier, ns.speech_rate)
 
     success = error is None
     total_success &= success
