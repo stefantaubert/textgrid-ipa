@@ -1,6 +1,9 @@
+import logging
 from argparse import ArgumentParser, Namespace
 
-from textgrid_tools import print_stats
+from tqdm import tqdm
+
+from textgrid_tools import LoggingQueue, print_stats
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        get_grid_files, parse_positive_float, try_load_grid)
@@ -22,28 +25,35 @@ def app_print_stats(ns: Namespace) -> ExecutionResult:
 
   grid_files = get_grid_files(ns.directory)
 
+  logging_queues = dict.fromkeys(grid_files.keys())
   total_success = True
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Statistics {file_stem} ({file_nr}/{len(grid_files)}):")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+    lq = LoggingQueue(file_stem)
+    logging_queues[file_stem] = lq
 
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
     assert grid is not None
 
     error, changed_anything = print_stats(grid, ns.duration_threshold)
-    logger.info("")
+
     assert not changed_anything
     success = error is None
     total_success &= success
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
+
+  for stem, logging_queue in logging_queues.items():
+    flogger.info(f"Log messages for file: {stem}")
+    for x in logging_queue.records:
+      flogger.handle(x)
 
   return total_success, True

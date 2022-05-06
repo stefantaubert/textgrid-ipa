@@ -1,13 +1,17 @@
+import logging
 from argparse import ArgumentParser, Namespace
 from typing import Callable, List
 
 from textgrid import TextGrid
+from tqdm import tqdm
 
+from textgrid_tools import LoggingQueue
 from textgrid_tools.grids.grid_merging import merge_grids
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        get_grid_files, get_optional, parse_path,
                                        parse_positive_float, try_load_grid, try_save_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
@@ -21,30 +25,35 @@ def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
     "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
   add_encoding_argument(parser)
   return merge_grids_app
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def merge_grids_app(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-  
+
   grid_files = get_grid_files(ns.directory)
 
+  logging_queues = dict.fromkeys(grid_files.keys())
   grids: List[TextGrid] = []
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    if file_nr == 10:
-      break
-    logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+    lq = LoggingQueue(file_stem)
+    logging_queues[file_stem] = lq
+
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
     assert grid is not None
 
     grids.append(grid)
+
+  for stem, logging_queue in logging_queues.items():
+    flogger.info(f"Log messages for file: {stem}")
+    for x in logging_queue.records:
+      flogger.handle(x)
 
   success = error is None
 
@@ -52,7 +61,12 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  (error, changed_anything), merged_grid = merge_grids(grids, ns.insert_duration, ns.insert_mark)
+  lq = LoggingQueue(__name__)
+  (error, changed_anything), merged_grid = merge_grids(
+    grids, ns.insert_duration, ns.insert_mark, lq)
+
+  for x in lq.records:
+    flogger.handle(x)
 
   success = error is None
 
@@ -65,7 +79,7 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     try_save_grid(ns.output, merged_grid, ns.encoding)
   except Exception as ex:
     logger.error("Grid couldn't be written!")
-    logger.exception(ex)
+    flogger.exception(ex)
     return False, False
 
   logger.info(f"Written grid to: {ns.output.absolute()}")

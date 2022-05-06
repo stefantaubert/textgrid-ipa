@@ -1,6 +1,10 @@
+import logging
 from argparse import ArgumentParser, Namespace
 
+from tqdm import tqdm
+
 from textgrid_tools import sync_grid_to_audio
+from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_output_directory_argument, add_overwrite_argument,
@@ -50,39 +54,45 @@ def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
 
   total_success = True
   total_changed_anything = False
-  for file_nr, file_stem in enumerate(common_files, start=1):
-    logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
+  logging_queues = dict.fromkeys(common_files)
+
+  for file_nr, file_stem in enumerate(tqdm(common_files), start=1):
+    lq = LoggingQueue(file_stem)
+    logging_queues[file_stem] = lq
     grid_file_out_abs = output_directory / grid_files[file_stem]
     if grid_file_out_abs.exists() and not ns.overwrite:
-      logger.info("Grid already exists. Skipped.")
+      lq.log(logging.INFO, "Grid already exists. Skipped.")
       continue
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
     assert grid is not None
 
     audio_file_in_abs = audio_directory / audio_files[file_stem]
     sample_rate, audio_in = read_audio(audio_file_in_abs)
-
-    error, changed_anything = sync_grid_to_audio(grid, audio_in, sample_rate)
-
+    error, changed_anything = sync_grid_to_audio(grid, audio_in, sample_rate, lq)
     success = error is None
     total_success &= success
     total_changed_anything |= changed_anything
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
 
     if changed_anything:
       try_save_grid(grid_file_out_abs, grid, ns.encoding)
     elif ns.directory != output_directory:
       copy_grid(grid_file_in_abs, grid_file_out_abs)
+
+  for stem, logging_queue in logging_queues.items():
+    flogger.info(f"Log messages for file: {stem}")
+    for x in logging_queue.records:
+      flogger.handle(x)
 
   return total_success, total_changed_anything

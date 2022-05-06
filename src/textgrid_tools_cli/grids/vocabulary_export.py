@@ -1,4 +1,3 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from collections import Counter
 from itertools import chain
@@ -14,7 +13,7 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_tiers_argument, get_grid_files, parse_path,
                                        try_load_grid)
-from textgrid_tools_cli.logging_configuration import get_file_logger
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:

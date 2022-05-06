@@ -1,14 +1,18 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from tqdm import tqdm
+from textgrid_tools import LoggingQueue
+import logging
 from argparse import ArgumentParser, Namespace
 from typing import List
 
 from textgrid import TextGrid
 
 from textgrid_tools.grids.marks_exporting import get_marks_txt
+from textgrid_tools.logging_queue import LoggingQueue
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_overwrite_argument, get_grid_files,
                                        parse_non_empty_or_whitespace, parse_path, try_load_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 
@@ -40,21 +44,33 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
+  logging_queues = dict.fromkeys(grid_files.keys())
   grids: List[TextGrid] = []
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+    lq = LoggingQueue(file_stem)
+    logging_queues[file_stem] = lq
+
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      lq.log(logging.ERROR, error.default_message)
+      lq.log(logging.INFO, "Skipped.")
       continue
     assert grid is not None
 
     grids.append(grid)
 
-  (error, _), txt = get_marks_txt(grids, ns.tier, ns.sep)
+  for stem, logging_queue in logging_queues.items():
+    flogger.info(f"Log messages for file: {stem}")
+    for x in logging_queue.records:
+      flogger.handle(x)
+
+  lq = LoggingQueue(__name__)
+  (error, _), txt = get_marks_txt(grids, ns.tier, ns.sep, lq)
+
+  for x in lq.records:
+    flogger.handle(x)
 
   success = error is None
 
