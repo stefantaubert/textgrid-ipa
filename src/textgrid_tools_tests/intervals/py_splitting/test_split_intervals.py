@@ -1,3 +1,4 @@
+from logging import getLogger
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.intervals.splitting import split_intervals
@@ -15,7 +16,7 @@ def test_component__words():
   grid.append(tier)
 
   error, changed_anything = split_intervals(
-    grid, {"test"}, " ", False)
+    grid, {"test"}, " ", False, None)
 
   assert error is None
   assert changed_anything
