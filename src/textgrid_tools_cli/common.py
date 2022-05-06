@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, Dict, Optional, OrderedDict, Tuple
 
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult

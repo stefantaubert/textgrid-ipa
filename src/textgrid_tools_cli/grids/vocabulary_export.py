@@ -5,7 +5,7 @@ from logging import getLogger
 from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError

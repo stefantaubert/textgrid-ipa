@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable, List
 
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.grids.grid_merging import merge_grids
 from textgrid_tools_cli.globals import ExecutionResult
@@ -13,6 +13,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, get_grid_files, g
 from textgrid_tools_cli.logging_configuration import try_init_file_logger
 
 from textgrid_tools_cli.helper import add_encoding_argument
+
 
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command merges grid files."

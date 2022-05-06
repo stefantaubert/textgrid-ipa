@@ -14,7 +14,7 @@ from typing import Set, Tuple, TypeVar
 import numpy as np
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read, write
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.helper import check_is_valid_grid
 from textgrid_tools_cli.globals import (DEFAULT_ENCODING, DEFAULT_MAXTASKSPERCHILD,

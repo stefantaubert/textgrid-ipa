@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Set
 
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals, get_mark

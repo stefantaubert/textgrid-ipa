@@ -3,7 +3,7 @@ from typing import Generator, Iterable, Optional, Set, cast
 
 from pronunciation_dictionary import PronunciationDict, get_weighted_pronunciation
 from textgrid import Interval
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.comparison import check_intervals_are_equal
 from textgrid_tools.globals import ExecutionResult

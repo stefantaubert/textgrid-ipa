@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Optional, Tuple
 
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_mark, get_single_tier

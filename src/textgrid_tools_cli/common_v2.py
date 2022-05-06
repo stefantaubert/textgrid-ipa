@@ -8,11 +8,10 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
-from textgrid.textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools_cli.helper import (get_chunks, get_grid_files)
+from textgrid_tools_cli.helper import get_chunks, get_grid_files
 from textgrid_tools_cli.io import (deserialize_grids, load_texts, remove_none_from_dict, save_texts,
                                    serialize_grids)
 from textgrid_tools_cli.logging_configuration import (get_file_logger, init_and_get_console_logger,

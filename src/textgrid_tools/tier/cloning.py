@@ -1,5 +1,5 @@
 from ordered_set import OrderedSet
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 from textgrid_tools.cloning import copy_tier
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_single_tier

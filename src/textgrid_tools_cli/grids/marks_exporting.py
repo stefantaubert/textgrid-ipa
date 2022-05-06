@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from typing import List
 
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.grids.marks_exporting import get_marks_txt
 from textgrid_tools_cli.globals import ExecutionResult

@@ -1,5 +1,5 @@
 from textgrid import Interval, IntervalTier
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import check_is_valid_grid, set_intervals_consecutive

@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import FixedLocator
-from textgrid.textgrid import TextGrid
+from textgrid import TextGrid
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import (InvalidGridError,
