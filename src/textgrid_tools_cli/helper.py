@@ -7,7 +7,6 @@ from functools import partial
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from tempfile import gettempdir
 from typing import Callable, Generator, List, Optional
 from typing import OrderedDict as OrderedDictType
 from typing import Set, Tuple, TypeVar
@@ -91,12 +90,6 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
 def add_output_directory_argument(parser: ArgumentParser) -> None:
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids if not to the same directory")
-
-
-def add_log_argument(parser: ArgumentParser) -> None:
-  default_log_path = Path(gettempdir()) / "textgrid-tools.log"
-  parser.add_argument("--log", type=parse_path, metavar="FILE",
-                      help="path to write the log", default=default_log_path)
 
 
 def add_directory_argument(parser: ArgumentParser, help_str: str = "directory containing the grids") -> None:

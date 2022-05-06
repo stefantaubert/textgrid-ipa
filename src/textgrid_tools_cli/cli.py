@@ -127,44 +127,40 @@ def _init_parser():
   return main_parser
 
 
-def get_modules():
-  yield from (p.name for p in iter_modules())
-
-
 def parse_args(args: List[str]):
   configure_root_logger()
   logger = getLogger()
 
-  if debug_file_exists():
+  local_debugging = debug_file_exists()
+  if local_debugging:
     logger.debug(f"Received arguments: {str(args)}")
 
   parser = _init_parser()
   ns = parser.parse_args(args)
-  params = vars(ns)
 
-  if INVOKE_HANDLER_VAR in params:
-    invoke_handler: Callable[..., ExecutionResult] = params.pop(INVOKE_HANDLER_VAR)
-    # success, changed_anything = invoke_handler(**params)
-    assert "log" in params
+  if hasattr(ns, INVOKE_HANDLER_VAR):
+    invoke_handler: Callable[..., ExecutionResult] = getattr(ns, INVOKE_HANDLER_VAR)
+    delattr(ns, INVOKE_HANDLER_VAR)
     log_to_file = ns.log is not None
     if log_to_file:
-      log_to_file = try_init_file_logger(ns.log, ns.debug)
+      log_to_file = try_init_file_logger(ns.log, local_debugging or ns.debug)
       if not log_to_file:
         logger.warning("Logging to file is not possible.")
 
-    sys_version = sys.version.replace('\n', '')
     flogger = get_file_logger()
-    flogger.debug(f"CLI version: {__version__}")
-    flogger.debug(f"Python version: {sys_version}")
-    flogger.debug("Modules: %s", ', '.join(sorted(get_modules())))
+    if not local_debugging:
+      sys_version = sys.version.replace('\n', '')
+      flogger.debug(f"CLI version: {__version__}")
+      flogger.debug(f"Python version: {sys_version}")
+      flogger.debug("Modules: %s", ', '.join(sorted(p.name for p in iter_modules())))
 
-    my_system = platform.uname()
-    flogger.debug(f"System: {my_system.system}")
-    flogger.debug(f"Node Name: {my_system.node}")
-    flogger.debug(f"Release: {my_system.release}")
-    flogger.debug(f"Version: {my_system.version}")
-    flogger.debug(f"Machine: {my_system.machine}")
-    flogger.debug(f"Processor: {my_system.processor}")
+      my_system = platform.uname()
+      flogger.debug(f"System: {my_system.system}")
+      flogger.debug(f"Node Name: {my_system.node}")
+      flogger.debug(f"Release: {my_system.release}")
+      flogger.debug(f"Version: {my_system.version}")
+      flogger.debug(f"Machine: {my_system.machine}")
+      flogger.debug(f"Processor: {my_system.processor}")
 
     flogger.debug(f"Received arguments: {str(args)}")
     flogger.debug(f"Parsed arguments: {str(ns)}")
