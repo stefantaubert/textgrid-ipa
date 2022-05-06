@@ -61,15 +61,15 @@ def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
     logging_queues[file_stem] = lq
     grid_file_out_abs = output_directory / grid_files[file_stem]
     if grid_file_out_abs.exists() and not ns.overwrite:
-      lq.log(logging.INFO, "Grid already exists. Skipped.")
+      lq.info("Grid already exists. Skipped.")
       continue
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
     assert grid is not None
 
@@ -81,8 +81,8 @@ def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
     total_changed_anything |= changed_anything
 
     if not success:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
 
     if changed_anything:

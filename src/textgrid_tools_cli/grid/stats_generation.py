@@ -35,8 +35,8 @@ def app_print_stats(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
     assert grid is not None
 
@@ -47,8 +47,8 @@ def app_print_stats(ns: Namespace) -> ExecutionResult:
     total_success &= success
 
     if not success:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
 
   for stem, logging_queue in logging_queues.items():

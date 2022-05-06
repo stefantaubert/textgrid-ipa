@@ -43,8 +43,8 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
     assert grid is not None
 

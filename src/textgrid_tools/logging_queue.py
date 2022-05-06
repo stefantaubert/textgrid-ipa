@@ -22,7 +22,7 @@ class LoggingQueue():
 
 
 class StoreRecordsHandler(Handler):
-  def __init__(self, level: int = ...) -> None:
+  def __init__(self, level: int = DEBUG) -> None:
     super().__init__(level)
     self.__records = []
 
@@ -31,6 +31,19 @@ class StoreRecordsHandler(Handler):
 
   def emit(self, record: LogRecord) -> None:
     pass
+
+  @property
+  def records(self) -> List[LogRecord]:
+    return self.__records
+
+
+class StoreRecordsHandlerFaster():
+  def __init__(self) -> None:
+    self.__records = []
+    self.level = DEBUG
+
+  def handle(self, record) -> None:
+    self.__records.append(record)
 
   @property
   def records(self) -> List[LogRecord]:

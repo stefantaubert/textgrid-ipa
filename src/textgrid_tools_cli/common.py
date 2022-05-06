@@ -1,16 +1,17 @@
-import logging
 from functools import partial
+from logging import LogRecord, getLogger
 from math import ceil
 from multiprocessing import Pool
 from pathlib import Path
 from time import perf_counter
-from typing import Callable, Dict, Optional, OrderedDict, Tuple
+from typing import Callable, Dict, List, Optional, OrderedDict, Tuple
 
 from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.logging_queue import LoggingQueue
+from textgrid_tools.logging_queue import (LoggingQueue, StoreRecordsHandler,
+                                          StoreRecordsHandlerFaster)
 from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
@@ -57,11 +58,11 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
   ) as pool:
     iterator = pool.imap_unordered(method_proxy, keys, chunksize=chunksize)
     iterator = tqdm(iterator, total=len(keys), desc="Processing", unit="file(s)")
-    result: Dict[str, Tuple[bool, bool, LoggingQueue]] = dict(iterator)
+    result: Dict[str, Tuple[bool, bool, StoreRecordsHandler]] = dict(iterator)
 
-  for stem, (_, _, logging_queue) in result.items():
+  for stem, (_, _, records) in result.items():
     flogger.info(f"Log messages for file: {stem}")
-    for x in logging_queue.records:
+    for x in records:
       flogger.handle(x)
 
   total_success = all(success for success, _, _ in result.values())
@@ -78,54 +79,57 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
   process_grid_files = grid_files
 
 
-def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, LoggingQueue]]:
+def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, List[LogRecord]]]:
   global process_grid_files
-  lq = LoggingQueue(file_stem)
+  handler = StoreRecordsHandlerFaster()
+  logger = getLogger(file_stem)
+  logger.propagate = False
+  logger.addHandler(handler)
+
   start = perf_counter()
 
   rel_path = process_grid_files[file_stem]
   grid_file_out_abs = output_directory / rel_path
 
   if grid_file_out_abs.exists() and not overwrite:
-    lq.log(logging.INFO, "Grid already exists. Skipped.")
-    lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
-    return file_stem, (True, False, lq)
+    logger.info("Grid already exists. Skipped.")
+    logger.debug(f"Duration (s): {perf_counter() - start}")
+    return file_stem, (True, False, handler.records)
 
   grid_file_in_abs = directory / rel_path
 
   error, grid = try_load_grid(grid_file_in_abs, encoding)
 
   if error:
-    lq.log(logging.ERROR, error.default_message)
-    lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
-    return file_stem, (False, False, lq)
+    logger.error(error.default_message)
+    logger.debug(f"Duration (s): {perf_counter() - start}")
+    return file_stem, (False, False, handler.records)
   assert grid is not None
 
-  error, changed_anything = method(grid, lq=lq)
+  error, changed_anything = method(grid, lq=logger)
   success = error is None
 
   if not success:
-    lq.log(logging.ERROR, error.default_message)
-    lq.log(logging.INFO, "Skipped.")
+    logger.error(error.default_message)
+    logger.info("Skipped.")
     assert not changed_anything
   else:
-    lq.log(logging.INFO, "Applied operations successfully.")
+    logger.info("Applied operations successfully.")
     if changed_anything:
       error = try_save_grid(grid_file_out_abs, grid, encoding)
       if error:
-        lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
-        lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
-        return file_stem, (False, False, lq)
-      lq.log(logging.INFO, f"Saved the grid to: {grid_file_out_abs.absolute()}")
+        logger.error(error.default_message, exc_info=error.exception)
+        logger.debug(f"Duration (s): {perf_counter() - start}")
+        return file_stem, (False, False, handler.records)
+      logger.info(f"Saved the grid to: {grid_file_out_abs.absolute()}")
     elif directory != output_directory:
-      lq.log(logging.INFO,
-             "Didn't changed anything.")
+      logger.info("Didn't changed anything.")
       error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
       if error:
-        lq.log(logging.ERROR, error.default_message, exc_info=error.exception)
+        logger.error(error.default_message, exc_info=error.exception)
       else:
-        lq.log(logging.INFO, f"Copied the grid to: {grid_file_out_abs.absolute()}")
+        logger.info(f"Copied the grid to: {grid_file_out_abs.absolute()}")
 
   del grid
-  lq.log(logging.DEBUG, f"Duration (s): {perf_counter() - start}")
-  return file_stem, (success, changed_anything, lq)
+  logger.debug(f"Duration (s): {perf_counter() - start}")
+  return file_stem, (success, changed_anything, handler.records)

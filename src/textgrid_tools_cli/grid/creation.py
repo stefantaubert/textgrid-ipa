@@ -1,3 +1,6 @@
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from tqdm import tqdm
+from textgrid_tools import LoggingQueue
 import logging
 from argparse import ArgumentParser, Namespace
 
@@ -31,19 +34,16 @@ def get_creation_parser(parser: ArgumentParser):
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
   return app_create_grid_from_text
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
-from textgrid_tools import LoggingQueue
-from tqdm import tqdm
 
 def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-  
+
   audio_directory = ns.audio_directory
   if audio_directory is None:
     audio_directory = ns.directory
-  
+
   meta_directory = ns.meta_directory
   if meta_directory is None:
     meta_directory = ns.directory
@@ -68,10 +68,10 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   for file_nr, (file_stem, rel_path) in enumerate(tqdm(text_files.items()), start=1):
     lq = LoggingQueue(file_stem)
     logging_queues[file_stem] = lq
-    
+
     grid_file_out_abs = output_directory / f"{file_stem}.TextGrid"
     if grid_file_out_abs.exists() and not ns.overwrite:
-      lq.log(logging.INFO, "Grid already exists. Skipped.")
+      lq.info("Grid already exists. Skipped.")
       continue
 
     text_file_in_abs = ns.directory / rel_path
@@ -86,13 +86,13 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       sample_rate, audio_in = read_audio(audio_file_in_abs)
       audio_samples_in = audio_in.shape[0]
     else:
-      lq.log(logging.INFO, "No audio found, audio duration will be estimated.")
+      lq.info("No audio found, audio duration will be estimated.")
 
     if file_stem in meta_files:
       meta_file_in_abs = meta_directory / meta_files[file_stem]
       meta = meta_file_in_abs.read_text(ns.encoding)
     else:
-      lq.log(logging.INFO, "No meta file found.")
+      lq.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
                                              sample_rate, ns.name, ns.tier, ns.speech_rate)
@@ -101,8 +101,8 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
     total_success &= success
 
     if not success:
-      lq.log(logging.ERROR, error.default_message)
-      lq.log(logging.INFO, "Skipped.")
+      lq.error(error.default_message)
+      lq.info("Skipped.")
       continue
 
     try_save_grid(grid_file_out_abs, grid, ns.encoding)
