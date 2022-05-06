@@ -10,8 +10,7 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.logging_queue import (LoggingQueue, StoreRecordsHandler,
-                                          StoreRecordsHandlerFaster)
+from textgrid_tools.logging_queue import (StoreRecordsHandler, StoreRecordsHandlerFaster)
 from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
@@ -106,7 +105,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
     return file_stem, (False, False, handler.records)
   assert grid is not None
 
-  error, changed_anything = method(grid, lq=logger)
+  error, changed_anything = method(grid, logger=logger)
   success = error is None
 
   if not success:

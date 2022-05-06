@@ -1,4 +1,5 @@
-from typing import Generator, Iterable, List, Set, cast
+from logging import Logger
+from typing import Generator, Iterable, List, Optional, Set, cast
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, TextGrid
@@ -8,13 +9,13 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_boundary_timepoints_from_tier,
                                    get_intervals_part_of_timespan_from_intervals, get_single_tier)
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import (BoundaryError, InvalidGridError,
                                        MultipleTiersWithThatNameError, NonDistinctTiersError,
                                        NotExistingTierError)
 
 
-def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool, lq: LoggingQueue = None) -> ExecutionResult:
+def join_intervals_on_boundaries(grid: TextGrid, boundary_tier_name: str, tier_names: Set[str], join_with: str, ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

@@ -1,4 +1,4 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 
 from textgrid_tools import convert_tier_to_text
@@ -6,6 +6,7 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_overwrite_argument, add_tier_argument, get_grid_files,
                                        get_optional, parse_path, save_text, try_load_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_exporting_parser(parser: ArgumentParser):
@@ -33,33 +34,33 @@ def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
   grid_files = get_grid_files(ns.directory)
 
   total_success = True
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+    flogger.info(f"Processing {file_stem}")
     text_file_out_abs = output_directory / f"{file_stem}.txt"
     if text_file_out_abs.exists() and not ns.overwrite:
-      logger.info("Text file already exists. Skipped.")
+      flogger.info("Text file already exists. Skipped.")
       continue
 
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
-    (error, _), text = convert_tier_to_text(grid, ns.tier, ns.sep)
+    (error, _), text = convert_tier_to_text(grid, ns.tier, ns.sep, flogger)
 
     success = error is None
     total_success &= success
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     save_text(text_file_out_abs, text, ns.encoding)
 
-  logger.info(f"Written output to: {output_directory}")
+  logger.info(f"Written output to: {output_directory.absolute()}")
   return total_success, True

@@ -1,8 +1,6 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
-from tqdm import tqdm
-from textgrid_tools import LoggingQueue
-import logging
 from argparse import ArgumentParser, Namespace
+
+from tqdm import tqdm
 
 from textgrid_tools import create_grid_from_text
 from textgrid_tools_cli.globals import ExecutionResult
@@ -12,6 +10,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
                                        get_text_files, parse_existing_directory,
                                        parse_non_empty_or_whitespace, parse_positive_float,
                                        read_audio, try_save_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 DEFAULT_CHARACTERS_PER_SECOND = 15
 META_FILE_TYPE = ".meta"
@@ -66,12 +65,10 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
   logging_queues = dict.fromkeys(text_files.keys())
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(tqdm(text_files.items()), start=1):
-    lq = LoggingQueue(file_stem)
-    logging_queues[file_stem] = lq
-
+    flogger.info(f"Processing {file_stem}")
     grid_file_out_abs = output_directory / f"{file_stem}.TextGrid"
     if grid_file_out_abs.exists() and not ns.overwrite:
-      lq.info("Grid already exists. Skipped.")
+      flogger.info("Grid already exists. Skipped.")
       continue
 
     text_file_in_abs = ns.directory / rel_path
@@ -86,13 +83,13 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       sample_rate, audio_in = read_audio(audio_file_in_abs)
       audio_samples_in = audio_in.shape[0]
     else:
-      lq.info("No audio found, audio duration will be estimated.")
+      flogger.info("No audio found, audio duration will be estimated.")
 
     if file_stem in meta_files:
       meta_file_in_abs = meta_directory / meta_files[file_stem]
       meta = meta_file_in_abs.read_text(ns.encoding)
     else:
-      lq.info("No meta file found.")
+      flogger.info("No meta file found.")
 
     (error, _), grid = create_grid_from_text(text, meta, audio_samples_in,
                                              sample_rate, ns.name, ns.tier, ns.speech_rate)
@@ -101,15 +98,10 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
     total_success &= success
 
     if not success:
-      lq.error(error.default_message)
-      lq.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     try_save_grid(grid_file_out_abs, grid, ns.encoding)
-
-  for stem, logging_queue in logging_queues.items():
-    flogger.info(f"Log messages for file: {stem}")
-    for x in logging_queue.records:
-      flogger.handle(x)
 
   return total_success, True

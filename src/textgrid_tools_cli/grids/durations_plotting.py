@@ -1,4 +1,3 @@
-import logging
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 from typing import List
@@ -6,7 +5,6 @@ from typing import List
 from textgrid import TextGrid
 from tqdm import tqdm
 
-from textgrid_tools import LoggingQueue
 from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
@@ -43,32 +41,21 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  logging_queues = dict.fromkeys(grid_files.keys())
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
-    lq = LoggingQueue(file_stem)
-    logging_queues[file_stem] = lq
-
+    flogger.info(f"Processing {file_stem}")
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      lq.error(error.default_message)
-      lq.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
     grids.append(grid)
 
-  for stem, logging_queue in logging_queues.items():
-    flogger.info(f"Log messages for file: {stem}")
-    for x in logging_queue.records:
-      flogger.handle(x)
-
-  lq = LoggingQueue(__name__)
-  (error, _), figure = plot_grids_interval_durations_diagram(grids, ns.tiers, lq)
-  for x in lq.records:
-    flogger.handle(x)
+  (error, _), figure = plot_grids_interval_durations_diagram(grids, ns.tiers, flogger)
 
   success = error is None
 

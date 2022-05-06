@@ -1,4 +1,4 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 
 from ordered_set import OrderedSet
@@ -13,6 +13,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_
                                        get_grid_files, get_optional, parse_existing_directory,
                                        parse_non_empty, parse_path, save_audio, try_load_grid,
                                        try_save_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 # TODO tiers support
 
@@ -55,7 +56,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
   if output_audio_directory is None:
     output_audio_directory = ns.directory
 
-  logger.debug(f"Marks: {'|'.join(OrderedSet(ns.marks))}")
+  flogger.debug(f"Marks: {'|'.join(OrderedSet(ns.marks))}")
   grid_files = get_grid_files(ns.directory)
 
   audio_files = {}
@@ -79,20 +80,20 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
 
   total_success = True
   total_changed_anything = False
-  for file_nr, file_stem in enumerate(common_files, start=1):
-    logger.info(f"Processing {file_stem} ({file_nr}/{len(common_files)})...")
+  for file_nr, file_stem in enumerate(tqdm(common_files), start=1):
+    flogger.info(f"Processing {file_stem}")
 
     grid_file_out_abs = output_directory / grid_files[file_stem]
     if grid_file_out_abs.exists() and not ns.overwrite:
-      logger.info("Grid already exists. Skipped.")
+      flogger.info("Grid already exists. Skipped.")
       continue
 
     grid_file_in_abs = ns.directory / grid_files[file_stem]
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
@@ -103,22 +104,22 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
       assert output_audio_directory is not None
       audio_file_out_abs = output_audio_directory / audio_files[file_stem]
       if audio_file_out_abs.exists() and not ns.overwrite:
-        logger.info("Audio file already exists. Skipped.")
+        flogger.info("Audio file already exists. Skipped.")
         continue
 
       audio_file_in_abs = audio_directory / audio_files[file_stem]
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), new_audio = remove_intervals(grid, audio, sample_rate, ns.tier,
-                                                            ns.marks, ns.pauses)
+                                                            ns.marks, ns.pauses, flogger)
 
     success = error is None
     total_success &= success
     total_changed_anything |= changed_anything
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     if changed_anything:

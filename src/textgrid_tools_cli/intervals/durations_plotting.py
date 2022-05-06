@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
 
@@ -32,33 +33,33 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     output_directory = ns.directory
 
   total_success = True
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Statistics {file_stem} ({file_nr}/{len(grid_files)}):")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+    flogger.info(f"Statistics {file_stem}")
 
     pdf_out = output_directory / f"{rel_path.stem}.pdf"
     png_out = output_directory / f"{rel_path.stem}.png"
 
     if not ns.overwrite and (pdf_out.exists() or png_out.exists()):
-      logger.info("Plot already exists. Skipping...")
+      flogger.info("Plot already exists. Skipping...")
       continue
 
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
-    (error, changed_anything), figure = plot_interval_durations_diagram(grid, ns.tiers)
+    (error, changed_anything), figure = plot_interval_durations_diagram(grid, ns.tiers, flogger)
     assert not changed_anything
     success = error is None
     total_success &= success
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     output_directory.mkdir(parents=True, exist_ok=True)

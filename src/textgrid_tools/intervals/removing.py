@@ -1,5 +1,5 @@
 import math
-from logging import getLogger
+from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 import numpy as np
@@ -33,7 +33,7 @@ class NothingDefinedToRemoveError(ValidationError):
     return "Marks and/or remove pauses need to be set!"
 
 
-def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
+def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 

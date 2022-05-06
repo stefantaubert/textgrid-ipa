@@ -1,3 +1,4 @@
+from logging import Logger
 from logging import getLogger
 from typing import Generator, Iterable, Optional, Set, cast
 
@@ -9,7 +10,7 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_interval_readable, get_mark,
                                    interval_is_None_or_empty, set_intervals_consecutive)
 from textgrid_tools.intervals.common import replace_intervals
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 
@@ -49,7 +50,7 @@ class VocabularyMissingError(ValidationError):
 #     return f"{len(self.missing)} words are missing in the pronunciation dictionary!"
 
 
-def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, lq: LoggingQueue = None) -> ExecutionResult:
+def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, logger: Optional[Logger] = None) -> ExecutionResult:
   # TODO add mode first, last etc
   """
   chunksize: amount of intervals at once

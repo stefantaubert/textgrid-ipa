@@ -1,4 +1,4 @@
-from logging import getLogger
+from logging import Logger, getLogger
 from typing import Iterable, Optional, Set, Tuple, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -9,12 +9,12 @@ from textgrid_tools.helper import (check_is_valid_grid, get_all_tiers,
                                    get_boundary_timepoints_from_tier, get_interval_from_maxTime,
                                    get_interval_from_minTime, get_single_tier,
                                    timepoint_is_boundary)
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NonDistinctTiersError, NotExistingTierError)
 
 
-def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, lq: LoggingQueue = None) -> ExecutionResult:
+def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
   assert difference_threshold > 0
 

@@ -1,4 +1,3 @@
-from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
@@ -13,6 +12,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
                                        add_output_directory_argument, add_overwrite_argument,
                                        add_tiers_argument, parse_non_empty)
 from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_join_with_argument
+from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 from textgrid_tools_cli.validation import ValidationError
 
 

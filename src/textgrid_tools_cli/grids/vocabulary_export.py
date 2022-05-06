@@ -34,13 +34,13 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
 
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
-    logger.info(f"Reading {file_stem} ({file_nr}/{len(grid_files)})...")
+    flogger.info(f"Processing {file_stem}")
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 

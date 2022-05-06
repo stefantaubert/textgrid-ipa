@@ -1,11 +1,10 @@
-import logging
 from argparse import ArgumentParser, Namespace
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read
 from tqdm import tqdm
 
-from textgrid_tools import LoggingQueue, split_grid_on_intervals
+from textgrid_tools import split_grid_on_intervals
 from textgrid_tools.helper import number_prepend_zeros
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
@@ -74,15 +73,13 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
   total_changed_anything = False
   logging_queues = dict.fromkeys(common_files)
   for file_nr, file_stem in enumerate(tqdm(common_files), start=1):
-    lq = LoggingQueue(file_stem)
-    logging_queues[file_stem] = lq
-
+    flogger.info(f"Processing {file_stem}")
     grid_file_in_abs = ns.directory / grid_files[file_stem]
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      lq.error(error.default_message)
-      lq.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
@@ -95,15 +92,15 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), grids_audios = split_grid_on_intervals(
-      grid, audio, sample_rate, ns.tier, ns.include_empty, lq)
+      grid, audio, sample_rate, ns.tier, ns.include_empty, flogger)
 
     success = error is None
     total_success &= success
     total_changed_anything |= changed_anything
 
     if not success:
-      lq.error(error.default_message)
-      lq.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     assert grids_audios is not None
@@ -111,20 +108,15 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       file_nr = number_prepend_zeros(i, len(grids_audios))
       grid_file_out_abs = output_directory / file_stem / f"{file_nr}.TextGrid"
       if grid_file_out_abs.exists() and not ns.overwrite:
-        lq.info(f"Grid {file_nr} already exists. Skipped.")
+        flogger.info(f"Grid {file_nr} already exists. Skipped.")
       else:
         try_save_grid(grid_file_out_abs, new_grid, ns.encoding)
       if audio_provided:
         assert new_audio is not None
         audio_file_out_abs = output_audio_directory / file_stem / f"{file_nr}.wav"
         if audio_file_out_abs.exists() and not ns.overwrite:
-          lq.info(f"Audio file {file_nr} already exists. Skipped.")
+          flogger.info(f"Audio file {file_nr} already exists. Skipped.")
         else:
           save_audio(audio_file_out_abs, new_audio, sample_rate)
-
-  for stem, logging_queue in logging_queues.items():
-    flogger.info(f"Log messages for file: {stem}")
-    for x in logging_queue.records:
-      flogger.handle(x)
 
   return total_success, total_changed_anything

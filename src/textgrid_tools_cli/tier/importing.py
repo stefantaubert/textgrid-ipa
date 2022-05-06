@@ -1,4 +1,4 @@
-from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
+from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 
 from textgrid_tools.tier.importing import import_text_to_tier
@@ -7,6 +7,7 @@ from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argu
                                        add_overwrite_argument, add_tier_argument, get_grid_files,
                                        get_optional, get_text_files, parse_existing_directory,
                                        parse_path, try_load_grid, try_save_grid)
+from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_importing_parser(parser: ArgumentParser):
@@ -41,42 +42,42 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
   text_files = get_text_files(text_dir)
 
   total_success = True
-  for file_nr, (file_stem, rel_path) in enumerate(text_files.items(), start=1):
-    logger.info(f"Processing {file_stem} ({file_nr}/{len(grid_files)})...")
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(text_files.items()), start=1):
+    flogger.info(f"Processing {file_stem}")
     grid_file_in_abs = ns.directory / f"{file_stem}.TextGrid"
 
     if not grid_file_in_abs.is_file():
-      logger.warning("No corresponding grid found. Skipped.")
+      flogger.warning("No corresponding grid found. Skipped.")
       continue
 
     grid_file_out_abs = output_directory / f"{file_stem}.TextGrid"
     if grid_file_out_abs.exists() and not ns.overwrite:
-      logger.info("Grid already exists. Skipped.")
+      flogger.info("Grid already exists. Skipped.")
       continue
 
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
     assert grid is not None
 
     try:
       text = (text_dir / rel_path).read_text(ns.encoding)
     except Exception as ex:
-      logger.error("Text couldn't be loaded. Skipped")
-      logger.exception(ex)
+      flogger.error("Text couldn't be loaded. Skipped")
+      flogger.exception(ex)
       continue
 
-    error, _ = import_text_to_tier(grid, ns.tier, text, ns.sep)
+    error, _ = import_text_to_tier(grid, ns.tier, text, ns.sep, flogger)
 
     success = error is None
     total_success &= success
 
     if not success:
-      logger.error(error.default_message)
-      logger.info("Skipped.")
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
       continue
 
     try_save_grid(grid_file_out_abs, grid, ns.encoding)

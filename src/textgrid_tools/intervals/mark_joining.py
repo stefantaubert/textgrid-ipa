@@ -1,5 +1,5 @@
-from logging import getLogger
-from typing import Generator, Iterable, List, Set, cast
+from logging import Logger, getLogger
+from typing import Generator, Iterable, List, Optional, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
 
@@ -8,11 +8,11 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers
 from textgrid_tools.intervals.common import (group_adjacent_pauses, merge_intervals,
                                              replace_intervals)
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str], ignore_empty: bool, lq: LoggingQueue = None) -> ExecutionResult:
+def join_marks(grid: TextGrid, tier_names: Set[str], join_with: str, empty: bool, marks: Set[str], ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
   assert empty or len(marks) > 0
 

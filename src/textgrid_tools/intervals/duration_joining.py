@@ -1,6 +1,5 @@
-from textgrid_tools.logging_queue import LoggingQueue
-from logging import getLogger
-from typing import Generator, Iterable, List, Set, Tuple, cast
+from logging import Logger, getLogger
+from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 from textgrid.textgrid import Interval, TextGrid
 
@@ -9,6 +8,7 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_interval_readable, get_intervals_duration,
                                    interval_is_None_or_whitespace)
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
+
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 from textgrid_tools_tests.helper import assert_intervals_are_equal
 
@@ -29,7 +29,7 @@ class DurationTooLowError(ValidationError):
     return f"Duration needs to be greater than zero but was \"{self.duration}\"!"
 
 
-def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool, ignore_empty: bool, lq: LoggingQueue = None) -> ExecutionResult:
+def join_intervals_on_durations(grid: TextGrid, tier_names: Set[str], join_with: str, max_duration_s: float, include_empty_intervals: bool, ignore_empty: bool, logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

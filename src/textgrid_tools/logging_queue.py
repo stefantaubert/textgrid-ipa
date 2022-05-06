@@ -1,7 +1,5 @@
 import sys
-import warnings
-from logging import (CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING, Handler, Logger, LogRecord,
-                     _srcfile, raiseExceptions)
+from logging import (DEBUG, NOTSET, Handler, Logger, LogRecord, _srcfile)
 from typing import Generator, List
 
 

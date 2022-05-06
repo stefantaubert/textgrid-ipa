@@ -1,4 +1,5 @@
-from typing import Generator, Iterable, Set, cast
+from logging import Logger
+from typing import Generator, Iterable, Optional, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
 
@@ -6,11 +7,11 @@ from textgrid_tools.comparison import check_intervals_are_equal
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_mark, interval_is_None_or_empty,
                                    set_intervals_consecutive)
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def split_intervals(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool, lq: LoggingQueue = None) -> ExecutionResult:
+def split_intervals(grid: TextGrid, tier_names: Set[str], symbol: str, keep: bool, logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

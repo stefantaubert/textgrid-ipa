@@ -1,15 +1,15 @@
-from logging import getLogger
+from logging import Logger, getLogger
 from typing import Dict, Optional, Set
 
 from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals, get_mark
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], replace_unmapped: bool, replace_unmapped_with: Optional[str], ignore: Set[str], lq: LoggingQueue = None) -> ExecutionResult:
+def map_marks(grid: TextGrid, mapping: Dict[str, str], tier_names: Set[str], replace_unmapped: bool, replace_unmapped_with: Optional[str], ignore: Set[str], logger: Optional[Logger] = None) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if error := InvalidGridError.validate(grid):

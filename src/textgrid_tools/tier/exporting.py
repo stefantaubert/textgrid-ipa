@@ -1,16 +1,16 @@
-from logging import getLogger
+from logging import Logger, getLogger
 from typing import Optional, Tuple
 
 from textgrid.textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_mark, get_single_tier
-from textgrid_tools.logging_queue import LoggingQueue
+
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NotExistingTierError)
 
 
-def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str, lq: LoggingQueue = None) -> Tuple[ExecutionResult, Optional[str]]:
+def convert_tier_to_text(grid: TextGrid, tier_name: str, sep: str, logger: Optional[Logger] = None) -> Tuple[ExecutionResult, Optional[str]]:
   if error := InvalidGridError.validate(grid):
     return (error, False), None
 
