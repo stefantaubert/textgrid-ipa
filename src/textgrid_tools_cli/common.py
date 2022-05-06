@@ -10,7 +10,7 @@ from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.logging_queue import (StoreRecordsHandler, StoreRecordsHandlerFaster)
+from textgrid_tools_cli.logging_queue import StoreRecordsHandlerFaster
 from textgrid_tools_cli.helper import get_grid_files, try_copy_grid, try_load_grid, try_save_grid
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
@@ -57,7 +57,7 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
   ) as pool:
     iterator = pool.imap_unordered(method_proxy, keys, chunksize=chunksize)
     iterator = tqdm(iterator, total=len(keys), desc="Processing", unit="file(s)")
-    result: Dict[str, Tuple[bool, bool, StoreRecordsHandler]] = dict(iterator)
+    result: Dict[str, Tuple[bool, bool, List[LogRecord]]] = dict(iterator)
 
   for stem, (_, _, records) in result.items():
     flogger.info(f"Log messages for file: {stem}")
