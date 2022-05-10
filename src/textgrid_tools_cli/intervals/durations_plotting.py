@@ -36,7 +36,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
 
   total_success = True
   for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
-    flogger.info(f"Statistics {file_stem}")
+    flogger.info(f"Processing \"{file_stem}\"")
 
     pdf_out = output_directory / f"{rel_path.stem}.pdf"
     png_out = output_directory / f"{rel_path.stem}.png"
