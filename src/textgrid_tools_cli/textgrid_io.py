@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Generator, Iterator
+from typing import Generator, Iterator, Union
 
 from textgrid import Interval, IntervalTier, Point, PointTier, TextGrid
 
@@ -148,6 +148,12 @@ def save_file_faster(grid: TextGrid, path: Path, encoding: str) -> None:
     f.write(text)
 
 
+def try_get_time_as_int(time: float) -> Union[int, float]:
+  if time.is_integer():
+    return int(time)
+  return time
+
+
 def get_lines(grid: TextGrid, null='') -> Generator[str, None, None]:
   """
   Write the current state into a Praat-format TextGrid file. f may
@@ -156,13 +162,13 @@ def get_lines(grid: TextGrid, null='') -> Generator[str, None, None]:
   """
   yield 'File type = "ooTextFile"'
   yield 'Object class = "TextGrid"\n'
-  yield 'xmin = {0}'.format(grid.minTime)
+  yield 'xmin = {0}'.format(try_get_time_as_int(grid.minTime))
   # compute max time
   maxT = grid.maxTime
   if not maxT:
     maxT = max([t.maxTime if t.maxTime else t[-1].maxTime
                 for t in grid.tiers])
-  yield 'xmax = {0}'.format(maxT)
+  yield 'xmax = {0}'.format(try_get_time_as_int(maxT))
   yield 'tiers? <exists>'
   yield 'size = {0}'.format(len(grid))
   yield 'item []:'
@@ -171,26 +177,26 @@ def get_lines(grid: TextGrid, null='') -> Generator[str, None, None]:
     if tier.__class__ == IntervalTier:
       yield '\t\tclass = "IntervalTier"'
       yield '\t\tname = "{0}"'.format(tier.name)
-      yield '\t\txmin = {0}'.format(tier.minTime)
-      yield '\t\txmax = {0}'.format(maxT)
+      yield '\t\txmin = {0}'.format(try_get_time_as_int(tier.minTime))
+      yield '\t\txmax = {0}'.format(try_get_time_as_int(maxT))
       # compute the number of intervals and make the empty ones
       output = _fillInTheGaps(tier, null)
       yield '\t\tintervals: size = {0}'.format(len(output))
       for (j, interval) in enumerate(output, 1):
         yield '\t\t\tintervals [{0}]:'.format(j)
-        yield '\t\t\t\txmin = {0}'.format(interval.minTime)
-        yield '\t\t\t\txmax = {0}'.format(interval.maxTime)
+        yield '\t\t\t\txmin = {0}'.format(try_get_time_as_int(interval.minTime))
+        yield '\t\t\t\txmax = {0}'.format(try_get_time_as_int(interval.maxTime))
         mark = _formatMark(interval.mark)
         yield '\t\t\t\ttext = "{0}"'.format(mark)
     elif tier.__class__ == PointTier:  # PointTier
       yield '\t\tclass = "TextTier"'
       yield '\t\tname = "{0}"'.format(tier.name)
-      yield '\t\txmin = {0}'.format(tier.minTime)
-      yield '\t\txmax = {0}'.format(maxT)
+      yield '\t\txmin = {0}'.format(try_get_time_as_int(tier.minTime))
+      yield '\t\txmax = {0}'.format(try_get_time_as_int(maxT))
       yield '\t\tpoints: size = {0}'.format(len(tier))
       for (k, point) in enumerate(tier, 1):
         yield '\t\t\tpoints [{0}]:'.format(k)
-        yield '\t\t\t\ttime = {0}'.format(point.time)
+        yield '\t\t\t\ttime = {0}'.format(try_get_time_as_int(point.time))
         mark = _formatMark(point.mark)
         yield '\t\t\t\tmark = "{0}"'.format(mark)
 
