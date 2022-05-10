@@ -91,7 +91,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
   logger.propagate = False
   logger.addHandler(handler)
 
-  logger.info(f"Processing {file_stem}")
+  logger.info(f"Processing \"{file_stem}\"")
 
   rel_path = process_grid_files[file_stem]
   grid_file_out_abs = output_directory / rel_path
