@@ -126,14 +126,14 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
         logger.error(error.default_message, exc_info=error.exception)
         logger.debug(f"Duration (s): {perf_counter() - start}")
         return file_stem, (False, False, handler.records)
-      logger.info(f"Saved the grid to: {grid_file_out_abs.absolute()}")
+      logger.info(f"Saved the grid to: \"{grid_file_out_abs.absolute()}\"")
     elif directory != output_directory:
       logger.info("Didn't changed anything.")
       error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
       if error:
         logger.error(error.default_message, exc_info=error.exception)
       else:
-        logger.info(f"Copied the grid to: {grid_file_out_abs.absolute()}")
+        logger.info(f"Copied the grid to: \"{grid_file_out_abs.absolute()}\"")
 
   del grid
   logger.debug(f"Duration (s): {perf_counter() - start}")
