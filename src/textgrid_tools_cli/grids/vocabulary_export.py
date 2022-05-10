@@ -22,6 +22,8 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
   add_tiers_argument(parser, "tiers that contains the words as intervals")
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated vocabulary")
+  parser.add_argument("--include-empty", action="store_true",
+                      help="include empty marker in vocabulary if any occurs")
   add_encoding_argument(parser, "vocabulary encoding")
   return get_vocabulary_parsed
 
@@ -52,7 +54,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  error, vocabulary = get_vocabulary(grids, ns.tiers, flogger)
+  error, vocabulary = get_vocabulary(grids, ns.tiers, ns.include_empty, flogger)
 
   success = error is None
 
@@ -73,7 +75,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   return True, True
 
 
-def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], logger: Logger) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
+def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], include_empty: bool, logger: Logger) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
 
@@ -101,7 +103,7 @@ def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], logger: Logger) 
     flogger.info(f"{mark}\t{count}x\t{count/total*100:.2f}%")
 
   all_marks = set(all_marks_counter.keys())
-  if "" in all_marks:
+  if not include_empty and "" in all_marks:
     all_marks.remove("")
   logger.debug(f"Retrieved {len(all_marks)} unique marks.")
   result = OrderedSet(sorted(all_marks))
