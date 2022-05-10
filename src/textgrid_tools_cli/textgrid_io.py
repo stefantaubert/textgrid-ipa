@@ -199,6 +199,8 @@ def get_lines(grid: TextGrid, null='') -> Generator[str, None, None]:
         yield '\t\t\t\ttime = {0}'.format(try_get_time_as_int(point.time))
         mark = _formatMark(point.mark)
         yield '\t\t\t\tmark = "{0}"'.format(mark)
+  # final new-line
+  yield ""
 
 
 def _formatMark(text):

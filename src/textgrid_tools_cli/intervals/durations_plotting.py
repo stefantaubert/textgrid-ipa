@@ -1,6 +1,7 @@
-from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
+
+from tqdm import tqdm
 
 from textgrid_tools import plot_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
@@ -29,6 +30,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
 
   grid_files = get_grid_files(ns.directory)
 
+  output_directory = ns.output_directory
   if output_directory is None:
     output_directory = ns.directory
 
