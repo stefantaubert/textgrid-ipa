@@ -16,7 +16,7 @@ from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNa
 def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names: Set[str], difference_threshold: float, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
   assert difference_threshold > 0
-  
+
   if logger is None:
     logger = getLogger(__name__)
 
@@ -47,21 +47,24 @@ def fix_interval_boundaries(grid: TextGrid, reference_tier_name: str, tier_names
 
   total_success = True
   total_changed_anything = False
-  for tier in cast(Iterable[IntervalTier], tqdm(tiers, desc="Tier", position=0, unit="t")):
-    logger.info(f"Fixing tier {tier.name} ...")
-    for timepoint in tqdm(synchronize_timepoints, desc="Interval", position=1, unit="in"):
+  for tier in cast(Iterable[IntervalTier], tiers):
+    logger.info(f"Looking for boundaries to fix on tier \"{tier.name}\"")
+    for timepoint in synchronize_timepoints:
       success, changed_anything = fix_timepoint(timepoint, tier, difference_threshold, logger)
       total_success &= success
       total_changed_anything |= changed_anything
 
-      if not success:
-        logger.info("Not all boundaries could be fixed!")
+      # if not success:
+      #   logger.info("Not all boundaries could be fixed!")
 
-      if not changed_anything:
-        logger.debug("Did not changed anything!")
+      # if not changed_anything:
+      #   logger.debug("Did not changed anything!")
 
   if total_success:
-    logger.info("Successfully fixed all boundaries from all tiers!")
+    if total_changed_anything:
+      logger.info("Successfully fixed all boundaries from all tiers!")
+    else:
+      logger.info("Didn't changed anything!")
   else:
     logger.info("Not all boundaries from all tiers could be fixed!")
 
