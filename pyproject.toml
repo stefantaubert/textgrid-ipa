@@ -3,7 +3,7 @@ name = "textgrid-tools"
 version = "0.0.3"
 description = "CLI to modify TextGrids and their corresponding audio files."
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
   {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"}
@@ -31,21 +31,19 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-  "scipy",
-  "numpy",
-  "tqdm",
+  "numpy>=1.18.5",
+  "scipy>=1.8.0",
+  "tqdm>=4.63.0",
   "TextGrid>=1.5",
-  "pandas",
+  "pandas>=1.4.0",
   "ordered_set>=4.1.0",
-  "matplotlib",
+  "matplotlib>=3.5.0",
   "pronunciation_dictionary>=0.0.4",
 ]
 
@@ -63,12 +61,14 @@ include = [
   "textgrid_tools.*",
   "textgrid_tools_cli",
   "textgrid_tools_cli.*",
+  "textgrid_tools_tests",
+  "textgrid_tools_tests.*",
+  "textgrid_tools_cli_tests",
+  "textgrid_tools_cli_tests.*",
 ]
 exclude = [
-  "textgrid_tools_tests",
   "textgrid_tools_debug",
   "textgrid_tools_cli_debug",
-  "textgrid_tools_cli_tests",
   "textgrid_tools_old"
 ]
 namespaces = true
@@ -103,6 +103,21 @@ known_third_party = [
   "matplotlib",
   "pronunciation_dictionary"
 ]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{38,39,310}
+isolated_build = True
+
+[testenv]
+deps = 
+  pytest
+commands = 
+  pytest
+  textgrid-tools-cli
+"""
+
 
 [build-system]
 requires = [

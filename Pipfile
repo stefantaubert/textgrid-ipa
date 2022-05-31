@@ -16,13 +16,13 @@ autoflake = "*"
 twine = "*"
 
 [packages]
-scipy = "*"
-numpy = "*"
-tqdm = "*"
+scipy = ">=1.8.0"
+numpy = ">=1.18.5"
+tqdm = ">=4.63.0"
 TextGrid = ">=1.5"
-pandas = "*"
+pandas = ">=1.4.0"
 ordered-set = ">=4.1.0"
-matplotlib = "*"
+matplotlib = ">=3.5.0"
 pronunciation-dictionary = ">=0.0.4"
 
 [requires]

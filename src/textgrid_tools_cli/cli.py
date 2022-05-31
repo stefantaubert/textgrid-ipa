@@ -91,7 +91,7 @@ def print_features():
   for parser_name, (methods, help_str) in parsers.items():
     print(f"- {parser_name}")
     for command, description, method in methods:
-      print(f"  - {description}")
+      print(f"  - `{command}`: {description}")
 
 
 def _init_parser():
