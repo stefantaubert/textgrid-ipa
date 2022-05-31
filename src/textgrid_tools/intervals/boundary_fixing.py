@@ -2,7 +2,6 @@ from logging import Logger, getLogger
 from typing import Iterable, Optional, Set, Tuple, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from tqdm import tqdm
 
 from textgrid_tools.globals import ChangedAnything, ExecutionResult
 from textgrid_tools.helper import (check_is_valid_grid, get_all_tiers,

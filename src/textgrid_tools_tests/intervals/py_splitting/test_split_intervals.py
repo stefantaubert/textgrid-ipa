@@ -1,4 +1,3 @@
-from logging import getLogger
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.intervals.splitting import split_intervals

@@ -1,6 +1,6 @@
 [project]
 name = "textgrid-tools"
-version = "0.0.2"
+version = "0.0.3"
 description = "CLI to modify TextGrids and their corresponding audio files."
 readme = "README.md"
 requires-python = ">=3.6"
@@ -60,7 +60,9 @@ textgrid-tools-cli = "textgrid_tools_cli.cli:run_prod"
 where = ["src"]
 include = [
   "textgrid_tools",
-  "textgrid_tools_cli"
+  "textgrid_tools.*",
+  "textgrid_tools_cli",
+  "textgrid_tools_cli.*",
 ]
 exclude = [
   "textgrid_tools_tests",
