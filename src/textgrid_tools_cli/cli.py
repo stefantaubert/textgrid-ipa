@@ -169,16 +169,16 @@ def parse_args(args: List[str]) -> None:
     success, changed_anything = invoke_handler(ns)
 
     if success:
-      logger.info(f"{CONSOLE_PNT_GREEN}Everything was successfull!{CONSOLE_PNT_RST}")
-      flogger.info("Everything was successfull!")
+      logger.info(f"{CONSOLE_PNT_GREEN}Everything was successful!{CONSOLE_PNT_RST}")
+      flogger.info("Everything was successful!")
     else:
       if log_to_file:
         logger.error(
-          "Not everything was successfull! See log for details.")
+          "Not everything was successful! See log for details.")
       else:
         logger.error(
-          "Not everything was successfull!")
-      flogger.error("Not everything was successfull!")
+          "Not everything was successful!")
+      flogger.error("Not everything was successful!")
 
     if not changed_anything:
       logger.info("Didn't changed anything.")

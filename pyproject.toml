@@ -116,6 +116,7 @@ deps =
 commands = 
   pytest
   textgrid-tools-cli
+  textgrid-tools-cli -v
 """
 
 
