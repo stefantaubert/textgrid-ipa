@@ -10,8 +10,6 @@ from textgrid_tools.helper import (get_all_tiers, get_interval_readable, get_int
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
 
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
-from textgrid_tools_tests.helper import assert_intervals_are_equal
-
 
 class DurationTooLowError(ValidationError):
   def __init__(self, duration: float) -> None:
@@ -116,9 +114,9 @@ def split_pauses(intervals: List[Interval]) -> Tuple[List[Interval], List[Interv
   content2, end = split_pause_at_end(intervals)
   all_is_pause = len(start) == len(intervals)
   if all_is_pause:
-    assert_intervals_are_equal(start, end)
+    assert check_intervals_are_equal(start, end)
     return start, [], []
-  assert_intervals_are_equal(content1[:len(content1) - len(end)], content2[len(start):])
+  assert check_intervals_are_equal(content1[:len(content1) - len(end)], content2[len(start):])
   start_idx = len(start)
   end_idx = len(intervals) - len(end)
   content = intervals[start_idx:end_idx]
