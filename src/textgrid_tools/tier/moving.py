@@ -1,5 +1,4 @@
-from logging import getLogger
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Optional
 
 from textgrid import TextGrid

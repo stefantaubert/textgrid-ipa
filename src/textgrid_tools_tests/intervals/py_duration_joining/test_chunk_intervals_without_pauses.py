@@ -1,6 +1,6 @@
 from textgrid import Interval
-from textgrid_tools.intervals.duration_joining import \
-    chunk_intervals_without_pauses
+
+from textgrid_tools.intervals.duration_joining import chunk_intervals_without_pauses
 from textgrid_tools_tests.helper import assert_intervals_are_equal
 
 

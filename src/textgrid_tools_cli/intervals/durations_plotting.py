@@ -49,6 +49,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue

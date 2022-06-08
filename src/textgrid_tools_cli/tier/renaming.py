@@ -1,4 +1,3 @@
-from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 from argparse import ArgumentParser, Namespace
 from functools import partial
 
@@ -11,6 +10,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_arg
                                        add_n_jobs_argument, add_output_directory_argument,
                                        add_overwrite_argument, add_tier_argument,
                                        parse_non_empty_or_whitespace)
+from textgrid_tools_cli.logging_configuration import init_and_get_console_logger
 
 
 def get_renaming_parser(parser: ArgumentParser):

@@ -1,7 +1,6 @@
-from logging import getLogger
 import logging
 from collections import OrderedDict
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Dict, List, Optional, Set, Tuple, cast
 
 import numpy as np

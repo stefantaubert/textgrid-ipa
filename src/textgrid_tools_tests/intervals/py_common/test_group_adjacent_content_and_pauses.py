@@ -1,6 +1,6 @@
 from textgrid import Interval
-from textgrid_tools.intervals.common import \
-    group_adjacent_content_and_pauses
+
+from textgrid_tools.intervals.common import group_adjacent_content_and_pauses
 from textgrid_tools_tests.helper import assert_intervals_are_equal
 
 

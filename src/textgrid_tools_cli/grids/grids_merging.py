@@ -38,6 +38,7 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -61,11 +62,11 @@ def merge_grids_app(ns: Namespace) -> ExecutionResult:
     return False, False
 
   logger.info("Saving grid...")
-  try:
-    try_save_grid(ns.output, merged_grid, ns.encoding)
-  except Exception as ex:
-    logger.error("Grid couldn't be written!")
-    flogger.exception(ex)
+  error = try_save_grid(ns.output, merged_grid, ns.encoding)
+  if error is not None:
+    flogger.debug(error.exception)
+    flogger.error(error.default_message)
+    flogger.info("Skipped.")
     return False, False
 
   logger.info(f"Written grid to: {ns.output.absolute()}")

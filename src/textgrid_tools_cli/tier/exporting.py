@@ -1,5 +1,6 @@
-from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
+
+from tqdm import tqdm
 
 from textgrid_tools import convert_tier_to_text
 from textgrid_tools_cli.globals import ExecutionResult
@@ -45,6 +46,7 @@ def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -60,7 +62,14 @@ def app_convert_tier_to_text(ns: Namespace) -> ExecutionResult:
       flogger.info("Skipped.")
       continue
 
-    save_text(text_file_out_abs, text, ns.encoding)
+    try:
+      save_text(text_file_out_abs, text, ns.encoding)
+    except Exception as ex:
+      flogger.debug(ex)
+      flogger.error("Text couldn't be saved!")
+      flogger.info("Skipped.")
+      total_success = False
+      continue
 
   logger.info(f"Written output to: {output_directory.absolute()}")
   return total_success, True

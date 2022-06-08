@@ -8,7 +8,6 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_tiers, get_intervals_duration
 from textgrid_tools.intervals.common import (group_adjacent_pauses, merge_intervals,
                                              replace_intervals)
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 
 

@@ -106,6 +106,7 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
   error, grid = try_load_grid(grid_file_in_abs, encoding)
 
   if error:
+    logger.debug(error.exception)
     logger.error(error.default_message)
     logger.debug(f"Duration (s): {perf_counter() - start}")
     return file_stem, (False, False, handler.records)
@@ -123,7 +124,8 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
     if changed_anything:
       error = try_save_grid(grid_file_out_abs, grid, encoding)
       if error:
-        logger.error(error.default_message, exc_info=error.exception)
+        logger.debug(error.exception)
+        logger.error(error.default_message)
         logger.debug(f"Duration (s): {perf_counter() - start}")
         return file_stem, (False, False, handler.records)
       logger.info(f"Saved the grid to: \"{grid_file_out_abs.absolute()}\"")

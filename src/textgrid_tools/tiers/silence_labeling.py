@@ -5,7 +5,6 @@ from textgrid import TextGrid
 
 from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import get_all_intervals, is_silence
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 

@@ -1,6 +1,7 @@
 from argparse import ArgumentTypeError
 
 import pytest
+
 from textgrid_tools_cli.helper import parse_codec
 
 

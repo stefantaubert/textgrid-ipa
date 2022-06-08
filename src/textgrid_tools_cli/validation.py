@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 from textgrid_tools import ValidationError as ValidationErrorCore
 
 

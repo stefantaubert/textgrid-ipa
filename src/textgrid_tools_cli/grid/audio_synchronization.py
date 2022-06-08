@@ -6,9 +6,9 @@ from textgrid_tools import sync_grid_to_audio
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
                                        add_output_directory_argument, add_overwrite_argument,
-                                       copy_grid, get_audio_files, get_grid_files, get_optional,
-                                       parse_existing_directory, read_audio, try_load_grid,
-                                       try_save_grid)
+                                       get_audio_files, get_grid_files, get_optional,
+                                       parse_existing_directory, read_audio, try_copy_grid,
+                                       try_load_grid, try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
@@ -64,6 +64,7 @@ def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -82,8 +83,20 @@ def app_sync_grid_to_audio(ns: Namespace) -> ExecutionResult:
       continue
 
     if changed_anything:
-      try_save_grid(grid_file_out_abs, grid, ns.encoding)
+      error = try_save_grid(grid_file_out_abs, grid, ns.encoding)
+      if error is not None:
+        flogger.debug(error.exception)
+        flogger.error(error.default_message)
+        flogger.info("Skipped.")
+        total_success = False
+        continue
     elif ns.directory != output_directory:
-      copy_grid(grid_file_in_abs, grid_file_out_abs)
+      error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
+      if error is not None:
+        flogger.debug(error.exception)
+        flogger.error(error.default_message)
+        flogger.info("Skipped.")
+        total_success = False
+        continue
 
   return total_success, total_changed_anything

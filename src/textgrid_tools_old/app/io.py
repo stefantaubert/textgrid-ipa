@@ -236,8 +236,8 @@ def process_read_audio_durations(item: Tuple[str, Path, List[str]]) -> Tuple[str
     sample_rate, audio_in = read_audio(path)
   except Exception as ex:
     logger = getLogger(stem)
-    logger.error(f"Audio file '{path.absolute()}' could not be read!")
     logger.exception(ex)
+    logger.error(f"Audio file '{path.absolute()}' could not be read!")
     return stem, None
   audio_samples_in = audio_in.shape[0]
   return stem, (sample_rate, audio_samples_in)

@@ -1,18 +1,18 @@
-from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
 
 from ordered_set import OrderedSet
 from scipy.io.wavfile import read
+from tqdm import tqdm
 
 from textgrid_tools import remove_intervals
 from textgrid_tools.intervals.removing import NothingDefinedToRemoveError
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
                                        add_encoding_argument, add_overwrite_argument,
-                                       add_tier_argument, copy_audio, copy_grid, get_audio_files,
+                                       add_tier_argument, copy_audio, get_audio_files,
                                        get_grid_files, get_optional, parse_existing_directory,
-                                       parse_non_empty, parse_path, save_audio, try_load_grid,
-                                       try_save_grid)
+                                       parse_non_empty, parse_path, save_audio, try_copy_grid,
+                                       try_load_grid, try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 # TODO tiers support
@@ -92,6 +92,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -123,15 +124,41 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
       continue
 
     if changed_anything:
-      try_save_grid(grid_file_out_abs, grid, ns.encoding)
+      error = try_save_grid(grid_file_out_abs, grid, ns.encoding)
+      if error is not None:
+        flogger.debug(error.exception)
+        flogger.error(error.default_message)
+        flogger.info("Skipped.")
+        total_success = False
+        continue
     elif ns.directory != output_directory:
-      copy_grid(grid_file_in_abs, grid_file_out_abs)
+      error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
+      if error is not None:
+        flogger.debug(error.exception)
+        flogger.error(error.default_message)
+        flogger.info("Skipped.")
+        total_success = False
+        continue
 
     if audio_provided:
       assert new_audio is not None
       if changed_anything:
-        save_audio(audio_file_out_abs, new_audio, sample_rate)
+        try:
+          save_audio(audio_file_out_abs, new_audio, sample_rate)
+        except Exception as ex:
+          flogger.debug(ex)
+          flogger.error("Audio couldn't be saved!")
+          flogger.info("Skipped.")
+          total_success = False
+          continue
       elif ns.directory != output_directory:
-        copy_audio(audio_file_out_abs, audio_file_in_abs)
+        try:
+          copy_audio(audio_file_out_abs, audio_file_in_abs)
+        except Exception as ex:
+          flogger.debug(ex)
+          flogger.error("Audio couldn't be saved!")
+          flogger.info("Skipped.")
+          total_success = False
+          continue
 
   return total_success, total_changed_anything

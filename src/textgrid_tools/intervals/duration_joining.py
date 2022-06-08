@@ -8,8 +8,8 @@ from textgrid_tools.globals import ExecutionResult
 from textgrid_tools.helper import (get_all_tiers, get_interval_readable, get_intervals_duration,
                                    interval_is_None_or_whitespace)
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
-
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
+
 
 class DurationTooLowError(ValidationError):
   def __init__(self, duration: float) -> None:

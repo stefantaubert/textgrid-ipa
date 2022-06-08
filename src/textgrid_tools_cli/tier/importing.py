@@ -1,5 +1,6 @@
-from tqdm import tqdm
 from argparse import ArgumentParser, Namespace
+
+from tqdm import tqdm
 
 from textgrid_tools.tier.importing import import_text_to_tier
 from textgrid_tools_cli.globals import ExecutionResult
@@ -58,6 +59,7 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -80,7 +82,13 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
       flogger.info("Skipped.")
       continue
 
-    try_save_grid(grid_file_out_abs, grid, ns.encoding)
+    error = try_save_grid(grid_file_out_abs, grid, ns.encoding)
+    if error is not None:
+      flogger.debug(error.exception)
+      flogger.error(error.default_message)
+      flogger.info("Skipped.")
+      total_success = False
+      continue
 
   logger.info(f"Written output to: {output_directory.absolute()}")
   return total_success, True

@@ -80,14 +80,28 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
 
     if file_stem in audio_files:
       audio_file_in_abs = audio_directory / audio_files[file_stem]
-      sample_rate, audio_in = read_audio(audio_file_in_abs)
+      try:
+        sample_rate, audio_in = read_audio(audio_file_in_abs)
+      except Exception as ex:
+        flogger.exception(ex)
+        flogger.error(f"Audio file '{audio_file_in_abs.absolute()}' could not be read!")
+        flogger.info("Skipped.")
+        total_success = False
+        continue
       audio_samples_in = audio_in.shape[0]
     else:
       flogger.info("No audio found, audio duration will be estimated.")
 
     if file_stem in meta_files:
       meta_file_in_abs = meta_directory / meta_files[file_stem]
-      meta = meta_file_in_abs.read_text(ns.encoding)
+      try:
+        meta = meta_file_in_abs.read_text(ns.encoding)
+      except Exception as ex:
+        flogger.exception(ex)
+        flogger.error(f"Meta file '{meta_file_in_abs.absolute()}' could not be read!")
+        flogger.info("Skipped.")
+        total_success = False
+        continue
     else:
       flogger.info("No meta file found.")
 
@@ -106,6 +120,7 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
     if error is not None:
       flogger.debug(error.exception)
       flogger.error(error.default_message)
+      flogger.info("Skipped.")
       total_success = False
       continue
 

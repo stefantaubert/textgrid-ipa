@@ -78,6 +78,7 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
     if error:
+      flogger.debug(error.exception)
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
@@ -110,13 +111,26 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
       if grid_file_out_abs.exists() and not ns.overwrite:
         flogger.info(f"Grid {file_nr} already exists. Skipped.")
       else:
-        try_save_grid(grid_file_out_abs, new_grid, ns.encoding)
+        error = try_save_grid(grid_file_out_abs, new_grid, ns.encoding)
+        if error is not None:
+          flogger.debug(error.exception)
+          flogger.error(error.default_message)
+          flogger.info("Skipped.")
+          total_success = False
+          continue
+
       if audio_provided:
         assert new_audio is not None
         audio_file_out_abs = output_audio_directory / file_stem / f"{file_nr}.wav"
         if audio_file_out_abs.exists() and not ns.overwrite:
           flogger.info(f"Audio file {file_nr} already exists. Skipped.")
         else:
-          save_audio(audio_file_out_abs, new_audio, sample_rate)
-
+          try:
+            save_audio(audio_file_out_abs, new_audio, sample_rate)
+          except Exception as ex:
+            flogger.debug(ex)
+            flogger.error("Audio couldn't be saved!")
+            flogger.info("Skipped.")
+            total_success = False
+            continue
   return total_success, total_changed_anything

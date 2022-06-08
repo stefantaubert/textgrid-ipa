@@ -1,4 +1,5 @@
 from textgrid.textgrid import Interval
+
 from textgrid_tools.intervals.symbols_joining import chunk_intervals
 
 

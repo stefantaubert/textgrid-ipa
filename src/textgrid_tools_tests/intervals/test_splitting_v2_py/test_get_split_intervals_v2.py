@@ -1,4 +1,5 @@
 from textgrid.textgrid import Interval
+
 from textgrid_tools.intervals.splitting import get_split_intervals
 
 

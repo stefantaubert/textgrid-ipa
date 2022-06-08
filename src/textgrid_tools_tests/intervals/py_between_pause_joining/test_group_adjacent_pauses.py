@@ -1,8 +1,7 @@
 from textgrid import Interval
-from textgrid_tools.intervals.between_pause_joining import \
-    group_adjacent_pauses
-from textgrid_tools_tests.helper import (assert_interval_is_equal,
-                                         assert_intervals_are_equal)
+
+from textgrid_tools.intervals.between_pause_joining import group_adjacent_pauses
+from textgrid_tools_tests.helper import assert_interval_is_equal, assert_intervals_are_equal
 
 
 def test_empty__returns_empty():
