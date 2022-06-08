@@ -102,6 +102,11 @@ def app_create_grid_from_text(ns: Namespace) -> ExecutionResult:
       flogger.info("Skipped.")
       continue
 
-    try_save_grid(grid_file_out_abs, grid, ns.encoding)
+    error = try_save_grid(grid_file_out_abs, grid, ns.encoding)
+    if error is not None:
+      flogger.debug(error.exception)
+      flogger.error(error.default_message)
+      total_success = False
+      continue
 
   return total_success, True

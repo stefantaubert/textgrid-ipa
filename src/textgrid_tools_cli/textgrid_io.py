@@ -148,10 +148,15 @@ def save_file_faster(grid: TextGrid, path: Path, encoding: str) -> None:
     f.write(text)
 
 
-def try_get_time_as_int(time: float) -> Union[int, float]:
-  if time.is_integer():
-    return int(time)
-  return time
+def try_get_time_as_int(time: Union[float, int]) -> Union[int, float]:
+  if isinstance(time, int):
+    return time
+  if isinstance(time, float):
+    if time.is_integer():
+      return int(time)
+    return time
+  assert False
+  raise ValueError()
 
 
 def get_lines(grid: TextGrid, null='') -> Generator[str, None, None]:
