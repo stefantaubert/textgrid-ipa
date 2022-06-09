@@ -1,10 +1,13 @@
 # textgrid-tools
 
 [![PyPI](https://img.shields.io/pypi/v/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools)
-[![PyPI](https://img.shields.io/pypi/pyversions/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools)
+![PyPI](https://img.shields.io/pypi/pyversions/textgrid-tools.svg)
 [![MIT](https://img.shields.io/github/license/stefantaubert/textgrid-ipa.svg)](https://github.com/stefantaubert/textgrid-ipa/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/wheel/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools/#files)
+![PyPI](https://img.shields.io/pypi/implementation/textgrid-tools.svg)
+[![PyPI](https://img.shields.io/github/commits-since/stefantaubert/textgrid-ipa/latest/main.svg)](https://github.com/stefantaubert/textgrid-ipa/compare/v0.0.4...main)
 
-CLI to modify TextGrids and their corresponding audio files.
+Command-line interface (CLI) to modify TextGrids and their corresponding audio files.
 
 ## Features
 
@@ -61,14 +64,14 @@ textgrid-tools-cli
 
 ## Dependencies
 
-- numpy>=1.18.5
-- scipy>=1.8.0
-- tqdm>=4.63.0
-- TextGrid>=1.5
-- pandas>=1.4.0
-- ordered_set>=4.1.0
-- matplotlib>=3.5.0
-- pronunciation_dictionary>=0.0.4
+- `numpy>=1.18.5`
+- `scipy>=1.8.0`
+- `tqdm>=4.63.0`
+- `TextGrid>=1.5`
+- `pandas>=1.4.0`
+- `ordered_set>=4.1.0`
+- `matplotlib>=3.5.0`
+- `pronunciation_dictionary>=0.0.4`
 
 ## Troubleshooting
 

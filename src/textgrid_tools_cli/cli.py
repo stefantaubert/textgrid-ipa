@@ -97,7 +97,7 @@ def print_features():
 def _init_parser():
   main_parser = ArgumentParser(
     formatter_class=formatter,
-    description="This program provides methods to modify TextGrids (.TextGrid) and their corresponding audios (.wav).",
+    description="This program provides methods to modify TextGrids (.TextGrid) and their corresponding audio files (.wav).",
   )
   main_parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
   subparsers = main_parser.add_subparsers(help="description")
