@@ -37,8 +37,7 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
   )
 
   keys = grid_files.keys()
-  # TODO remove
-  keys = list(keys)[:10]
+  # keys = list(keys)[:10]
 
   flogger.debug(f"Files: {len(keys)}")
   flogger.debug(f"Chunksize: {chunksize}")

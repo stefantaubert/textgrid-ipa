@@ -35,13 +35,14 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `export`: export content of tier to a txt file
   - `import`: import content of tier from a txt file
 - intervals
+  - `join`: join adjacent intervals
   - `join-between-pauses`: join intervals between pauses
   - `join-by-boundary`: join intervals by boundaries of a tier
   - `join-by-duration`: join intervals by a duration
   - `join-marks`: join intervals containing specific marks
   - `join-symbols`: join intervals containing specific symbols
-  - `fix-boundaries`: align boundaries of tiers according to a reference tier
   - `split`: split intervals
+  - `fix-boundaries`: align boundaries of tiers according to a reference tier
   - `remove`: remove intervals
   - `plot-durations`: plot durations
 

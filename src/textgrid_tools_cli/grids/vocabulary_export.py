@@ -6,6 +6,7 @@ from typing import Callable, List, Optional, Set, Tuple
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
+from tqdm import tqdm
 
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
@@ -35,7 +36,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   grid_files = get_grid_files(ns.directory)
 
   grids: List[TextGrid] = []
-  for file_nr, (file_stem, rel_path) in enumerate(grid_files.items(), start=1):
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items(), desc="Reading grids", unit=" file(s)"), start=1):
     flogger.info(f"Processing {file_stem}")
     grid_file_in_abs = ns.directory / rel_path
     error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
@@ -94,8 +95,8 @@ def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], include_empty: b
       all_intervals = intervals
     else:
       all_intervals = chain(all_intervals, intervals)
-
-  all_marks_counter = Counter(interval.mark for interval in all_intervals)
+  all_marks_counter = Counter(interval.mark for interval in tqdm(
+    all_intervals, desc="Parsing intervals", unit=" interval(s)"))
   flogger = get_file_logger()
 
   flogger.info("Occurrences:")

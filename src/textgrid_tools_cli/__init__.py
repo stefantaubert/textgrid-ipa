@@ -7,7 +7,8 @@ from textgrid_tools_cli.grids import (get_grids_merging_parser,
                                       get_marks_exporting_parser, get_vocabulary_export_parser)
 from textgrid_tools_cli.intervals import (get_between_pause_joining_parser,
                                           get_boundary_fixing_parser, get_boundary_joining_parser,
-                                          get_duration_joining_parser, get_mark_joining_parser,
+                                          get_duration_joining_parser, get_joining_parser,
+                                          get_mark_joining_parser,
                                           get_plot_interval_durations_parser)
 from textgrid_tools_cli.intervals import get_removing_parser as get_intervals_removing_parser
 from textgrid_tools_cli.intervals import get_splitting_parser, get_symbols_joining_parser
