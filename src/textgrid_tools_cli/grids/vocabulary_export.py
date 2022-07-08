@@ -20,7 +20,8 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command creates an vocabulary out of all words from multiple tiers in the grid files."
   add_directory_argument(parser)
-  add_tiers_argument(parser, "tiers that contains the words as intervals")
+  add_tiers_argument(
+    parser, "tiers that contains the words as intervals; must not contain line breaks")
   parser.add_argument("output", type=parse_path, metavar="output",
                       help="path to write the generated vocabulary")
   parser.add_argument("--include-empty", action="store_true",
@@ -64,8 +65,12 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
+  any_word_contains_new_line = any("\n" in word for word in vocabulary)
+  if any_word_contains_new_line:
+    logger.warning("Some \"words\" contain line breaks, therefore the export does not contain each word on a new line! If you want to resolve this, remove the linebreaks from all intervals in the tiers you want to create a vocabulary from.")
+
   logger.info("Saving vocabulary...")
-  vocabulary_txt = '\n'.join(vocabulary)
+  vocabulary_txt = "\n".join(vocabulary)
   try:
     ns.output.write_text(vocabulary_txt, ns.encoding)
   except:
