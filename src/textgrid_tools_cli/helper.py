@@ -57,6 +57,20 @@ def get_all_files_in_all_subfolders(directory: Path) -> Generator[Path, None, No
       yield file_path
 
 
+def get_files_in_folder(directory: Path) -> Generator[Path, None, None]:
+  root, _, files = os.walk(directory)
+  for name in files:
+    file_path = Path(root) / name
+    yield file_path
+
+
+def get_subfolders(directory: Path) -> Generator[Path, None, None]:
+  root, folders, _ = os.walk(directory)
+  for name in folders:
+    file_path = Path(root) / name
+    yield file_path
+
+
 class ConvertToOrderedSetAction(argparse._StoreAction):
   def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[List], option_string: Optional[str] = None):
     if values is not None:
