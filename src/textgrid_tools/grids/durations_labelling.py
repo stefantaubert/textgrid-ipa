@@ -119,6 +119,36 @@ def label_durations_core(grids: List[TextGrid], tier_name: str, assign_mark: str
   raise NotImplementedError()
 
 
+def get_percentual_boundary(durations: np.ndarray, min_val: float, max_val: float) -> Tuple[float, float]:
+  max_duration = np.max(durations, axis=0)
+  min_val = max_duration / 100 * min_val
+  if math.isinf(max_val):
+    max_val = math.inf
+  else:
+    max_val = max_duration / 100 * max_val
+  return min_val, max_val
+
+
+def get_percentile_boundary(durations: np.ndarray, min_val: float, max_val: float) -> Tuple[float, float]:
+  assert 0 <= min_val < math.inf
+  assert 0 < max_val
+  min_val = np.percentile(durations, min_val, axis=0)
+  if math.isinf(max_val):
+    max_val = math.inf
+  else:
+    max_val = np.percentile(durations, max_val, axis=0)
+  return min_val, max_val
+
+
+def get_boundary(mode: Literal["percent", "percentile"], durations: np.ndarray, min_val: float, max_val: float) -> Tuple[float, float]:
+  if mode == "percent":
+    return get_percentual_boundary(durations, min_val, max_val)
+  if mode == "percentile":
+    return get_percentile_boundary(durations, min_val, max_val)
+  assert False
+  raise NotImplementedError()
+
+
 def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
 
   consider_intervals: List[List[Interval]] = []
@@ -141,21 +171,7 @@ def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_mark:
     for interval in grid_intervals
   ))
 
-  if range_mode == "percent":
-    max_duration = np.max(all_interval_durations, axis=0)
-    min_val = max_duration / 100 * range_min
-    if math.isinf(range_max):
-      max_val = math.inf
-    else:
-      max_val = max_duration / 100 * range_max
-  elif range_mode == "quantile":
-    min_val = np.quantile(all_interval_durations, range_min, axis=0)
-    if math.isinf(range_max):
-      max_val = math.inf
-    else:
-      max_val = np.quantile(all_interval_durations, range_max, axis=0)
-  else:
-    assert False
+  min_val, max_val = get_boundary(range_mode, all_interval_durations, range_min, range_max)
 
   grids_changed = []
   changed_intervals = 0
@@ -211,21 +227,7 @@ def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_
       for interval in mark_intervals
     ))
 
-    if range_mode == "percent":
-      max_duration = np.max(all_interval_durations, axis=0)
-      min_val = max_duration / 100 * range_min
-      if math.isinf(range_max):
-        max_val = math.inf
-      else:
-        max_val = max_duration / 100 * range_max
-    elif range_mode == "quantile":
-      min_val = np.quantile(all_interval_durations, range_min, axis=0)
-      if math.isinf(range_max):
-        max_val = math.inf
-      else:
-        max_val = np.quantile(all_interval_durations, range_max, axis=0)
-    else:
-      assert False
+    min_val, max_val = get_boundary(range_mode, all_interval_durations, range_min, range_max)
 
     for grid_index, interval in zip(grid_indices_to_marks[mark], mark_intervals):
       duration_match = min_val <= interval.duration() < max_val
