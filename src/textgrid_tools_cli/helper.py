@@ -58,14 +58,14 @@ def get_all_files_in_all_subfolders(directory: Path) -> Generator[Path, None, No
 
 
 def get_files_in_folder(directory: Path) -> Generator[Path, None, None]:
-  root, _, files = os.walk(directory)
+  root, _, files = next(os.walk(directory))
   for name in files:
     file_path = Path(root) / name
     yield file_path
 
 
 def get_subfolders(directory: Path) -> Generator[Path, None, None]:
-  root, folders, _ = os.walk(directory)
+  root, folders, _ = next(os.walk(directory))
   for name in folders:
     file_path = Path(root) / name
     yield file_path

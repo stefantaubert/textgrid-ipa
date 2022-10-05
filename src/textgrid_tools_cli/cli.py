@@ -11,6 +11,7 @@ from time import perf_counter
 from typing import Callable, Dict, Generator, List, Tuple
 
 from textgrid_tools_cli import *
+from textgrid_tools_cli.grids.durations_labelling import get_grids_label_durations_parser
 from textgrid_tools_cli.helper import get_optional, parse_path
 from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                       try_init_file_logger)
@@ -37,6 +38,7 @@ def get_grids_parsers() -> Parsers:
   yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
   yield "plot-durations", "plot durations", get_grids_plot_interval_durations_parser
   yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
+  yield "mark-durations", "mark intervals with specific durations with a text", get_grids_label_durations_parser
 
 
 def get_grid_parsers() -> Parsers:
@@ -64,7 +66,7 @@ def get_tier_parsers() -> Parsers:
 
 
 def get_intervals_parsers() -> Parsers:
-  yield "join", "join adjacent intervals", get_joining_parser 
+  yield "join", "join adjacent intervals", get_joining_parser
   yield "join-between-pauses", "join intervals between pauses", get_between_pause_joining_parser
   yield "join-by-boundary", "join intervals by boundaries of a tier", get_boundary_joining_parser
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser

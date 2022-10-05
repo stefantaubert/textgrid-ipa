@@ -27,19 +27,29 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_mar
     all_grids = [grid for speaker_grids in grids.values() for grid in speaker_grids]
     changes = label_durations_core_absolute(
       grids, tier_name, assign_mark, only_consider_marks, range_min, range_max, logger)
-    grids_changes = {
-      speaker_name: changes.pop(0) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
-    }
-    return None, grids_changes
+    grids_changes = (
+      (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
+    )
+    grids_c = {}
+    for speaker_name, change in grids_changes:
+      if speaker_name not in grids_c:
+        grids_c[speaker_name] = []
+      grids_c[speaker_name].append(change)
+    return None, grids_c
 
   if scope == "all":
     all_grids = [grid for speaker_grids in grids.values() for grid in speaker_grids]
     changes = label_durations_core(all_grids, tier_name, assign_mark,
                                    only_consider_marks, range_mode, marks_mode, range_min, range_max, logger)
-    grids_changes = {
-      speaker_name: changes.pop(0) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
-    }
-    return None, grids_changes
+    grids_changes = (
+      (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
+    )
+    grids_c = {}
+    for speaker_name, change in grids_changes:
+      if speaker_name not in grids_c:
+        grids_c[speaker_name] = []
+      grids_c[speaker_name].append(change)
+    return None, grids_c
 
   if scope == "folder":
     changed_anything_all = {}
@@ -96,7 +106,7 @@ def filter_intervals_by_mark(intervals: Iterable[Interval], marks: Set[str]) -> 
     for interval in intervals
     if interval.mark in marks
   )
-  return res
+  yield from res
 
 
 def filter_intervals_by_duration(intervals: Iterable[Interval], min_duration_incl: float, max_duration_excl: float) -> Generator[Interval, None, None]:
@@ -105,7 +115,7 @@ def filter_intervals_by_duration(intervals: Iterable[Interval], min_duration_inc
     for interval in intervals
     if min_duration_incl <= interval.duration() < max_duration_excl
   )
-  return res
+  yield from res
 
 
 def label_durations_core(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], mode: Literal["separate", "all"], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
@@ -204,8 +214,8 @@ def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_
   for grid_index, grid in enumerate(grids):
     intervals = get_single_tier(grid, tier_name).intervals
     total_intervals += len(intervals)
-    intervals = filter_intervals_by_mark(intervals, only_consider_marks)
-    for interval in intervals:
+    filtered_intervals = filter_intervals_by_mark(intervals, only_consider_marks)
+    for interval in filtered_intervals:
       considered_intervals += 1
       mark = interval.mark
       if mark not in intervals_to_marks:
@@ -243,4 +253,4 @@ def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_
     logger.info(f"Changed {changed_intervals} interval marks.")
   else:
     logger.info("All intervals have the correct mark already assigned.")
-  return None, changed_intervals > 0
+  return grids_changed
