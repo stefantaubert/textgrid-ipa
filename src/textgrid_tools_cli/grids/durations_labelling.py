@@ -4,6 +4,7 @@ from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from logging import getLogger
 from pathlib import Path
+from time import perf_counter
 from typing import Dict, Iterable, List
 from typing import OrderedDict as OrderedDictType
 from typing import cast
@@ -19,7 +20,8 @@ from textgrid_tools_cli.helper import (GRID_FILE_TYPE, ConvertToOrderedSetAction
                                        add_directory_argument, add_encoding_argument,
                                        add_overwrite_argument, get_files_in_folder, get_grid_files,
                                        get_subfolders, parse_non_empty_or_whitespace,
-                                       parse_non_negative_float, parse_path, try_load_grid)
+                                       parse_non_negative_float, parse_path, try_load_grid,
+                                       try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from textgrid_tools_cli.validation import FileAlreadyExistsError
 
@@ -97,12 +99,19 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
     return False, False
 
   logger.info("Applied operations successfully.")
+
+  all_successful = True
   if changed_anything:
-    for _, grid in loaded_grids.items():
-      error = try_save_grid(grid_file_out_abs, grid, encoding)
-      if error:
-        logger.debug(error.exception)
-        logger.error(error.default_message)
-        logger.debug(f"Duration (s): {perf_counter() - start}")
-        return file_stem, (False, False, handler.records)
+    for group_name, grids in loaded_grids.items():
+      grids_changed = changed_anything[group_name]
+      paths = grids_to_groups[group_name].values()
+      for grid, grid_changed, rel_path in zip(grids, grids_changed, paths):
+        grid_file_in_abs = ns.directory / rel_path
+        if grid_changed:
+          error = try_save_grid(grid_file_in_abs, grid, ns.encoding)
+          if error:
+            logger.debug(error.exception)
+            logger.error(error.default_message)
+            all_successful = False
+            continue
   return True, False
