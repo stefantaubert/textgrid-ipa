@@ -11,14 +11,7 @@ from textgrid_tools.helper import get_single_tier
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
-def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_mark: str, scope: Optional[Literal["local", "global"]], only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile", "absolute"], mode: Literal["together", "content"], range_min: float, range_max: float, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure]]:
-  assert scope in {"local", "global"}
-  assert mode in {"together", "content"}
-  assert range_mode in {"percent", "percentile", "absolute"}
-  # if range_mode in {"percent", "percentile"}:
-  #   assert range_min is not None
-  #   assert range_max is not None
-
+def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_mark: str, scope: Optional[Literal["file", "folder", "all"]], only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile", "absolute"], marks_mode: Literal["separate", "all"], range_min: float, range_max: float, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure]]:
   if logger is None:
     logger = getLogger(__name__)
 
@@ -33,19 +26,33 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_mar
   if range_mode == "absolute":
     return label_durations_core_absolute(grids, tier_name, assign_mark, only_consider_marks, range_min, range_max, logger)
 
-  if scope == "global":
+  if scope == "all":
     all_grids = [grid for speaker_grids in grids.values() for grid in speaker_grids]
-    return label_durations_core(all_grids, tier_name, assign_mark, only_consider_marks, range_mode, mode, range_min, range_max, logger)
+    return label_durations_core(all_grids, tier_name, assign_mark, only_consider_marks, range_mode, marks_mode, range_min, range_max, logger)
 
-  assert scope == "local"
-  changed_anything_all = False
-  for speaker_name, speaker_grids in grids.items():
-    error, changed_anything = label_durations_core(
-      speaker_grids, tier_name, assign_mark, only_consider_marks, range_mode, mode, range_min, range_max, logger)
-    if error is not None:
-      return error
-    changed_anything_all |= changed_anything
-  return (None, changed_anything_all)
+  if scope == "folder":
+    changed_anything_all = False
+    for speaker_name, speaker_grids in grids.items():
+      error, changed_anything = label_durations_core(
+        speaker_grids, tier_name, assign_mark, only_consider_marks, range_mode, marks_mode, range_min, range_max, logger)
+      if error is not None:
+        return error
+      changed_anything_all |= changed_anything
+    return (None, changed_anything_all)
+
+  if scope == "file":
+    changed_anything_all = False
+    for speaker_name, speaker_grids in grids.items():
+      for grid in speaker_grids:
+        error, changed_anything = label_durations_core_separate(
+          [grid], tier_name, assign_mark, only_consider_marks, range_mode, range_min, range_max, logger)
+        if error is not None:
+          return error
+        changed_anything_all |= changed_anything
+    return (None, changed_anything_all)
+
+  assert False
+  raise NotImplementedError()
 
 
 def label_durations_core_absolute(grids: Dict[str, List[TextGrid]], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
@@ -76,18 +83,19 @@ def label_durations_core_absolute(grids: Dict[str, List[TextGrid]], tier_name: s
   return None, changed_intervals > 0
 
 
-def label_durations_core(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], mode: Literal["together", "content"], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
-  assert mode in {"together", "content"}
-  if mode == "together":
-    return label_durations_core_together(grids, tier_name, assign_mark,
+def label_durations_core(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], mode: Literal["separate", "all"], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
+  if mode == "all":
+    return label_durations_core_all(grids, tier_name, assign_mark,
+                                    only_consider_marks, range_mode, range_min, range_max, logger)
+  if mode == "separate":
+    return label_durations_core_separate(grids, tier_name, assign_mark,
                                          only_consider_marks, range_mode, range_min, range_max, logger)
-  assert mode == "content"
-  return label_durations_core_content(grids, tier_name, assign_mark,
-                                      only_consider_marks, range_mode, range_min, range_max, logger)
+  assert False
+  raise NotImplementedError()
 
 
-def label_durations_core_together(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
-  assert range_mode in {"percent", "percentile"}
+def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> List[bool]:
+  changed_grid = [False for _ in grids]
 
   consider_intervals: List[Interval] = []
 
@@ -144,7 +152,7 @@ def label_durations_core_together(grids: List[TextGrid], tier_name: str, assign_
   return None, changed_intervals > 0
 
 
-def label_durations_core_content(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
+def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_mark: str, only_consider_marks: Optional[Set[str]], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> ExecutionResult:
   assert range_mode in {"percent", "percentile"}
 
   intervals_to_marks: Dict[str, List[Interval]] = {}
