@@ -95,9 +95,6 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
 
       loaded_grids[group_name].append(grid)
 
-      if __debug__ and file_nr == 10:
-        break
-
   error, changed_anything = label_durations(loaded_grids, ns.tier, ns.assign_tier, ns.assign,
                                             ns.scope, ns.selection, ns.range_mode, ns.marks_mode, ns.range_min, ns.range_max, flogger)
 

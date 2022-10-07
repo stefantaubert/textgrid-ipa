@@ -40,12 +40,21 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
           return error, False
 
   if range_mode == "absolute":
-    all_grids = [grid for speaker_grids in grids.values() for grid in speaker_grids]
-    changes = label_durations_core_absolute(
-      grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_min, range_max, logger)
-    grids_changes = (
+    all_grids = [grid for speaker_name, speaker_grids in grids.items() for grid in speaker_grids]
+    changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_absolute(
+      grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_min, range_max)
+
+    logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
+
+    logger.info(f"{matching_intervals} of {considered_intervals} are matching")
+    if changed_intervals > 0:
+      logger.info(f"Changed {changed_intervals} interval marks.")
+    else:
+      logger.info("All intervals have the correct mark already assigned.")
+    grids_changes = list(
       (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
     )
+    assert len(changes) == 0
     grids_c = {}
     for speaker_name, change in grids_changes:
       if speaker_name not in grids_c:
@@ -54,12 +63,23 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
     return None, grids_c
 
   if scope == "all":
-    all_grids = [grid for speaker_grids in grids.values() for grid in speaker_grids]
-    changes = label_durations_core(all_grids, tier_name, assign_tier_name, assign_mark,
-                                   only_consider_marks, range_mode, marks_mode, range_min, range_max, logger)
-    grids_changes = (
+    all_grids = [grid for speaker_name, speaker_grids in grids.items() for grid in speaker_grids]
+    changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(
+      all_grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, marks_mode, range_min, range_max)
+    assert len(changes) == len(all_grids)
+    logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
+
+    logger.info(f"{matching_intervals} of {considered_intervals} are matching")
+    if changed_intervals > 0:
+      logger.info(f"Changed {changed_intervals} interval marks.")
+    else:
+      logger.info("All intervals have the correct mark already assigned.")
+
+    grids_changes = list(
       (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
     )
+    assert len(changes) == 0
+
     grids_c = {}
     for speaker_name, change in grids_changes:
       if speaker_name not in grids_c:
@@ -69,38 +89,80 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
 
   if scope == "folder":
     changed_anything_all = {}
-
+    total_intervals_sum = 0
+    considered_intervals_sum = 0
+    matching_intervals_sum = 0
+    changed_intervals_sum = 0
     for speaker_name, speaker_grids in grids.items():
-      changes = label_durations_core(speaker_grids, tier_name, assign_tier_name, assign_mark,
-                                     only_consider_marks, range_mode, marks_mode, range_min, range_max, logger)
+      changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(speaker_grids, tier_name, assign_tier_name, assign_mark,
+                                                                                                                   only_consider_marks, range_mode, marks_mode, range_min, range_max)
+      considered_intervals_sum += considered_intervals
+      total_intervals_sum += total_intervals
+      matching_intervals_sum += matching_intervals
+      changed_intervals_sum += changed_intervals
       changed_anything_all[speaker_name] = changes
+
+    logger.info(f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered.")
+
+    logger.info(f"{matching_intervals_sum} of {considered_intervals_sum} are matching")
+    if changed_intervals > 0:
+      logger.info(f"Changed {changed_intervals_sum} interval marks.")
+    else:
+      logger.info("All intervals have the correct mark already assigned.")
+
     return None, changed_anything_all
 
   if scope == "file":
     changed_anything_all = {}
+    total_intervals_sum = 0
+    considered_intervals_sum = 0
+    matching_intervals_sum = 0
+    changed_intervals_sum = 0
+
     for speaker_name, speaker_grids in grids.items():
       changed_anything_all[speaker_name] = []
       for grid in speaker_grids:
-        changes = label_durations_core_separate(
-          [grid], tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, range_min, range_max, logger)
+        changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_separate(
+          [grid], tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, range_min, range_max)
         changed_anything_all[speaker_name].append(changes[0])
+
+        considered_intervals_sum += considered_intervals
+        total_intervals_sum += total_intervals
+        matching_intervals_sum += matching_intervals
+        changed_intervals_sum += changed_intervals
+        changed_anything_all[speaker_name] = changes
+
+    logger.info(f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered.")
+
+    logger.info(f"{matching_intervals_sum} of {considered_intervals_sum} are matching")
+    if changed_intervals > 0:
+      logger.info(f"Changed {changed_intervals_sum} interval marks.")
+    else:
+      logger.info("All intervals have the correct mark already assigned.")
+
     return None, changed_anything_all
 
   assert False
   raise NotImplementedError()
 
 
-def label_durations_core_absolute(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
+def label_durations_core_absolute(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_min: float, range_max: float) -> Tuple[List[ChangedAnything], int, int, int]:
   grids_changed = []
+  changed_intervals = 0
+  matching_intervals = 0
+  considered_intervals = 0
+  total_intervals = 0
   for speaker_grid in grids:
     changed_anything = False
     tier = get_single_tier(speaker_grid, tier_name)
     intervals = tier.intervals
+    total_intervals += len(intervals)
     assign_tier = get_single_tier(speaker_grid, assign_tier_name)
-    intervals = filter_intervals_by_mark(intervals, only_consider_marks)
-    intervals = filter_intervals_by_duration(intervals, range_min, range_max)
+    intervals = list(filter_intervals_by_mark(intervals, only_consider_marks))
+    considered_intervals += len(intervals)
+    intervals = list(filter_intervals_by_duration(intervals, range_min, range_max))
+    matching_intervals += len(intervals)
     for interval in intervals:
-      matching_intervals += 1
       assign_interval = interval
       if assign_tier != tier:
         assign_interval = get_interval_on_tier(interval, assign_tier)
@@ -108,15 +170,8 @@ def label_durations_core_absolute(grids: List[TextGrid], tier_name: str, assign_
         assign_interval.mark = assign_mark
         changed_anything = True
         changed_intervals += 1
-    considered_intervals += len(intervals)
     grids_changed.append(changed_anything)
-
-  logger.info(f"{matching_intervals} of {considered_intervals} are matching")
-  if changed_intervals > 0:
-    logger.info(f"Changed {changed_intervals} interval marks.")
-  else:
-    logger.info("All intervals have the correct mark already assigned.")
-  return grids_changed
+  return grids_changed, total_intervals, considered_intervals, matching_intervals, changed_intervals
 
 
 def filter_intervals_by_mark(intervals: Iterable[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
@@ -139,13 +194,13 @@ def filter_intervals_by_duration(intervals: Iterable[Interval], min_duration_inc
   yield from res
 
 
-def label_durations_core(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], mode: Literal["separate", "all"], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
+def label_durations_core(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], mode: Literal["separate", "all"], range_min: float, range_max: float) -> List[ChangedAnything]:
   if mode == "all":
     return label_durations_core_all(grids, tier_name, assign_tier_name, assign_mark,
-                                    only_consider_marks, range_mode, range_min, range_max, logger)
+                                    only_consider_marks, range_mode, range_min, range_max)
   if mode == "separate":
     return label_durations_core_separate(grids, tier_name, assign_tier_name, assign_mark,
-                                         only_consider_marks, range_mode, range_min, range_max, logger)
+                                         only_consider_marks, range_mode, range_min, range_max)
   assert False
   raise NotImplementedError()
 
@@ -180,7 +235,7 @@ def get_boundary(mode: Literal["percent", "percentile"], durations: np.ndarray, 
   raise NotImplementedError()
 
 
-def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
+def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float) -> Tuple[List[ChangedAnything], int, int, int, int]:
 
   consider_intervals: List[List[Interval]] = []
 
@@ -194,8 +249,6 @@ def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_tier_
     considered_intervals += len(grid_consider_intervals)
     consider_intervals.append(grid_consider_intervals)
 
-  logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
-
   all_interval_durations = np.array(list(
     interval.duration()
     for grid_intervals in consider_intervals
@@ -208,11 +261,11 @@ def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_tier_
   changed_intervals = 0
   matching_intervals = 0
   for grid, grid_intervals in zip(grids, consider_intervals):
-    intervals = filter_intervals_by_duration(grid_intervals, min_val, max_val)
+    intervals = list(filter_intervals_by_duration(grid_intervals, min_val, max_val))
+    matching_intervals += len(intervals)
     assign_tier = get_single_tier(grid, assign_tier_name)
+    changed_anything = False
     for interval in intervals:
-      changed_anything = False
-      matching_intervals += 1
       assign_interval = interval
       if assign_tier_name != tier_name:
         assign_interval = get_interval_on_tier(interval, assign_tier)
@@ -220,17 +273,12 @@ def label_durations_core_all(grids: List[TextGrid], tier_name: str, assign_tier_
         assign_interval.mark = assign_mark
         changed_intervals += 1
         changed_anything = True
-      grids_changed.append(changed_anything)
+    grids_changed.append(changed_anything)
 
-  logger.info(f"{matching_intervals} of {considered_intervals} are matching")
-  if changed_intervals > 0:
-    logger.info(f"Changed {changed_intervals} interval marks.")
-  else:
-    logger.info("All intervals have the correct mark already assigned.")
-  return grids_changed
+  return grids_changed, total_intervals, considered_intervals, matching_intervals, changed_intervals
 
 
-def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float, logger: Logger) -> List[ChangedAnything]:
+def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_mode: Literal["percent", "percentile"], range_min: float, range_max: float) -> Tuple[List[ChangedAnything], int, int, int, int]:
   intervals_to_marks: Dict[str, List[Interval]] = {}
   grid_indices_to_marks: Dict[str, List[int]] = {}
 
@@ -239,17 +287,15 @@ def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_
   for grid_index, grid in enumerate(grids):
     intervals = get_single_tier(grid, tier_name).intervals
     total_intervals += len(intervals)
-    filtered_intervals = filter_intervals_by_mark(intervals, only_consider_marks)
+    filtered_intervals = list(filter_intervals_by_mark(intervals, only_consider_marks))
+    considered_intervals += len(filtered_intervals)
     for interval in filtered_intervals:
-      considered_intervals += 1
       mark = interval.mark
       if mark not in intervals_to_marks:
         intervals_to_marks[mark] = []
         grid_indices_to_marks[mark] = []
       intervals_to_marks[mark].append(interval)
       grid_indices_to_marks[mark].append(grid_index)
-
-  logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
 
   changed_intervals = 0
   matching_intervals = 0
@@ -278,9 +324,4 @@ def label_durations_core_separate(grids: List[TextGrid], tier_name: str, assign_
           changed_intervals += 1
           grids_changed[grid_index] = True
 
-  logger.info(f"{matching_intervals} of {considered_intervals} are matching")
-  if changed_intervals > 0:
-    logger.info(f"Changed {changed_intervals} interval marks.")
-  else:
-    logger.info("All intervals have the correct mark already assigned.")
-  return grids_changed
+  return grids_changed, total_intervals, considered_intervals, matching_intervals, changed_intervals
