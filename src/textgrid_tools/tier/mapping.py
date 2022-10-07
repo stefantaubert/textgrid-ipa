@@ -1,6 +1,7 @@
 from logging import Logger, getLogger
-from typing import Generator, Iterable, List, Optional, Set
+from typing import Generator, Iterable, List, Literal, Optional, Set
 
+from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
@@ -32,7 +33,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, logger: Optional[Logger]) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], ignore_from: OrderedSet[str], ignore_to: OrderedSet[str], mode: Literal["replace", "prepend", "append"], logger: Optional[Logger]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """
@@ -57,35 +58,37 @@ def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], includ
       return error, False
 
   tier = get_single_tier(grid, tier_name)
-  tier_intervals = list(get_intervals(tier, include_pauses))
+  tier_intervals = list(ignore_intervals(tier, ignore_from))
 
   changed_anything = False
 
   for target_tier in get_all_tiers(grid, target_tier_names):
-    target_tier_intervals = list(get_intervals(target_tier, include_pauses))
+    target_tier_intervals = list(ignore_intervals(target_tier, ignore_to))
 
     if error := UnequalIntervalAmountError.validate(tier_intervals, target_tier_intervals):
       return error, False
 
     for tier_interval, target_tier_interval in zip(tier_intervals, target_tier_intervals):
-      if target_tier_interval.mark != tier_interval.mark:
-        target_tier_interval.mark = tier_interval.mark
+      if mode == "replace":
+        if target_tier_interval.mark != tier_interval.mark:
+          target_tier_interval.mark = tier_interval.mark
+          changed_anything = True
+      elif mode == "prepend":
+        target_tier_interval.mark = f"{tier_interval.mark}{target_tier_interval.mark}"
         changed_anything = True
+      elif mode == "append":
+        target_tier_interval.mark = f"{target_tier_interval.mark}{tier_interval.mark}"
+        changed_anything = True
+      else:
+        assert False
 
   return None, changed_anything
 
 
-def get_intervals(tier: IntervalTier, include_pauses: bool) -> Generator[Interval, None, None]:
-  tier_intervals = tier.intervals
-  if not include_pauses:
-    tier_intervals = ignore_pause_intervals(tier_intervals)
-  return tier_intervals
-
-
-def ignore_pause_intervals(intervals: Iterable[Interval]) -> Generator[Interval, None, None]:
+def ignore_intervals(intervals: Iterable[Interval], ignore: OrderedSet[str]) -> Generator[Interval, None, None]:
   result = (
     interval
     for interval in intervals
-    if not interval_is_None_or_whitespace(interval)
+    if interval.mark not in ignore
   )
-  return result
+  yield from result
