@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_chunksize_
 
 
 def get_mapping_parser(parser: ArgumentParser):
-  parser.description = "This command maps the content of a tier to another tier while ignoring pause-intervals on default."
+  parser.description = "This command maps the content of a tier to another tier while ignoring empty intervals on default."
   add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be mapped")
   parser.add_argument("target_tiers", metavar="TARGET-TIER",
