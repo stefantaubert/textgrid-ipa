@@ -104,7 +104,6 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
           matching_intervals_sum += matching_intervals
           changed_intervals_sum += changed_intervals
           grids_c[speaker_name] = changes
-
     else:
       assert False
       raise NotImplementedError()
