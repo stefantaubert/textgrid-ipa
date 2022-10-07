@@ -39,111 +39,85 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
         if error := BoundaryError.validate(tier_timepoints, [boundary_tier]):
           return error, False
 
+  grids_c = {}
+  total_intervals_sum = 0
+  considered_intervals_sum = 0
+  matching_intervals_sum = 0
+  changed_intervals_sum = 0
+
   if range_mode == "absolute":
     all_grids = [grid for speaker_name, speaker_grids in grids.items() for grid in speaker_grids]
     changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_absolute(
       grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_min, range_max)
 
-    logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
-
-    logger.info(f"{matching_intervals} of {considered_intervals} are matching")
-    if changed_intervals > 0:
-      logger.info(f"Changed {changed_intervals} interval marks.")
-    else:
-      logger.info("All intervals have the correct mark already assigned.")
-    grids_changes = list(
-      (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
-    )
-    assert len(changes) == 0
-    grids_c = {}
-    for speaker_name, change in grids_changes:
-      if speaker_name not in grids_c:
-        grids_c[speaker_name] = []
-      grids_c[speaker_name].append(change)
-    return None, grids_c
-
-  if scope == "all":
-    all_grids = [grid for speaker_name, speaker_grids in grids.items() for grid in speaker_grids]
-    changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(
-      all_grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, marks_mode, range_min, range_max)
-    assert len(changes) == len(all_grids)
-    logger.info(f"{considered_intervals} of {total_intervals} intervals are considered.")
-
-    logger.info(f"{matching_intervals} of {considered_intervals} are matching")
-    if changed_intervals > 0:
-      logger.info(f"Changed {changed_intervals} interval marks.")
-    else:
-      logger.info("All intervals have the correct mark already assigned.")
+    considered_intervals_sum += considered_intervals
+    total_intervals_sum += total_intervals
+    matching_intervals_sum += matching_intervals
+    changed_intervals_sum += changed_intervals
 
     grids_changes = list(
       (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
     )
     assert len(changes) == 0
-
-    grids_c = {}
     for speaker_name, change in grids_changes:
       if speaker_name not in grids_c:
         grids_c[speaker_name] = []
       grids_c[speaker_name].append(change)
-    return None, grids_c
-
-  if scope == "folder":
-    changed_anything_all = {}
-    total_intervals_sum = 0
-    considered_intervals_sum = 0
-    matching_intervals_sum = 0
-    changed_intervals_sum = 0
-    for speaker_name, speaker_grids in grids.items():
-      changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(speaker_grids, tier_name, assign_tier_name, assign_mark,
-                                                                                                                   only_consider_marks, range_mode, marks_mode, range_min, range_max)
+  else:
+    if scope == "all":
+      all_grids = [grid for speaker_name, speaker_grids in grids.items() for grid in speaker_grids]
+      changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(
+        all_grids, tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, marks_mode, range_min, range_max)
+      assert len(changes) == len(all_grids)
       considered_intervals_sum += considered_intervals
       total_intervals_sum += total_intervals
       matching_intervals_sum += matching_intervals
       changed_intervals_sum += changed_intervals
-      changed_anything_all[speaker_name] = changes
 
-    logger.info(f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered.")
+      grids_changes = list(
+        (speaker_name, changes.pop(0)) for speaker_name, speaker_grids in grids.items() for grid in speaker_grids
+      )
+      assert len(changes) == 0
 
-    logger.info(f"{matching_intervals_sum} of {considered_intervals_sum} are matching")
-    if changed_intervals > 0:
-      logger.info(f"Changed {changed_intervals_sum} interval marks.")
-    else:
-      logger.info("All intervals have the correct mark already assigned.")
-
-    return None, changed_anything_all
-
-  if scope == "file":
-    changed_anything_all = {}
-    total_intervals_sum = 0
-    considered_intervals_sum = 0
-    matching_intervals_sum = 0
-    changed_intervals_sum = 0
-
-    for speaker_name, speaker_grids in grids.items():
-      changed_anything_all[speaker_name] = []
-      for grid in speaker_grids:
-        changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_separate(
-          [grid], tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, range_min, range_max)
-        changed_anything_all[speaker_name].append(changes[0])
-
+      for speaker_name, change in grids_changes:
+        if speaker_name not in grids_c:
+          grids_c[speaker_name] = []
+        grids_c[speaker_name].append(change)
+    elif scope == "folder":
+      for speaker_name, speaker_grids in grids.items():
+        changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core(speaker_grids, tier_name, assign_tier_name, assign_mark,
+                                                                                                                     only_consider_marks, range_mode, marks_mode, range_min, range_max)
         considered_intervals_sum += considered_intervals
         total_intervals_sum += total_intervals
         matching_intervals_sum += matching_intervals
         changed_intervals_sum += changed_intervals
-        changed_anything_all[speaker_name] = changes
+        grids_c[speaker_name] = changes
+    elif scope == "file":
+      for speaker_name, speaker_grids in grids.items():
+        grids_c[speaker_name] = []
+        for grid in speaker_grids:
+          changes, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_separate(
+            [grid], tier_name, assign_tier_name, assign_mark, only_consider_marks, range_mode, range_min, range_max)
+          grids_c[speaker_name].append(changes[0])
+          considered_intervals_sum += considered_intervals
+          total_intervals_sum += total_intervals
+          matching_intervals_sum += matching_intervals
+          changed_intervals_sum += changed_intervals
+          grids_c[speaker_name] = changes
 
-    logger.info(f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered.")
-
-    logger.info(f"{matching_intervals_sum} of {considered_intervals_sum} are matching")
-    if changed_intervals > 0:
-      logger.info(f"Changed {changed_intervals_sum} interval marks.")
     else:
-      logger.info("All intervals have the correct mark already assigned.")
+      assert False
+      raise NotImplementedError()
 
-    return None, changed_anything_all
-
-  assert False
-  raise NotImplementedError()
+  logger.info(
+    f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered (due to mark restrictions).")
+  logger.info(
+    f"{matching_intervals_sum} of {considered_intervals_sum} are matching (due to duration restriction)")
+  if changed_intervals > 0:
+    logger.info(f"Changed {changed_intervals_sum} interval marks.")
+  else:
+    logger.info("All intervals have the correct mark already assigned.")
+  return None, grids_c
 
 
 def label_durations_core_absolute(grids: List[TextGrid], tier_name: str, assign_tier_name: str, assign_mark: str, only_consider_marks: Set[str], range_min: float, range_max: float) -> Tuple[List[ChangedAnything], int, int, int]:
