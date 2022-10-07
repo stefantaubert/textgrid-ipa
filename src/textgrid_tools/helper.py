@@ -191,6 +191,11 @@ def get_interval_from_maxTime(tier: IntervalTier, maxTime: float) -> Optional[In
       return interval
   return None
 
+def get_interval_on_tier(interval: Interval, tier: IntervalTier) -> Interval:
+  result = get_interval_from_minTime(tier, interval.minTime)
+  assert result is not None
+  assert result.maxTime == interval.maxTime
+  return result
 
 def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):

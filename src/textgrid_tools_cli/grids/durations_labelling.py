@@ -30,7 +30,9 @@ def get_grids_label_durations_parser(parser: ArgumentParser):
   parser.description = "This command assigns a mark for each interval having a specific duration."
   add_directory_argument(parser)
   parser.add_argument("tier", type=parse_non_empty_or_whitespace, metavar="TIER",
-                      help="tier containing the intervals that should be marked")
+                      help="tier containing the intervals which durations should be considered")
+  parser.add_argument("assign_tier", type=parse_non_empty_or_whitespace, metavar="ASSIGN-TIER",
+                      help="tier containing the intervals that should be marked; can also be equal to TIER")
   parser.add_argument("assign", type=parse_non_empty_or_whitespace, metavar="MARK",
                       help="mark that should be assigned to the matching intervals")
   parser.add_argument("--range-mode", type=str, choices=["percent", "percentile", "absolute"],
@@ -96,8 +98,8 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
       if __debug__ and file_nr == 10:
         break
 
-  error, changed_anything = label_durations(loaded_grids, ns.tier, ns.assign, ns.scope,
-                                            ns.selection, ns.range_mode, ns.marks_mode, ns.range_min, ns.range_max, flogger)
+  error, changed_anything = label_durations(loaded_grids, ns.tier, ns.assign_tier, ns.assign,
+                                            ns.scope, ns.selection, ns.range_mode, ns.marks_mode, ns.range_min, ns.range_max, flogger)
 
   success = error is None
 
