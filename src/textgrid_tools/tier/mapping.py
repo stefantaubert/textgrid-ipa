@@ -1,5 +1,5 @@
 from logging import Logger, getLogger
-from typing import Generator, Iterable, List, Optional, Set
+from typing import Generator, Iterable, List, Literal, Optional, Set
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 
@@ -32,7 +32,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, logger: Optional[Logger]) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], include_pauses: bool, mode: Literal["replace", "prepend", "append"], logger: Optional[Logger]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """
@@ -68,9 +68,18 @@ def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], includ
       return error, False
 
     for tier_interval, target_tier_interval in zip(tier_intervals, target_tier_intervals):
-      if target_tier_interval.mark != tier_interval.mark:
-        target_tier_interval.mark = tier_interval.mark
+      if mode == "replace":
+        if target_tier_interval.mark != tier_interval.mark:
+          target_tier_interval.mark = tier_interval.mark
+          changed_anything = True
+      elif mode == "prepend":
+        target_tier_interval.mark = f"{tier_interval.mark}{target_tier_interval.mark}"
         changed_anything = True
+      elif mode == "append":
+        target_tier_interval.mark = f"{target_tier_interval.mark}{tier_interval.mark}"
+        changed_anything = True
+      else:
+        assert False
 
   return None, changed_anything
 

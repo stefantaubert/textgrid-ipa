@@ -19,6 +19,8 @@ def get_mapping_parser(parser: ArgumentParser):
                       type=parse_non_empty_or_whitespace, nargs="+", help="tiers to which the content should be mapped", action=ConvertToOrderedSetAction)
   parser.add_argument("--include-pauses", action="store_true",
                       help="include mapping from and to pause intervals, i.e., those which contain nothing or only whitespace")
+  parser.add_argument("--mode", type="str", choices=["replace", "prepend", "append"],
+                      help="", default="replace")
   add_output_directory_argument(parser)
   add_encoding_argument(parser)
   add_overwrite_argument(parser)
@@ -34,6 +36,7 @@ def app_map_tier(ns: Namespace) -> ExecutionResult:
     include_pauses=ns.include_pauses,
     target_tier_names=ns.target_tiers,
     tier_name=ns.tier,
+    mode=ns.mode,
   )
 
   return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
