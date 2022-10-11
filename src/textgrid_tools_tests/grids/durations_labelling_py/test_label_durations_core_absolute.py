@@ -1,4 +1,3 @@
-from logging import getLogger
 from math import inf
 
 from textgrid import Interval, IntervalTier, TextGrid

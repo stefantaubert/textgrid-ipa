@@ -2,10 +2,10 @@ from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Literal, Optional, Set
 
 from ordered_set import OrderedSet
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import Interval, TextGrid
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import get_all_tiers, get_single_tier, interval_is_None_or_whitespace
+from textgrid_tools.helper import get_all_tiers, get_single_tier
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NonDistinctTiersError, NotExistingTierError, ValidationError)
 

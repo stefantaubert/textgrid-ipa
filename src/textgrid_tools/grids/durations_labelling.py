@@ -1,13 +1,13 @@
 import math
 from logging import Logger, getLogger
-from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple, cast
+from typing import Dict, Generator, Iterable, List, Literal, Optional, Set, Tuple
 
 import numpy as np
-from textgrid import Interval, IntervalTier, TextGrid
+from textgrid import Interval, TextGrid
 
 from textgrid_tools.globals import ChangedAnything
 from textgrid_tools.helper import (get_boundary_timepoints_from_tier, get_interval_on_tier,
-                                   get_intervals_from_timespan, get_single_tier)
+                                   get_single_tier)
 from textgrid_tools.validation import (BoundaryError, InvalidGridError, NotExistingTierError,
                                        ValidationError)
 

@@ -1,14 +1,13 @@
 from logging import Logger, getLogger
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Iterable, Optional, Set, cast
 
 from textgrid.textgrid import Interval, TextGrid
 
 from textgrid_tools.comparison import check_intervals_are_equal
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import get_all_tiers, get_intervals_duration
-from textgrid_tools.intervals.common import (group_adjacent_pauses, merge_intervals,
-                                             replace_intervals)
-from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
+from textgrid_tools.helper import get_all_tiers
+from textgrid_tools.intervals.common import merge_intervals, replace_intervals
+from textgrid_tools.validation import InvalidGridError, NotExistingTierError
 
 
 def join_intervals(grid: TextGrid, tier_names: Set[str], join_with: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:

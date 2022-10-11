@@ -1,29 +1,22 @@
 import math
-import os
 from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
-from logging import getLogger
 from pathlib import Path
-from time import perf_counter
-from typing import Dict, Iterable, List
+from typing import Dict, List
 from typing import OrderedDict as OrderedDictType
-from typing import cast
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.grids.durations_labelling import label_durations
-from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (GRID_FILE_TYPE, ConvertToOrderedSetAction,
                                        add_directory_argument, add_encoding_argument,
-                                       add_output_directory_argument, add_overwrite_argument,
-                                       get_files_in_folder, get_grid_files, get_subfolders,
-                                       parse_non_empty_or_whitespace, parse_non_negative_float,
-                                       parse_path, try_load_grid, try_save_grid)
+                                       add_overwrite_argument, get_files_in_folder, get_grid_files,
+                                       get_subfolders, parse_non_empty_or_whitespace,
+                                       parse_non_negative_float, try_load_grid, try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
-from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 
 def get_grids_label_durations_parser(parser: ArgumentParser):
