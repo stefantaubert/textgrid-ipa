@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Optional, Tuple, Union
+from typing import Generator, Iterable, List, Optional, Set, Tuple, Union
 
 from textgrid.textgrid import Interval, IntervalTier
 
@@ -53,20 +53,36 @@ def group_adjacent_pauses(intervals: Iterable[Interval]) -> Generator[Union[Inte
     yield pause_group
 
 
-def group_adjacent_pauses2(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:
-  pause_group = []
+def group_adjacent_intervals(intervals: Iterable[Interval], with_marks: Set[str]) -> Generator[Union[Interval, List[Interval]], None, None]:
+  matching_group = []
   for interval in intervals:
-    is_pause = interval_is_None_or_whitespace(interval)
-    if is_pause:
-      pause_group.append(interval)
+    is_matching = interval.mark in with_marks
+    if is_matching:
+      matching_group.append(interval)
     else:
-      if len(pause_group) > 0:
-        yield pause_group, True
-        pause_group = []
-      yield [interval], False
+      if len(matching_group) > 0:
+        yield matching_group
+        matching_group = []
+      yield interval
 
-  if len(pause_group) > 0:
-    yield pause_group, True
+  if len(matching_group) > 0:
+    yield matching_group
+
+
+# def group_adjacent_pauses2(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:
+#   pause_group = []
+#   for interval in intervals:
+#     is_pause = interval_is_None_or_whitespace(interval)
+#     if is_pause:
+#       pause_group.append(interval)
+#     else:
+#       if len(pause_group) > 0:
+#         yield pause_group, True
+#         pause_group = []
+#       yield [interval], False
+
+#   if len(pause_group) > 0:
+#     yield pause_group, True
 
 
 def group_adjacent_content_and_pauses(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:

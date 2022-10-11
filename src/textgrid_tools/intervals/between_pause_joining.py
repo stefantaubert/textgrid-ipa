@@ -29,7 +29,7 @@ class PauseTooLowError(ValidationError):
 
 def join_intervals_between_pauses(grid: TextGrid, tier_names: Set[str], pause: float, join_with: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
-  
+
   if logger is None:
     logger = getLogger(__name__)
 
