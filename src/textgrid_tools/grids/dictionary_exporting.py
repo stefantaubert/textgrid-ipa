@@ -31,7 +31,7 @@ def create_dictionaries(grids: Dict[str, List[TextGrid]], words_tier_name: str, 
         return error, False
 
       words_tier = get_single_tier(grid, words_tier_name)
-      words_tier_intervals = ignore_intervals_by_mark(words_tier.intervals, ignore_marks)
+      words_tier_intervals = list(ignore_intervals_by_mark(words_tier.intervals, ignore_marks))
       pronunciation_tier = get_single_tier(grid, pronunciations_tier_name)
 
       words_tier_timepoints = get_boundary_timepoints_from_intervals(words_tier_intervals)
@@ -50,9 +50,8 @@ def create_dictionaries(grids: Dict[str, List[TextGrid]], words_tier_name: str, 
     result = get_dict_from_pronunciations(pronunciations)
   elif scope == "folder":
     result: Dict[str, PronunciationDict] = {}
-    for speaker_name, speaker_grids in grids.items():
-      result = get_dict_from_pronunciations(speaker_pronunciations[speaker_name])
-      result[speaker_name] = result
+    for speaker_name, pronunciations in speakers_pronunciations.items():
+      result[speaker_name] = get_dict_from_pronunciations(pronunciations)
   else:
     assert False
 
@@ -62,8 +61,8 @@ def create_dictionaries(grids: Dict[str, List[TextGrid]], words_tier_name: str, 
 def get_dict_from_pronunciations(pronunciations: Iterable[Tuple[str, Tuple[str, ...]]]) -> PronunciationDict:
   dictionary: PronunciationDict = OrderedDict()
   weights = Counter(pronunciations)
-  # sort after word and then descending after weight
-  for (word, pronunciation), weight in sorted(weights.items(), key=lambda wp_w: (wp_w[0][0], -wp_w[1])):
+  # sort after word and then descending after weight and then after pronunciation
+  for (word, pronunciation), weight in sorted(weights.items(), key=lambda wp_w: (wp_w[0][0], -wp_w[1], wp_w[0][1])):
     if word not in dictionary:
       dictionary[word] = OrderedDict()
     dictionary[word][pronunciation] = weight

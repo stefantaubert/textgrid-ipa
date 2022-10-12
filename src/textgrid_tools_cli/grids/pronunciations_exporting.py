@@ -31,12 +31,12 @@ def get_pronunciations_exporting_parser(parser: ArgumentParser):
   parser.add_argument("--scope", type=str, choices=["folder", "all"],
                       metavar="SCOPE", help="scope for creation of dictionary file(s): folder -> consider all files of the subfolders together; all -> consider all files together", default="all")
   parser.add_argument("--ignore", type=str, metavar="MARK", nargs="*",
-                      help="ignore intervals in the WORDS-TIER containing these marks", default=OrderedSet(), action=ConvertToOrderedSetAction)
+                      help="ignore intervals in the WORDS-TIER containing these marks", default=OrderedSet(("",)), action=ConvertToOrderedSetAction)
   add_encoding_argument(parser)
-  return app_label_durations
+  return app_create_dictionary
 
 
-def app_label_durations(ns: Namespace) -> ExecutionResult:
+def app_create_dictionary(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
@@ -78,7 +78,6 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
         loaded_grids[group_name] = []
 
       loaded_grids[group_name].append(grid)
-
   error, result = create_dictionaries(
     loaded_grids, ns.words_tier, ns.pronunciations_tier, ns.scope, ns.ignore, flogger)
 
@@ -99,9 +98,9 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
       logger.debug(error.exception)
       logger.error(error.default_message)
       all_successful = False
+    logger.info(f"Saved pronunciation dictionary to: '{output_path.absolute()}'")
   elif ns.scope == "folder":
-    for group_name, grids in loaded_grids.items():
-      pronunciation_dict = result[group_name]
+    for group_name, pronunciation_dict in result.items():
       if group_name is None:
         output_path = ns.directory / ns.output_name
       else:
@@ -112,6 +111,7 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
         logger.error(error.default_message)
         all_successful = False
         continue
+      logger.info(f"Saved pronunciation dictionary to: '{output_path.absolute()}'")
   else:
     assert False
 
@@ -129,7 +129,7 @@ class DictionaryCouldNotBeSavedError(ValidationError):
     return "Dictionary couldn't be saved!"
 
 
-def try_save_dict(path: Path, dictionary: PronunciationDict, encoding: str) -> Optional[DictionaryCouldNotBeSavedError]:
+def try_save_dict(dictionary: PronunciationDict, path: Path, encoding: str) -> Optional[DictionaryCouldNotBeSavedError]:
   try:
     save_dict(dictionary, path, encoding, SerializationOptions("DOUBLE-SPACE", False, True))
   except Exception as ex:
