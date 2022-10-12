@@ -67,8 +67,9 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
     grids_to_groups[subfolder_name] = get_grid_files(subfolder)
 
   loaded_grids: Dict[str, List[TextGrid]] = {}
+  logger.info("Reading files...")
   for group_name, grids in grids_to_groups.items():
-    for file_nr, (file_stem, rel_path) in enumerate(tqdm(grids.items()), start=1):
+    for file_nr, (file_stem, rel_path) in enumerate(grids.items(), start=1):
       flogger.info(f"Processing {file_stem}")
       if group_name is None:
         grid_file_in_abs = ns.directory / rel_path
