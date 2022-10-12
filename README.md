@@ -16,6 +16,7 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `export-vocabulary`: export vocabulary out of multiple grid files
   - `plot-durations`: plot durations
   - `export-marks`: exports marks of a tier to a file
+  - `create-dictionary`: create pronunciation dictionary out of a word and a pronunciation tier
 - grid
   - `create`: convert text files to grid files
   - `sync`: synchronize grid minTime and maxTime according to the corresponding audio file
