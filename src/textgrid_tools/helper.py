@@ -330,6 +330,17 @@ def get_boundary_timepoints_from_intervals(intervals: List[Interval]) -> Ordered
     result.add(interval.maxTime)
   return result
 
+def ignore_intervals_by_mark(intervals: Iterable[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
+  if len(marks) == 0:
+    yield from intervals
+  res = (
+    interval
+    for interval in intervals
+    if interval.mark not in marks
+  )
+  yield from res
+
+
 
 def interval_is_None_or_whitespace(interval: Interval) -> bool:
   return interval.mark is None or len(interval.mark.strip()) == 0
