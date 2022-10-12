@@ -68,7 +68,7 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
 
   loaded_grids: Dict[str, List[TextGrid]] = {}
   logger.info("Reading files...")
-  for group_name, grids in grids_to_groups.items():
+  for group_name, grids in tqdm(grids_to_groups.items()):
     for file_nr, (file_stem, rel_path) in enumerate(grids.items(), start=1):
       flogger.info(f"Processing {file_stem}")
       if group_name is None:

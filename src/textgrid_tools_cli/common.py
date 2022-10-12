@@ -55,7 +55,7 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
     maxtasksperchild=maxtasksperchild,
   ) as pool:
     iterator = pool.imap_unordered(method_proxy, keys, chunksize=chunksize)
-    iterator = tqdm(iterator, total=len(keys), desc="Processing", unit="file(s)")
+    iterator = tqdm(iterator, total=len(keys), desc="Processing", unit=" file(s)")
     result: Dict[str, Tuple[bool, bool, List[LogRecord]]] = dict(iterator)
 
   stored_records = (
