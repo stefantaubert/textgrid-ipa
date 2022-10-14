@@ -57,6 +57,7 @@ def app_create_dictionary(ns: Namespace) -> ExecutionResult:
     grids_to_groups[subfolder_name] = get_grid_files(subfolder)
 
   loaded_grids: Dict[str, List[TextGrid]] = {}
+  loaded_successful = True
   logger.info("Reading files...")
   for group_name, grids in tqdm(grids_to_groups.items()):
     for file_nr, (file_stem, rel_path) in enumerate(grids.items(), start=1):
@@ -71,6 +72,7 @@ def app_create_dictionary(ns: Namespace) -> ExecutionResult:
         flogger.debug(error.exception)
         flogger.error(error.default_message)
         flogger.info("Skipped.")
+        loaded_successful = False
         continue
       assert grid is not None
 
@@ -78,6 +80,10 @@ def app_create_dictionary(ns: Namespace) -> ExecutionResult:
         loaded_grids[group_name] = []
 
       loaded_grids[group_name].append(grid)
+
+  if len(loaded_grids) == 0:
+    return loaded_successful, False
+
   error, result = create_dictionaries(
     loaded_grids, ns.words_tier, ns.pronunciations_tier, ns.scope, ns.ignore, flogger)
 
