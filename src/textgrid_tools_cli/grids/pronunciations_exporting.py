@@ -26,8 +26,8 @@ def get_pronunciations_exporting_parser(parser: ArgumentParser):
                       help="tier containing the words in the intervals")
   parser.add_argument("pronunciations_tier", type=parse_non_empty_or_whitespace, metavar="PRONUNCIATIONS-TIER",
                       help="tier containing the pronunciations in the intervals")
-  parser.add_argument("--output_name", type=parse_non_empty_or_whitespace, metavar="OUTPUT-NAME",
-                      help="name of the dictionary file exported relative to DIRECTORY", default="pronunciations.dict")
+  parser.add_argument("output_name", type=parse_non_empty_or_whitespace, metavar="OUTPUT-NAME",
+                      help="name of the dictionary file exported relative to DIRECTORY")
   parser.add_argument("--scope", type=str, choices=["folder", "all"],
                       metavar="SCOPE", help="scope for creation of dictionary file(s): folder -> consider all files of the subfolders together; all -> consider all files together", default="all")
   parser.add_argument("--ignore", type=str, metavar="MARK", nargs="*",
