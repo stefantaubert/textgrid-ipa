@@ -51,7 +51,7 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
   flogger = get_file_logger()
 
   resulting_files = (f for f in get_files_in_folder(
-    ns.directory) if f.suffix.lower() == GRID_FILE_TYPE)
+    ns.directory) if f.suffix.lower() == GRID_FILE_TYPE.lower())
   resulting_files = OrderedDict(sorted(
     (str(file.relative_to(ns.directory).parent / file.stem), file.relative_to(ns.directory))
       for file in resulting_files
