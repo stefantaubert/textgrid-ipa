@@ -47,12 +47,15 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
+  audio_directory = ns.audio_directory
   if audio_directory is None and not ns.ignore_audio:
     audio_directory = ns.directory
 
+  output_directory = ns.output_directory
   if output_directory is None:
     output_directory = ns.directory
 
+  output_audio_directory = ns.output_audio_directory
   if output_audio_directory is None:
     output_audio_directory = ns.directory
 
