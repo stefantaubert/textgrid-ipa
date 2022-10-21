@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Generator, Iterable, List, Optional, Set, cast
+from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
 
 from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -191,16 +191,39 @@ def get_interval_from_maxTime(tier: IntervalTier, maxTime: float) -> Optional[In
       return interval
   return None
 
+
 def get_interval_on_tier(interval: Interval, tier: IntervalTier) -> Interval:
   result = get_interval_from_minTime(tier, interval.minTime)
   assert result is not None
   assert result.maxTime == interval.maxTime
   return result
 
+
 def get_intervals_from_timespan(tier: IntervalTier, minTime: float, maxTime: float) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
     if minTime <= interval.minTime and interval.maxTime <= maxTime:
       yield interval
+
+
+def get_intervals_from_timespan_match(tier: IntervalTier, minTime: float, maxTime: float) -> List[Interval]:
+  result = []
+  # TODO check that no duplicate intervals in tier exist and that they are consecutive
+  for interval in cast(Iterable[Interval], tier.intervals):
+    if minTime <= interval.minTime and interval.maxTime <= maxTime:
+      result.append(interval)
+  result.sort(key=lambda x: x.minTime)
+  assert result[0].minTime == minTime
+  assert result[-1].maxTime == maxTime
+  return result
+
+
+def get_intervals_from_timespans_match(tier: IntervalTier, min_max_times: Set[Tuple[float, float]]) -> List[Interval]:
+  result = []
+  times = list(min_max_times)
+  times.sort(key=lambda x: x[0])
+  for min_time, max_time in min_max_times:
+    result.extend(get_intervals_from_timespan_match(tier, min_time, max_time))
+  return result
 
 
 def number_prepend_zeros(n: int, max_n: int) -> str:
@@ -330,6 +353,7 @@ def get_boundary_timepoints_from_intervals(intervals: List[Interval]) -> Ordered
     result.add(interval.maxTime)
   return result
 
+
 def ignore_intervals_by_mark(intervals: Iterable[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
   if len(marks) == 0:
     yield from intervals
@@ -339,7 +363,6 @@ def ignore_intervals_by_mark(intervals: Iterable[Interval], marks: Set[str]) -> 
     if interval.mark not in marks
   )
   yield from res
-
 
 
 def interval_is_None_or_whitespace(interval: Interval) -> bool:

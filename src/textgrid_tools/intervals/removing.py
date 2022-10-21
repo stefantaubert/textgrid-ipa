@@ -3,6 +3,7 @@ from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Literal, Optional, Set, Tuple, cast
 
 import numpy as np
+from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
 from tqdm import tqdm
 
@@ -12,7 +13,9 @@ from textgrid_tools.grid.audio_synchronization import (LastIntervalToShortError,
 from textgrid_tools.helper import (check_is_valid_grid,
                                    check_timepoints_exist_on_all_tiers_as_boundaries,
                                    get_boundary_timepoints_from_intervals,
-                                   get_boundary_timepoints_from_tier, get_intervals_on_tier,
+                                   get_boundary_timepoints_from_tier, get_intervals_from_timespan,
+                                   get_intervals_from_timespan_match,
+                                   get_intervals_from_timespans_match, get_intervals_on_tier,
                                    get_single_tier, s_to_samples)
 from textgrid_tools.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.validation import (AudioAndGridLengthMismatchError, BoundaryError,
@@ -44,39 +47,10 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
   ref_tier = get_single_tier(grid, tier_name)
 
   intervals_to_remove = list(get_intervals_mode(ref_tier, remove_marks, mode))
-  timepoints = get_boundary_timepoints_from_intervals(intervals_to_remove)
-
-  if error := BoundaryError.validate(timepoints, grid.tiers):
-    return (error, False), None
-
-  for interval in intervals_to_remove:
-    for interval_on_tier in get_intervals_on_tier(interval, ref_tier):
-      ref_tier.removeInterval(interval_on_tier)
-  if len(ref_tier.intervals) > 0:
-    move_interval(ref_tier.intervals[0], 0)
-    set_times_consecutively_tier(ref_tier)
-
-  sync_timepoints = get_boundary_timepoints_from_tier(ref_tier)
-
-  for tier in cast(Iterable[IntervalTier], tqdm(grid.tiers)):
-    if tier == ref_tier:
-      continue
-    for interval in intervals_to_remove:
-      for interval_on_tier in get_intervals_on_tier(interval, tier):
-        tier.removeInterval(interval_on_tier)
-    if len(tier.intervals) > 0:
-      move_interval(tier.intervals[0], 0)
-      set_times_consecutively_tier(tier)
-      if not ref_tier.maxTime > tier.minTime:
-        raise InternalError()
-      set_maxTime_tier(tier, ref_tier.maxTime)
-
-    for timepoint in sync_timepoints:
-      fix_timepoint(timepoint, tier, math.inf, logger)
-
-  all_tiers_share_timepoints = check_timepoints_exist_on_all_tiers_as_boundaries(
-    sync_timepoints, grid.tiers)
-  assert all_tiers_share_timepoints
+  success = remove_intervals_from_tiers(intervals_to_remove, grid.tiers, logger)
+  if not success:
+    internal_error = InternalError()
+    return (internal_error, False), None
 
   assert grid.minTime <= ref_tier.minTime
   assert ref_tier.maxTime <= grid.maxTime
@@ -107,6 +81,108 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
   logger.info(f"Removed {len(intervals_to_remove)} intervals ({removed_duration:.2f}s).")
 
   return (None, True), res_audio
+
+
+def check_contains_consecutives(min_max_times: Set[Tuple[float, float]]) -> bool:
+  min_times = {time for time, _ in min_max_times}
+  max_times = {time for _, time in min_max_times}
+  for min_time, max_time in min_max_times:
+    if min_time in max_times:
+      return True
+    if max_time in min_times:
+      return True
+  return False
+
+
+def merge_consecutives(min_max_times: OrderedSet[Tuple[float, float]]) -> OrderedSet[Tuple[float, float]]:
+  if len(min_max_times) == 0:
+    return OrderedSet()
+
+  if len(min_max_times) == 1:
+    return OrderedSet([min_max_times[0]])
+
+  result = OrderedSet()
+  current_range = [min_max_times[0][0]]
+  max_time = None
+  for i, (min_time, max_time) in enumerate(min_max_times[1:], start=1):
+    last_min_time, last_max_time = min_max_times[i - 1]
+    if min_time == last_max_time:
+      continue
+    else:
+      current_range.append(last_max_time)
+      result.add(tuple(current_range))
+      current_range.clear()
+      current_range.append(min_time)
+  if len(current_range) == 1:
+    assert max_time is not None
+    current_range.append(max_time)
+    result.add(tuple(current_range))
+  return result
+
+
+def get_sync_times(min_max_times: Set[Tuple[float, float]]) -> OrderedSet[float]:
+  assert not check_contains_consecutives(min_max_times)
+  times = list(min_max_times)
+  times.sort(key=lambda x: x[0])
+  currently_removed_difference = 0
+  result = OrderedSet()
+  for min_time, max_time in min_max_times:
+    assert min_time < max_time
+    timepoint = min_time - currently_removed_difference
+    result.add(timepoint)
+    difference = max_time - min_time
+    currently_removed_difference += difference
+  return result
+
+
+def remove_intervals_from_tiers(intervals_to_remove: List[Interval], tiers: List[IntervalTier], logger: Logger) -> bool:
+  min_max_times = OrderedSet([
+    (interval.minTime, interval.maxTime)
+    for interval in intervals_to_remove
+  ])
+  min_max_times = merge_consecutives(min_max_times)
+
+  times_across_all_tiers = OrderedSet([
+    a_or_b
+    for ab in min_max_times
+    for a_or_b in ab
+  ])
+
+  if not check_timepoints_exist_on_all_tiers_as_boundaries(times_across_all_tiers, tiers):
+    logger.debug("Boundaries do not exist on all tiers!")
+    return False
+
+  # TODO: add maxtime as parameter and then check if last time is max then do nothing else also include endtime as sync time!
+  sync_times = get_sync_times(min_max_times)
+
+  for tier in tiers:
+    assert len(tier.intervals) > 0
+    matching_intervals = get_intervals_from_timespans_match(tier, min_max_times)
+    old_min_time = tier.intervals[0].minTime
+    move_first_interval = False
+    if tier.intervals[0] in matching_intervals:
+      move_first_interval = True
+    for interval in matching_intervals:
+      tier.intervals.remove(interval)
+
+    all_intervals_were_removed = len(tier.intervals) == 0
+    if all_intervals_were_removed:
+      continue
+
+    if move_first_interval:
+      move_interval(tier.intervals[0], old_min_time)
+
+    set_times_consecutively_intervals(tier.intervals)
+    tier.maxTime = tier.intervals[-1].maxTime
+    for sync_time in sync_times:
+      success, changes = fix_timepoint(sync_time, tier, math.inf, logger)
+      if not success:
+        return False
+
+  all_tiers_share_sync_times = check_timepoints_exist_on_all_tiers_as_boundaries(
+    sync_times, tiers)
+  assert all_tiers_share_sync_times
+  return True
 
 
 def set_times_consecutively_tier(tier: IntervalTier):

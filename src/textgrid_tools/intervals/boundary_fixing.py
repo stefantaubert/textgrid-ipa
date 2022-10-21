@@ -1,4 +1,5 @@
 from logging import Logger, getLogger
+from math import inf
 from typing import Iterable, Optional, Set, Tuple, cast
 
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -98,6 +99,8 @@ def fix_timepoint(timepoint: float, tier: IntervalTier, threshold: float, logger
 
 
 def get_interval_from_time(tier: IntervalTier, time: float) -> Interval:
+  assert time >= 0
+  assert time < inf
   assert len(tier.intervals) > 0
   for interval in cast(Iterable[Interval], tier.intervals):
     if interval.minTime <= time < interval.maxTime:
@@ -110,7 +113,35 @@ def get_interval_from_time(tier: IntervalTier, time: float) -> Interval:
 
 
 def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], interval: Interval, next_interval: Optional[Interval], threshold: float, logger: Logger) -> Tuple[bool, ChangedAnything]:
-  assert interval.minTime <= timepoint < interval.maxTime
+  assert timepoint >= 0
+  assert timepoint < inf
+  if timepoint > interval.maxTime and next_interval is None:
+    difference = timepoint - interval.maxTime
+    if difference < threshold:
+      interval.maxTime = timepoint
+      logger.info(
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Set maxTime to {timepoint} (+{difference} difference).")
+      return True, True
+    else:
+      logger.info(
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set maxTime to {timepoint} (+{difference}).")
+      return False, False
+
+  if timepoint < interval.minTime and prev_interval is None:
+    difference = interval.minTime - timepoint
+    if difference < threshold:
+      interval.minTime = timepoint
+      logger.info(
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Set minTime to {timepoint} (-{difference} difference).")
+      return True, True
+    else:
+      logger.info(
+        f"Interval [{interval.minTime}, {interval.maxTime}]: Didn't set minTime to {timepoint} (-{difference}).")
+      return False, False
+
+  x = interval.minTime <= timepoint < interval.maxTime
+  if not x:
+    print("a")
 
   min_time_difference = timepoint - interval.minTime
   max_time_difference = interval.maxTime - timepoint
@@ -126,6 +157,7 @@ def fix_timepoint_interval(timepoint: float, prev_interval: Optional[Interval], 
   # minTime is before interval
   min_time_is_nearer = min_time_difference < max_time_difference
   max_time_is_nearer = max_time_difference < min_time_difference
+
   if min_time_is_nearer:
     if min_time_difference <= threshold:
       # move starting forward
