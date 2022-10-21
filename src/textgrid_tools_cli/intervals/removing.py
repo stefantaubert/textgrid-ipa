@@ -5,31 +5,30 @@ from scipy.io.wavfile import read
 from tqdm import tqdm
 
 from textgrid_tools import remove_intervals
-from textgrid_tools.intervals.removing import NothingDefinedToRemoveError
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
                                        add_encoding_argument, add_overwrite_argument,
                                        add_tier_argument, copy_audio, get_audio_files,
                                        get_grid_files, get_optional, parse_existing_directory,
-                                       parse_non_empty, parse_path, save_audio, try_copy_grid,
-                                       try_load_grid, try_save_grid)
+                                       parse_path, save_audio, try_copy_grid, try_load_grid,
+                                       try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
-# TODO tiers support
+# TODO maybe tiers support
 
 
 def get_removing_parser(parser: ArgumentParser):
   parser.description = "This command removes empty intervals and/or intervals containing specific marks. The corresponding audios can be adjusted, too."
   add_directory_argument(parser, "directory containing the grids and the corresponding audios")
   add_tier_argument(parser, "tier on which intervals should be removed")
+  parser.add_argument("marks", type=str, nargs='+', metavar="MARK",
+                      help="remove intervals containing these marks", action=ConvertToOrderedSetAction)
+  parser.add_argument("-m", "--mode", type=str, choices=["all", "start", "end", "both"], metavar="MODE",
+                      help="mode to remove the intervals: all = on all locations; start = only from start; end = only from end; both = start + end", default="all")
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
                       help="directory containing the audios if not directory")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="ignore audios")
-  parser.add_argument("--marks", type=parse_non_empty, nargs='*', metavar="MARK",
-                      help="remove intervals containing these marks", default=[], action=ConvertToOrderedSetAction)
-  parser.add_argument("--pauses", action="store_true",
-                      help="remove pause intervals")
   parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
   parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
@@ -42,10 +41,6 @@ def get_removing_parser(parser: ArgumentParser):
 def app_remove_intervals(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-
-  if error := NothingDefinedToRemoveError.validate(ns.marks, ns.pauses):
-    logger.error(error.default_message)
-    return False, False
 
   audio_directory = ns.audio_directory
   if audio_directory is None and not ns.ignore_audio:
@@ -115,7 +110,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
       sample_rate, audio = read(audio_file_in_abs)
 
     (error, changed_anything), new_audio = remove_intervals(grid, audio, sample_rate, ns.tier,
-                                                            ns.marks, ns.pauses, flogger)
+                                                            ns.marks, ns.mode, flogger)
 
     success = error is None
     total_success &= success

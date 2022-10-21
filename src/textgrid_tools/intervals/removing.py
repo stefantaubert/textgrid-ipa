@@ -1,6 +1,6 @@
 import math
 from logging import Logger, getLogger
-from typing import Generator, Iterable, List, Optional, Set, Tuple, cast
+from typing import Generator, Iterable, List, Literal, Optional, Set, Tuple, cast
 
 import numpy as np
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
@@ -13,34 +13,18 @@ from textgrid_tools.helper import (check_is_valid_grid,
                                    check_timepoints_exist_on_all_tiers_as_boundaries,
                                    get_boundary_timepoints_from_intervals,
                                    get_boundary_timepoints_from_tier, get_intervals_on_tier,
-                                   get_single_tier, interval_is_None_or_whitespace, s_to_samples)
+                                   get_single_tier, s_to_samples)
 from textgrid_tools.intervals.boundary_fixing import fix_timepoint
 from textgrid_tools.validation import (AudioAndGridLengthMismatchError, BoundaryError,
                                        InternalError, InvalidGridError,
-                                       MultipleTiersWithThatNameError, NotExistingTierError,
-                                       ValidationError)
+                                       MultipleTiersWithThatNameError, NotExistingTierError)
 
 
-class NothingDefinedToRemoveError(ValidationError):
-  @classmethod
-  def validate(cls, remove_marks: Set[str], remove_pauses: bool):
-    if len(remove_marks) == 0 and not remove_pauses:
-      return cls()
-    return None
-
-  @property
-  def default_message(self) -> str:
-    return "Marks and/or remove pauses need to be set!"
-
-
-def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], remove_pauses: bool, logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
+def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], mode: Literal["all", "start", "end", "both"], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
   if logger is None:
     logger = getLogger(__name__)
 
   if error := InvalidGridError.validate(grid):
-    return (error, False), None
-
-  if error := NothingDefinedToRemoveError.validate(remove_marks, remove_pauses):
     return (error, False), None
 
   if error := NotExistingTierError.validate(grid, tier_name):
@@ -59,7 +43,7 @@ def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: O
 
   ref_tier = get_single_tier(grid, tier_name)
 
-  intervals_to_remove = list(find_intervals_with_mark(ref_tier, remove_marks, remove_pauses))
+  intervals_to_remove = list(get_intervals_mode(ref_tier, remove_marks, mode))
   timepoints = get_boundary_timepoints_from_intervals(intervals_to_remove)
 
   if error := BoundaryError.validate(timepoints, grid.tiers):
@@ -156,8 +140,41 @@ def move_interval(interval: Interval, new_minTime: float) -> None:
   # set_precision_interval(interval, n_digits)
 
 
-def find_intervals_with_mark(tier: IntervalTier, marks: Set[str], include_empty: bool) -> Generator[Interval, None, None]:
+def get_intervals_start(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
-    match = (interval.mark in marks) or (include_empty and interval_is_None_or_whitespace(interval))
-    if match:
+    if interval.mark in marks:
       yield interval
+    break
+
+
+def get_intervals_end(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
+  for interval in cast(Iterable[Interval], reversed(tier.intervals)):
+    if interval.mark in marks:
+      yield interval
+    break
+
+
+def get_intervals_both(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
+  intervals: Set[Interval] = set()
+  intervals |= get_intervals_start(tier, marks)
+  intervals |= get_intervals_end(tier, marks)
+  yield from intervals
+
+
+def get_intervals_all(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
+  for interval in cast(Iterable[Interval], tier.intervals):
+    if interval.mark in marks:
+      yield interval
+
+
+def get_intervals_mode(tier: IntervalTier, marks: Set[str], mode: Literal["all", "start", "end", "both"]) -> Generator[Interval, None, None]:
+  if mode == "all":
+    yield from get_intervals_all(tier, marks)
+  elif mode == "start":
+    yield from get_intervals_start(tier, marks)
+  elif mode == "end":
+    yield from get_intervals_end(tier, marks)
+  elif mode == "both":
+    yield from get_intervals_both(tier, marks)
+  else:
+    assert False
