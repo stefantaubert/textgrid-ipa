@@ -140,28 +140,31 @@ def move_interval(interval: Interval, new_minTime: float) -> None:
   # set_precision_interval(interval, n_digits)
 
 
-def get_intervals_start(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
-  for interval in cast(Iterable[Interval], tier.intervals):
+def get_intervals_start(tier: List[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
+  for interval in tier.intervals:
     if interval.mark in marks:
       yield interval
+      continue
     break
 
 
-def get_intervals_end(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
-  for interval in cast(Iterable[Interval], reversed(tier.intervals)):
+def get_intervals_end(intervals: List[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
+  for interval in reversed(intervals):
     if interval.mark in marks:
       yield interval
+      continue
     break
 
 
-def get_intervals_both(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
-  intervals: Set[Interval] = set()
-  intervals |= get_intervals_start(tier, marks)
-  intervals |= get_intervals_end(tier, marks)
-  yield from intervals
+def get_intervals_both(intervals: List[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
+  start_intervals = list(get_intervals_start(intervals, marks))
+  rest_intervals = intervals[len(start_intervals):]
+  end_intervals = list(get_intervals_end(rest_intervals, marks))
+  yield from start_intervals
+  yield from end_intervals
 
 
-def get_intervals_all(tier: IntervalTier, marks: Set[str]) -> Generator[Interval, None, None]:
+def get_intervals_all(tier: Iterable[Interval], marks: Set[str]) -> Generator[Interval, None, None]:
   for interval in cast(Iterable[Interval], tier.intervals):
     if interval.mark in marks:
       yield interval
