@@ -102,22 +102,22 @@ def add_overwrite_argument(parser: ArgumentParser) -> None:
 
 
 def add_output_directory_argument(parser: ArgumentParser) -> None:
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("-out", "--output-directory", metavar='OUTPUT-PATH', type=get_optional(parse_path),
                       help="directory where to output the grids if not to the same directory")
 
 
 def add_directory_argument(parser: ArgumentParser, help_str: str = "directory containing the grids") -> None:
-  parser.add_argument("directory", type=parse_existing_directory, metavar="directory",
+  parser.add_argument("directory", type=parse_existing_directory, metavar="DIRECTORY",
                       help=help_str)
 
 
 def add_tiers_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tiers", metavar="tiers", type=parse_non_empty_or_whitespace,
+  parser.add_argument("tiers", metavar="TIER", type=parse_non_empty_or_whitespace,
                       nargs="+", help=help_str, action=ConvertToOrderedSetAction)
 
 
 def add_tier_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tier", metavar="tier", type=parse_non_empty_or_whitespace, help=help_str)
+  parser.add_argument("tier", metavar="TIER", type=parse_non_empty_or_whitespace, help=help_str)
 
 # def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
 #   parser.add_argument("-ot", "--overwrite-tier", action="store_true",
