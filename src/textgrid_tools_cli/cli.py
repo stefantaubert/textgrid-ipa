@@ -13,6 +13,7 @@ from typing import Callable, Dict, Generator, List, Tuple
 from textgrid_tools_cli import *
 from textgrid_tools_cli.grids.durations_labelling import get_grids_label_durations_parser
 from textgrid_tools_cli.grids.pronunciations_exporting import get_pronunciations_exporting_parser
+from textgrid_tools_cli.grids.stats_generation import get_grids_plot_stats_parser
 from textgrid_tools_cli.helper import get_optional, parse_path
 from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                       try_init_file_logger)
@@ -41,6 +42,7 @@ def get_grids_parsers() -> Parsers:
   yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
   yield "mark-durations", "mark intervals with specific durations with a text", get_grids_label_durations_parser
   yield "create-dictionary", "create pronunciation dictionary out of a word and a pronunciation tier", get_pronunciations_exporting_parser
+  yield "plot-stats", "plot statistics", get_grids_plot_stats_parser
 
 
 def get_grid_parsers() -> Parsers:

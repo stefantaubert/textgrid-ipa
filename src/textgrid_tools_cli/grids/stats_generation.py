@@ -5,7 +5,7 @@ from typing import List
 from textgrid import TextGrid
 from tqdm import tqdm
 
-from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
+from textgrid_tools.grids.stats_generation import print_stats
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
                                        add_encoding_argument, add_overwrite_argument,
@@ -15,11 +15,9 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 
-def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
+def get_grids_plot_stats_parser(parser: ArgumentParser):
   parser.description = "This command creates a violin plot of the interval durations of all grids."
   add_directory_argument(parser)
-  parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='+', metavar="TIER",
-                      help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
   parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="path to output the generated diagram (*.png or *.pdf)")
   add_encoding_argument(parser)
@@ -56,7 +54,7 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
 
     grids.append(grid)
 
-  (error, _), figure = plot_grids_interval_durations_diagram(grids, ns.tiers, flogger)
+  (error, _), figure = print_stats(grids, flogger)
 
   success = error is None
 
@@ -66,7 +64,12 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
 
   ns.output.parent.mkdir(parents=True, exist_ok=True)
   getLogger('matplotlib.backends.backend_pdf').disabled = True
-  figure.savefig(ns.output)
+  try:
+    figure.savefig(ns.output)
+  except Exception as ex:
+    logger.error("Saving of plot was not successful!")
+    logger.debug(ex)
+    return False, False
   getLogger('matplotlib.backends.backend_pdf').disabled = False
 
   logger.info(f"Exported plot to: {ns.output.absolute()}")
