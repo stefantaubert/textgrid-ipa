@@ -1,9 +1,8 @@
+import io
 import logging
-from collections import Counter, OrderedDict
+from collections import Counter
 from logging import Logger, getLogger
-from typing import Any, Dict, Iterable, List, Optional
-from typing import OrderedDict as OrderedDictType
-from typing import Set, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
@@ -12,16 +11,12 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import FixedLocator
-from numpy.core.fromnumeric import mean
-from ordered_set import OrderedSet
-from pandas import DataFrame
 from textgrid import TextGrid
-from textgrid.textgrid import Interval, IntervalTier, TextGrid
+from textgrid.textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import get_all_intervals, get_mark
-from textgrid_tools.validation import InvalidGridError, NotExistingTierError
+from textgrid_tools.validation import InvalidGridError
 
 # warn_symbols_general = ["\n", "\r", "\t", "\\", "\"", "[", "]", "(", ")", "|", "_", ";", " "]
 # f"{x!r}"[1:-1]
@@ -34,13 +29,13 @@ SPACE_DISPL = "␣"
 NOT_AVAIL_VAL = "N/A"
 
 
-def print_stats(grids: List[TextGrid], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure]]:
+def print_stats(grids: List[TextGrid], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[Figure], Optional[str]]:
   if logger is None:
     logger = getLogger(__name__)
 
   for grid in grids:
     if error := InvalidGridError.validate(grid):
-      return (error, False), None
+      return (error, False), None, None
 
   durations: List[float] = []
   intervals_durations: Dict[str, List[float]] = {}
@@ -59,9 +54,37 @@ def print_stats(grids: List[TextGrid], logger: Optional[Logger]) -> Tuple[Execut
       vocabulary = [interval.mark for interval in tier.intervals]
       intervals_vocabulary[tier.name].extend(vocabulary)
 
+  total_duration = sum(durations)
+  logger.info(
+    f"Total duration: {total_duration:.2f}s / {total_duration/60:.2f}min / {total_duration/60/60:.2f}h")
+
+  mark_log = print_mark_stats(intervals_vocabulary)
   fig = get_durations_fig(intervals_durations, durations)
 
-  return (None, False), fig
+  return (None, False), fig, mark_log
+
+
+def print_mark_stats(vocabulary: Dict[str, List[str]]) -> str:
+  result = ""
+  for tier, symbols in vocabulary.items():
+    df = get_marks_df(symbols)
+    result += f"Tier:;\"{tier}\"\n\n"
+    with io.StringIO() as stream:
+      df.to_csv(stream, sep=";", index=False)
+      result += stream.getvalue()
+    result += "\n"
+  return result
+
+
+def get_marks_df(symbols: List[str]) -> pd.DataFrame:
+  symbols_counter = Counter(symbols)
+  data = []
+  for symbol, count in sorted(symbols_counter.items()):
+    data.append((repr(symbol)[1:-1], count, count / len(symbols) * 100))
+  data.append(("Total", len(symbols), 100))
+  result = pd.DataFrame(data, columns=["Mark", "Occurrence", "Occurrence in %"])
+
+  return result
 
 
 def get_durations_fig(durations: Dict[str, List[float]], grid_durations: List[float]):

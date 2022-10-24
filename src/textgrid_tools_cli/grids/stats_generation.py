@@ -1,44 +1,55 @@
 from argparse import ArgumentParser, Namespace
 from logging import getLogger
-from typing import List
+from pathlib import Path
+from typing import List, cast
 
 from textgrid import TextGrid
 from tqdm import tqdm
 
 from textgrid_tools.grids.stats_generation import print_stats
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_encoding_argument, add_overwrite_argument,
-                                       get_grid_files, parse_non_empty_or_whitespace, parse_path,
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_overwrite_argument, get_grid_files, parse_path,
                                        try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 
 def get_grids_plot_stats_parser(parser: ArgumentParser):
-  parser.description = "This command creates a violin plot of the interval durations of all grids."
+  parser.description = "This command creates a violin plot of the all grids."
   add_directory_argument(parser)
-  parser.add_argument("output", type=parse_path, metavar="OUTPUT",
+  parser.add_argument("plot_output", type=parse_path, metavar="PLOT-OUTPUT",
                       help="path to output the generated diagram (*.png or *.pdf)")
+  parser.add_argument("marks_output", type=parse_path, metavar="MARKS-OUTPUT",
+                      help="path to output the generated marks csv")
   add_encoding_argument(parser)
   add_overwrite_argument(parser)
-  return app_plot_interval_durations
+  return app_plot_stats
 
 
-def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
+def app_plot_stats(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
   grid_files = get_grid_files(ns.directory)
 
-  if ns.output.suffix.lower() not in {".png", ".pdf"}:
+  if ns.plot_output.suffix.lower() not in {".png", ".pdf"}:
     logger.error("Only .png and .pdf outputs are supported!")
     return False, False
 
-  if not ns.overwrite and (error := FileAlreadyExistsError.validate(ns.output)):
+  if ns.marks_output.suffix.lower() not in {".csv"}:
+    logger.error("Only .csv outputs are supported!")
+    return False, False
+
+  if not ns.overwrite and (error := FileAlreadyExistsError.validate(ns.plot_output)):
     logger.error(error.default_message)
     return False, False
 
+  if not ns.overwrite and (error := FileAlreadyExistsError.validate(ns.marks_output)):
+    logger.error(error.default_message)
+    return False, False
+
+  everything_successful = True
   grids: List[TextGrid] = []
   for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
     flogger.info(f"Processing {file_stem}")
@@ -48,13 +59,12 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     if error:
       flogger.debug(error.exception)
       flogger.error(error.default_message)
-      flogger.info("Skipped.")
-      continue
+      return False, False
     assert grid is not None
 
     grids.append(grid)
 
-  (error, _), figure = print_stats(grids, flogger)
+  (error, _), figure, marks = print_stats(grids, logger)
 
   success = error is None
 
@@ -62,16 +72,25 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  ns.output.parent.mkdir(parents=True, exist_ok=True)
+  ns.plot_output.parent.mkdir(parents=True, exist_ok=True)
   getLogger('matplotlib.backends.backend_pdf').disabled = True
   try:
-    figure.savefig(ns.output)
+    figure.savefig(ns.plot_output)
   except Exception as ex:
     logger.error("Saving of plot was not successful!")
     logger.debug(ex)
     return False, False
   getLogger('matplotlib.backends.backend_pdf').disabled = False
 
-  logger.info(f"Exported plot to: {ns.output.absolute()}")
+  ns.marks_output.parent.mkdir(parents=True, exist_ok=True)
+  try:
+    cast(Path, ns.marks_output).write_text(marks, "UTF-8")
+  except Exception as ex:
+    logger.error("Saving of plot was not successful!")
+    logger.debug(ex)
+    return False, True
+
+  logger.info(f"Exported plot to: \"{ns.plot_output.absolute()}\".")
+  logger.info(f"Exported marks statistics to: \"{ns.marks_output.absolute()}\".")
 
   return True, True

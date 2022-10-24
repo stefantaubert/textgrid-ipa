@@ -5,22 +5,17 @@ from typing import Generator, Iterable, List, Literal, Optional, Set, Tuple, cas
 import numpy as np
 from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, IntervalTier, TextGrid
-from tqdm import tqdm
 
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.grid.audio_synchronization import (LastIntervalToShortError,
-                                                       set_end_to_audio_len, set_maxTime_tier)
+from textgrid_tools.grid.audio_synchronization import LastIntervalToShortError, set_end_to_audio_len
 from textgrid_tools.helper import (check_is_valid_grid,
                                    check_timepoints_exist_on_all_tiers_as_boundaries,
-                                   get_boundary_timepoints_from_intervals,
-                                   get_boundary_timepoints_from_tier, get_intervals_from_timespan,
-                                   get_intervals_from_timespan_match,
-                                   get_intervals_from_timespans_match, get_intervals_on_tier,
-                                   get_single_tier, s_to_samples)
+                                   get_intervals_from_timespans_match, get_single_tier,
+                                   s_to_samples)
 from textgrid_tools.intervals.boundary_fixing import fix_timepoint
-from textgrid_tools.validation import (AudioAndGridLengthMismatchError, BoundaryError,
-                                       InternalError, InvalidGridError,
-                                       MultipleTiersWithThatNameError, NotExistingTierError)
+from textgrid_tools.validation import (AudioAndGridLengthMismatchError, InternalError,
+                                       InvalidGridError, MultipleTiersWithThatNameError,
+                                       NotExistingTierError)
 
 
 def remove_intervals(grid: TextGrid, audio: Optional[np.ndarray], sample_rate: Optional[int], tier_name: str, remove_marks: Set[str], mode: Literal["all", "start", "end", "both"], logger: Optional[Logger]) -> Tuple[ExecutionResult, Optional[np.ndarray]]:
