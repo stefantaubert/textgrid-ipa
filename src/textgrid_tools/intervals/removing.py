@@ -120,22 +120,34 @@ def merge_consecutives(min_max_times: OrderedSet[Tuple[float, float]]) -> Ordere
   return result
 
 
-def get_sync_times(min_max_times: Set[Tuple[float, float]]) -> OrderedSet[float]:
+def get_sync_times(min_max_times: Set[Tuple[float, float]], max_time: float) -> OrderedSet[float]:
   assert not check_contains_consecutives(min_max_times)
   times = list(min_max_times)
   times.sort(key=lambda x: x[0])
   currently_removed_difference = 0
   result = OrderedSet()
-  for min_time, max_time in min_max_times:
-    assert min_time < max_time
-    timepoint = min_time - currently_removed_difference
+  if len(min_max_times) == 0:
+    return OrderedSet()
+  current_max_time: float = None
+  for current_min_time, current_max_time in min_max_times:
+    assert current_min_time < current_max_time
+    timepoint = current_min_time - currently_removed_difference
     result.add(timepoint)
-    difference = max_time - min_time
+    difference = current_max_time - current_min_time
     currently_removed_difference += difference
+  assert current_max_time is not None
+  last_interval_is_removed = current_max_time == max_time
+  if not last_interval_is_removed:
+    # Note: through rounding errors its better to check if last interval is removed instead of adding the max_time to set (which will be ignored in that case since it already exists)
+    new_max_time = max_time - currently_removed_difference
+    result.add(new_max_time)
   return result
 
 
 def remove_intervals_from_tiers(intervals_to_remove: List[Interval], tiers: List[IntervalTier], logger: Logger) -> bool:
+  if len(tiers) == 0:
+    return True
+
   min_max_times = OrderedSet([
     (interval.minTime, interval.maxTime)
     for interval in intervals_to_remove
@@ -152,8 +164,11 @@ def remove_intervals_from_tiers(intervals_to_remove: List[Interval], tiers: List
     logger.debug("Boundaries do not exist on all tiers!")
     return False
 
-  # TODO: add maxtime as parameter and then check if last time is max then do nothing else also include endtime as sync time!
-  sync_times = get_sync_times(min_max_times)
+  tiers_max_time = tiers[0].maxTime
+  for tier in tiers[1:]:
+    assert tier.maxTime == tiers_max_time
+
+  sync_times = get_sync_times(min_max_times, tiers_max_time)
 
   for tier in tiers:
     assert len(tier.intervals) > 0
