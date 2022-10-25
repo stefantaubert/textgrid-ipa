@@ -62,7 +62,8 @@ def get_dict_from_pronunciations(pronunciations: Iterable[Tuple[str, Tuple[str, 
   dictionary: PronunciationDict = OrderedDict()
   weights = Counter(pronunciations)
   # sort after word and then descending after weight and then after pronunciation
-  for (word, pronunciation), weight in sorted(weights.items(), key=lambda wp_w: (wp_w[0][0], -wp_w[1], wp_w[0][1])):
+  sorted_pronunciations = sorted(weights.items(), key=lambda wp_w: (wp_w[0][0], -wp_w[1], wp_w[0][1]))
+  for (word, pronunciation), weight in sorted_pronunciations:
     if word not in dictionary:
       dictionary[word] = OrderedDict()
     dictionary[word][pronunciation] = weight
