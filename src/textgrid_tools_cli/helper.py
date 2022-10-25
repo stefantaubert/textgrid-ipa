@@ -111,13 +111,13 @@ def add_directory_argument(parser: ArgumentParser, help_str: str = "directory co
                       help=help_str)
 
 
-def add_tiers_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tiers", metavar="TIER", type=parse_non_empty_or_whitespace,
+def add_tiers_argument(parser: ArgumentParser, help_str: str, meta_var: str = "TIER") -> None:
+  parser.add_argument("tiers", metavar=meta_var, type=parse_non_empty_or_whitespace,
                       nargs="+", help=help_str, action=ConvertToOrderedSetAction)
 
 
-def add_tier_argument(parser: ArgumentParser, help_str: str) -> None:
-  parser.add_argument("tier", metavar="TIER", type=parse_non_empty_or_whitespace, help=help_str)
+def add_tier_argument(parser: ArgumentParser, help_str: str, meta_var: str = "TIER") -> None:
+  parser.add_argument("tier", metavar=meta_var, type=parse_non_empty_or_whitespace, help=help_str)
 
 # def add_overwrite_tier_argument(parser: ArgumentParser) -> None:
 #   parser.add_argument("-ot", "--overwrite-tier", action="store_true",

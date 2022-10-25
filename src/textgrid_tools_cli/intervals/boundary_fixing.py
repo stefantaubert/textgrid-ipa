@@ -14,7 +14,7 @@ from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_arg
 def get_boundary_fixing_parser(parser: ArgumentParser):
   parser.description = "This command set the closest boundaries of tiers to those of a reference tier."
   add_directory_argument(parser)
-  add_tier_argument(parser, "tier with contains the right boundaries")
+  add_tier_argument(parser, "tier with contains the right boundaries", meta_var="REFERENCE-TIER")
   add_tiers_argument(parser, "tiers that should be fixed")
   parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005,
                       help="difference threshold to which boundaries should be fixed; needs to be greater than zero")
