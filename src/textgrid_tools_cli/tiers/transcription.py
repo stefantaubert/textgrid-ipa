@@ -25,6 +25,8 @@ def get_transcription_parser(parser: ArgumentParser):
                       help="seed for choosing the pronunciation from the dictionary (only useful if there exist words with multiple pronunciations)", default=None)
   parser.add_argument("--ignore-missing", action="store_true",
                       help="keep marks missing in dictionary unchanged")
+  parser.add_argument("--assign-mark-to-missing", type=get_optional(str), metavar="MISSING-MARK", default=None,
+                      help="if ignore-missing is true: assign this mark to the missing pronunciations; per default the interval marks will be kept unchanged")
   add_deserialization_group(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
@@ -70,6 +72,7 @@ def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
     pronunciation_dictionary=pronunciation_dictionary,
     seed=ns.seed,
     ignore_missing=ns.ignore_missing,
+    replace_missing=ns.assign_mark_to_missing,
   )
 
   return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

@@ -48,7 +48,7 @@ class VocabularyMissingError(ValidationError):
 #     return f"{len(self.missing)} words are missing in the pronunciation dictionary!"
 
 
-def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, logger: Optional[Logger]) -> ExecutionResult:
+def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, replace_missing: Optional[str], logger: Optional[Logger]) -> ExecutionResult:
   # TODO add mode first, last etc
   """
   chunksize: amount of intervals at once
@@ -72,7 +72,7 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictiona
     for interval in intervals_copy:
       try:
         splitted_intervals = list(get_split_intervals(
-          interval, pronunciation_dictionary, seed, ignore_missing, logger))
+          interval, pronunciation_dictionary, seed, ignore_missing, replace_missing, logger))
       except VocabularyMissingError as error:
         return error, False
 
@@ -83,7 +83,7 @@ def transcribe_text(grid: TextGrid, tier_names: Set[str], pronunciation_dictiona
   return None, changed_anything
 
 
-def get_split_intervals(interval: Interval, pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, logger: Logger) -> Generator[Interval, None, None]:
+def get_split_intervals(interval: Interval, pronunciation_dictionary: PronunciationDict, seed: Optional[int], ignore_missing: bool, replace_missing: Optional[str], logger: Logger) -> Generator[Interval, None, None]:
   if interval_is_None_or_empty(interval):
     yield interval
     return
@@ -91,9 +91,15 @@ def get_split_intervals(interval: Interval, pronunciation_dictionary: Pronunciat
   mark = get_mark(interval)
   if error := VocabularyMissingError.validate(mark, pronunciation_dictionary):
     if ignore_missing:
-      logger.info(f"Kept unchanged: {get_interval_readable(interval)}")
-      yield interval
-      return
+      if replace_missing is None:
+        logger.info(f"Kept unchanged: {get_interval_readable(interval)}")
+        yield interval
+        return
+      else:
+        new_interval = Interval(interval.minTime, interval.maxTime, replace_missing)
+        yield new_interval
+        return
+
     logger.debug(interval)
     raise error
 
