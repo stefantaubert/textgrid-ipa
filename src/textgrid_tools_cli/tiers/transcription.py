@@ -22,7 +22,7 @@ def get_transcription_parser(parser: ArgumentParser):
                       help="path to the pronunciation dictionary that contains pronunciations to all occurring marks")
   add_tiers_argument(parser, "tiers which should be transcribed")
   parser.add_argument("--seed", type=get_optional(parse_non_negative_integer),
-                      help="seed for choosing the pronunciation from the dictionary (only usefull if there exist words with multiple pronunciations)", default=None)
+                      help="seed for choosing the pronunciation from the dictionary (only useful if there exist words with multiple pronunciations)", default=None)
   parser.add_argument("--ignore-missing", action="store_true",
                       help="keep marks missing in dictionary unchanged")
   add_deserialization_group(parser)
