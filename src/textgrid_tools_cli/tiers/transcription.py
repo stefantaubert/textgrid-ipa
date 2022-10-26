@@ -18,10 +18,10 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 def get_transcription_parser(parser: ArgumentParser):
   parser.description = "This command transcribes words using a pronunciation dictionary."
   add_directory_argument(parser)
-  parser.add_argument("dictionary", metavar="dictionary", type=parse_existing_file,
+  parser.add_argument("dictionary", metavar="DICTIONARY", type=parse_existing_file,
                       help="path to the pronunciation dictionary that contains pronunciations to all occurring marks")
   add_tiers_argument(parser, "tiers which should be transcribed")
-  parser.add_argument("--seed", type=get_optional(parse_non_negative_integer),
+  parser.add_argument("--seed", type=get_optional(parse_non_negative_integer), metavar="SEED",
                       help="seed for choosing the pronunciation from the dictionary (only useful if there exist words with multiple pronunciations)", default=None)
   parser.add_argument("--ignore-missing", action="store_true",
                       help="keep marks missing in dictionary unchanged")
