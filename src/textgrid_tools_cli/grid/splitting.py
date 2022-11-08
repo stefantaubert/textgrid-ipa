@@ -38,13 +38,16 @@ def app_split_grid_on_intervals(ns: Namespace) -> ExecutionResult:
 
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
-
+  
+  audio_directory = ns.audio_directory
   if audio_directory is None and not ns.ignore_audio:
     audio_directory = ns.directory
-
+  
+  output_directory = ns.output_directory
   if output_directory is None:
     output_directory = ns.directory
-
+  
+  output_audio_directory = ns.output_audio_directory
   if output_audio_directory is None:
     output_audio_directory = ns.directory
 
