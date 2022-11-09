@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, List, Optional, Tuple, Union
+from typing import Generator, Iterable, List, Optional, Set, Tuple, Union
 
 from textgrid.textgrid import Interval, IntervalTier
 
@@ -51,6 +51,22 @@ def group_adjacent_pauses(intervals: Iterable[Interval]) -> Generator[Union[Inte
 
   if len(pause_group) > 0:
     yield pause_group
+
+
+def group_adjacent_intervals(intervals: Iterable[Interval], marks: Set[str]) -> Generator[Union[Interval, List[Interval]], None, None]:
+  mark_group = []
+  for interval in intervals:
+    has_mark = interval.mark in marks
+    if has_mark:
+      mark_group.append(interval)
+    else:
+      if len(mark_group) > 0:
+        yield mark_group
+        mark_group = []
+      yield interval
+
+  if len(mark_group) > 0:
+    yield mark_group
 
 
 def group_adjacent_pauses2(intervals: Iterable[Interval]) -> Generator[Tuple[List[Interval], bool], None, None]:

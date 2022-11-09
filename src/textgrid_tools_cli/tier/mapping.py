@@ -19,12 +19,16 @@ def get_mapping_parser(parser: ArgumentParser):
   add_tier_argument(parser, "tier which should be mapped")
   parser.add_argument("target_tiers", metavar="TARGET-TIER",
                       type=parse_non_empty_or_whitespace, nargs="+", help="tiers to which the content should be mapped", action=ConvertToOrderedSetAction)
-  parser.add_argument("--ignore-from", type=str, nargs="*", action=ConvertToOrderedSetAction,
-                      default=OrderedSet([""]), help="skip intervals in TIER that contain this mark")
-  parser.add_argument("--ignore-to", type=str, nargs="*", action=ConvertToOrderedSetAction,
+  parser.add_argument("--filter-from", type=str, nargs="*", action=ConvertToOrderedSetAction,
+                      metavar="FILTER-FROM", default=OrderedSet([""]), help="skip intervals in TIER that contain this mark")
+  parser.add_argument("--filter-from-mode", type=str, choices=["consider", "ignore"],
+                      default="ignore", help="consider only/ignore all marks from FILTER-FROM")
+  parser.add_argument("--filter-to", type=str, nargs="*", action=ConvertToOrderedSetAction, metavar="FILTER-TO",
                       default=OrderedSet([""]), help="skip intervals in TARGET-TIER's that contain this mark")
+  parser.add_argument("--filter-to-mode", type=str, choices=["consider", "ignore"],
+                      default="ignore", help="consider only/ignore all marks from FILTER-TO")
   parser.add_argument("--mode", type=str, choices=["replace", "prepend", "append"],
-                      help="", default="replace")
+                      help="defines how the marks should be mapped", default="replace")
   add_output_directory_argument(parser)
   add_encoding_argument(parser)
   add_overwrite_argument(parser)
@@ -40,8 +44,10 @@ def app_map_tier(ns: Namespace) -> ExecutionResult:
     target_tier_names=ns.target_tiers,
     tier_name=ns.tier,
     mode=ns.mode,
-    ignore_from=ns.ignore_from,
-    ignore_to=ns.ignore_to,
+    filter_from=ns.filter_from,
+    filter_from_mode=ns.filter_from_mode,
+    filter_to=ns.filter_to,
+    filter_to_mode=ns.filter_to_mode,
   )
 
   return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)

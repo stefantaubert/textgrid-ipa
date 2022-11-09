@@ -1,3 +1,4 @@
+from textgrid_tools.intervals.between_marks_joining import join_intervals_between_marks
 from textgrid_tools.intervals.between_pause_joining import join_intervals_between_pauses
 from textgrid_tools.intervals.boundary_fixing import fix_interval_boundaries
 from textgrid_tools.intervals.boundary_joining import join_intervals_on_boundaries

@@ -5,7 +5,8 @@ from textgrid_tools_cli.grid import get_stats_generation_parser
 from textgrid_tools_cli.grids import (get_grids_merging_parser,
                                       get_grids_plot_interval_durations_parser,
                                       get_marks_exporting_parser, get_vocabulary_export_parser)
-from textgrid_tools_cli.intervals import (get_between_pause_joining_parser,
+from textgrid_tools_cli.intervals import (get_between_marks_joining_parser,
+                                          get_between_pause_joining_parser,
                                           get_boundary_fixing_parser, get_boundary_joining_parser,
                                           get_duration_joining_parser, get_joining_parser,
                                           get_mark_joining_parser,

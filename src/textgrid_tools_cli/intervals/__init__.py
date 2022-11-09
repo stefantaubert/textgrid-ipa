@@ -1,3 +1,4 @@
+from textgrid_tools_cli.intervals.between_marks_joining import get_between_marks_joining_parser
 from textgrid_tools_cli.intervals.between_pause_joining import get_between_pause_joining_parser
 from textgrid_tools_cli.intervals.boundary_fixing import get_boundary_fixing_parser
 from textgrid_tools_cli.intervals.boundary_joining import get_boundary_joining_parser

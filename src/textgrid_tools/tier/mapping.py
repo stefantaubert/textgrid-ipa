@@ -33,7 +33,7 @@ class UnequalIntervalAmountError(ValidationError):
     return msg
 
 
-def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], ignore_from: OrderedSet[str], ignore_to: OrderedSet[str], mode: Literal["replace", "prepend", "append"], logger: Optional[Logger]) -> ExecutionResult:
+def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], filter_from: OrderedSet[str], filter_to: OrderedSet[str], filter_from_mode: Literal["consider", "ignore"], filter_to_mode: Literal["consider", "ignore"], mode: Literal["replace", "prepend", "append"], logger: Optional[Logger]) -> ExecutionResult:
   """
   only_symbols: ignore intervals which marks contain only these symbols
   """
@@ -58,12 +58,12 @@ def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], ignore
       return error, False
 
   tier = get_single_tier(grid, tier_name)
-  tier_intervals = list(ignore_intervals(tier, ignore_from))
+  tier_intervals = list(filter_intervals(tier, filter_from, filter_from_mode))
 
   changed_anything = False
 
   for target_tier in get_all_tiers(grid, target_tier_names):
-    target_tier_intervals = list(ignore_intervals(target_tier, ignore_to))
+    target_tier_intervals = list(filter_intervals(target_tier, filter_to, filter_to_mode))
 
     if error := UnequalIntervalAmountError.validate(tier_intervals, target_tier_intervals):
       return error, False
@@ -85,10 +85,28 @@ def map_tier(grid: TextGrid, tier_name: str, target_tier_names: Set[str], ignore
   return None, changed_anything
 
 
+def filter_intervals(intervals: Iterable[Interval], filter_set: OrderedSet[str], mode: Literal["consider", "ignore"]) -> Generator[Interval, None, None]:
+  if mode == "consider":
+    return consider_intervals(intervals, filter_set)
+  if mode == "ignore":
+    return ignore_intervals(intervals, filter_set)
+  assert False
+  raise NotImplementedError()
+
+
 def ignore_intervals(intervals: Iterable[Interval], ignore: OrderedSet[str]) -> Generator[Interval, None, None]:
   result = (
     interval
     for interval in intervals
     if interval.mark not in ignore
+  )
+  yield from result
+
+
+def consider_intervals(intervals: Iterable[Interval], consider: OrderedSet[str]) -> Generator[Interval, None, None]:
+  result = (
+    interval
+    for interval in intervals
+    if interval.mark in consider
   )
   yield from result
