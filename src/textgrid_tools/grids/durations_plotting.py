@@ -57,7 +57,7 @@ def plot_grids_interval_durations_diagram(grids: List[TextGrid], tier_names: Set
 
   durations_to_marks = OrderedDict((
     (key, sorted(durations_to_marks[key]))
-    for key in reversed(sorted(durations_to_marks.keys(), key=lambda k: (k.strip("ˌˈ˘ˑː˥˩˧"), k)))
+    for key in reversed(sorted(durations_to_marks.keys(), key=lambda k: (k.strip("ˌˈ˘ˑː˥˦˧˨˩"), k)))
   ))
 
   keys = [None] + [get_plot_mark_name(key) for key in durations_to_marks.keys()]
