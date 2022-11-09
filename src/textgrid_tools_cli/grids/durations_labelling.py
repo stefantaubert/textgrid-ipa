@@ -26,7 +26,7 @@ def get_grids_label_durations_parser(parser: ArgumentParser):
                       help="tier containing the intervals which durations should be considered")
   parser.add_argument("assign_tier", type=parse_non_empty_or_whitespace, metavar="ASSIGN-TIER",
                       help="tier containing the intervals that should be marked; can also be equal to TIER")
-  parser.add_argument("assign", type=parse_non_empty_or_whitespace, metavar="MARK",
+  parser.add_argument("assign", type=str, metavar="MARK",
                       help="mark that should be assigned to the matching intervals")
   parser.add_argument("--range-mode", type=str, choices=["percent", "percentile", "absolute"],
                       metavar="RANGE-MODE", help="calculation on how interval duration boundaries are matched: percent -> calculate percent of maximum duration; percentile -> calculate percentile; absolute -> take absolute value", default="percentile")
