@@ -82,6 +82,7 @@ def get_intervals_parsers() -> Parsers:
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
   yield "join-between-pauses", "join intervals between pauses (LEGACY, please use join-between-marks)", get_between_pause_joining_parser
 
+
 def get_parsers() -> Dict[str, Tuple[Parsers, str]]:
   parsers: Dict[str, Tuple[Parsers, str]] = {
     "grids": (get_grids_parsers(), "execute commands targeted at multiple grids at once"),

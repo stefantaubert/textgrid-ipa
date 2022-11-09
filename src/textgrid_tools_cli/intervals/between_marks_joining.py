@@ -7,7 +7,7 @@ from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
                                        add_encoding_argument, add_maxtaskperchild_argument,
                                        add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument,
+                                       add_overwrite_argument, add_tier_argument,
                                        parse_non_negative_float)
 from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_join_with_argument
 
@@ -15,7 +15,7 @@ from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_joi
 def get_between_marks_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals between given marks."
   add_directory_argument(parser)
-  add_tiers_argument(parser, "tiers on which the intervals should be joined")
+  add_tier_argument(parser, "tier on which the intervals should be joined")
   parser.add_argument("marks", type=str, nargs="+", metavar="MARK",
                       help="join between intervals containing these marks")
   parser.add_argument('--ignore-adjacent-below', type=parse_non_negative_float, metavar="SECONDS",
@@ -34,7 +34,7 @@ def get_between_marks_joining_parser(parser: ArgumentParser):
 def app_join_intervals_between_pauses(ns: Namespace) -> ExecutionResult:
   method = partial(
     join_intervals_between_marks,
-    tier_names=ns.tiers,
+    tier_names={ns.tier},
     marks=ns.marks,
     ignore_adj_below=ns.ignore_adjacent_below,
     join_with=ns.join_with,
