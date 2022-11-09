@@ -33,7 +33,7 @@ def test_component():
   ]
 
   grids_changed, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_all(grids, "tier1", "tier2", "X", only_consider_marks={
-      "a"}, range_mode="percentile", range_min=40, range_max=inf)
+      "a"}, range_mode="percentile", range_min=40, range_max=inf, min_count=1)
 
   assert grids_changed == [True]
   assert total_intervals == 5
