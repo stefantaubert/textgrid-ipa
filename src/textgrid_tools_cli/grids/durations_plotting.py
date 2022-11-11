@@ -8,11 +8,9 @@ from tqdm import tqdm
 from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_encoding_argument, add_overwrite_argument,
-                                       get_grid_files, parse_non_empty_or_whitespace, parse_path,
-                                       try_load_grid)
+                                       add_encoding_argument, get_grid_files,
+                                       parse_non_empty_or_whitespace, parse_path, try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
-from textgrid_tools_cli.validation import FileAlreadyExistsError
 
 
 def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
@@ -23,7 +21,6 @@ def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
   parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="path to output the generated diagram (*.png or *.pdf)")
   add_encoding_argument(parser)
-  add_overwrite_argument(parser)
   return app_plot_interval_durations
 
 
@@ -35,10 +32,6 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
 
   if ns.output.suffix.lower() not in {".png", ".pdf"}:
     logger.error("Only .png and .pdf outputs are supported!")
-    return False, False
-
-  if not ns.overwrite and (error := FileAlreadyExistsError.validate(ns.output)):
-    logger.error(error.default_message)
     return False, False
 
   grids: List[TextGrid] = []
@@ -69,6 +62,6 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
   figure.savefig(ns.output)
   getLogger('matplotlib.backends.backend_pdf').disabled = False
 
-  logger.info(f"Exported plot to: {ns.output.absolute()}")
+  logger.info(f"Exported plot to: \"{ns.output.absolute()}\".")
 
   return True, True

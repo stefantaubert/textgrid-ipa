@@ -22,11 +22,11 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
   add_directory_argument(parser)
   add_tiers_argument(
     parser, "tiers that contains the words as intervals; must not contain line breaks")
-  parser.add_argument("output", type=parse_path, metavar="output",
+  parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="path to write the generated vocabulary")
   parser.add_argument("--include-empty", action="store_true",
                       help="include empty marker in vocabulary if any occurs")
-  add_encoding_argument(parser, "vocabulary encoding")
+  add_encoding_argument(parser, "OUTPUT encoding")
   return get_vocabulary_parsed
 
 

@@ -5,9 +5,9 @@ from tqdm import tqdm
 from textgrid_tools.tier.importing import import_text_to_tier
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_overwrite_argument, add_tier_argument, get_grid_files,
-                                       get_optional, get_text_files, parse_existing_directory,
-                                       parse_path, try_load_grid, try_save_grid)
+                                       add_overwrite_argument, add_tier_argument, get_optional,
+                                       get_text_files, parse_existing_directory, parse_path,
+                                       try_load_grid, try_save_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
@@ -35,7 +35,6 @@ def import_text_to_tier_ns(ns: Namespace) -> ExecutionResult:
   if output_directory is None:
     output_directory = ns.directory
 
-  grid_files = get_grid_files(ns.directory)
   text_dir = ns.directory
   if ns.text_directory is not None:
     text_dir = ns.text_directory
