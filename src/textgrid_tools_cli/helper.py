@@ -150,6 +150,13 @@ def parse_path(value: str) -> Path:
   return path
 
 
+def parse_txt_path(value: str) -> Path:
+  value = parse_path(value)
+  if value.suffix.lower() != ".txt":
+    raise ArgumentTypeError("Value needs to be a .txt path!")
+  return value
+
+
 def parse_optional_value(value: str, method: Callable[[str], T]) -> Optional[T]:
   if value is None:
     return None

@@ -23,12 +23,12 @@ def get_marks_txt(grids: List[TextGrid], tier_name: str, interval_sep: Optional[
 
   result = []
   for nr, grid in enumerate(grids, start=1):
-    nr_str = number_prepend_zeros(nr, len(grids))
+    # nr_str = number_prepend_zeros(nr, len(grids))
     tier = get_single_tier(grid, tier_name)
     marks = (get_mark(interval) for interval in tier.intervals)
     marks = (repr(mark)[1:-1] for mark in marks)
     tier_text = interval_sep.join(marks)
-    tier_text = f"{nr_str}: {interval_sep}{tier_text}{interval_sep} #{len(tier.intervals)}"
+    # tier_text = f"{nr_str}: {interval_sep}{tier_text}{interval_sep} #{len(tier.intervals)}"
     result.append(tier_text)
   result = '\n'.join(result)
 
