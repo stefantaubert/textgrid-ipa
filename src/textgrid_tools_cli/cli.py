@@ -37,12 +37,12 @@ def formatter(prog):
 
 def get_grids_parsers() -> Parsers:
   yield "merge", "merge grids together", get_grids_merging_parser
-  yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
   yield "plot-durations", "plot durations", get_grids_plot_interval_durations_parser
-  yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
   yield "mark-durations", "mark intervals with specific durations with a text", get_grids_label_durations_parser
   yield "create-dictionary", "create pronunciation dictionary out of a word and a pronunciation tier", get_pronunciations_exporting_parser
   yield "plot-stats", "plot statistics", get_grids_plot_stats_parser
+  yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
+  yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
 
 
 def get_grid_parsers() -> Parsers:
