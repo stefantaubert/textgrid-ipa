@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from shutil import copy
@@ -19,6 +20,8 @@ def get_grid_paths_importing_parser(parser: ArgumentParser):
                       help="directory where to copy the grid files")
   parser.add_argument("--relative-to", type=get_optional(parse_path), metavar="REL-PATH",
                       help="parse paths in PATHS relative to REL-PATH to import files with the same folder structure", default=None)
+  parser.add_argument("-s", "--symlink", action="store_true",
+                      help="create symbolic links instead of copying")
   add_encoding_argument(parser, "PATHS encoding")
   return export_grid_paths_ns
 
@@ -62,9 +65,14 @@ def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
         return False, False
 
     try:
-      flogger.info(f"Copying \"{path.absolute()}\" to \"{target_path.absolute()}\"")
       target_path.parent.mkdir(parents=True, exist_ok=True)
-      copy(path, target_path)
+      if ns.symlink:
+        flogger.info(
+          f"Creating symbolic link of \"{path.absolute()}\" at \"{target_path.absolute()}\"")
+        os.link(path, target_path, follow_symlinks=False)
+      else:
+        flogger.info(f"Copying \"{path.absolute()}\" to \"{target_path.absolute()}\"")
+        copy(path, target_path)
     except Exception as ex:
       logger.error(f"Couldn't copy \"{path.absolute()}\" to \"{target_path.absolute()}\"!")
       logger.exception(ex)
