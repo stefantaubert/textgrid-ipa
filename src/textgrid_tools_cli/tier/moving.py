@@ -15,7 +15,7 @@ def get_moving_parser(parser: ArgumentParser):
   parser.description = "This commands moves a tier to another position in the grid."
   add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be moved")
-  parser.add_argument("position", type=parse_positive_integer, metavar="position",
+  parser.add_argument("position", type=parse_positive_integer, metavar="POSITION",
                       help="move tier to this position (1 = first tier)")
   add_encoding_argument(parser)
   add_output_directory_argument(parser)
