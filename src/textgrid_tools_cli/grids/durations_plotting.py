@@ -7,9 +7,9 @@ from tqdm import tqdm
 
 from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_encoding_argument, add_tiers_argument, get_grid_files,
-                                       parse_non_empty_or_whitespace, parse_path, try_load_grid)
+from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
+                                       add_tiers_argument, get_grid_files, parse_path,
+                                       try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 

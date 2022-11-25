@@ -1,15 +1,15 @@
 [project]
 name = "textgrid-tools"
-version = "0.0.4"
+version = "0.0.5"
 description = "Command-line interface (CLI) to modify TextGrids and their corresponding audio files."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"}
+  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"}
 ]
 maintainers = [
-  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"},
+  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"},
 ]
 keywords = [
   "Text-to-speech",
