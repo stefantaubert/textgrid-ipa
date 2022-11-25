@@ -130,6 +130,11 @@ def add_n_jobs_argument(parser: ArgumentParser) -> None:
                       choices=range(1, cpu_count() + 1), default=DEFAULT_N_JOBS, help="amount of parallel cpu jobs")
 
 
+def add_dry_run_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-d", "--dry", action="store_true",
+                      help="dry run (i.e., don't change anything)")
+
+
 T = TypeVar("T")
 
 

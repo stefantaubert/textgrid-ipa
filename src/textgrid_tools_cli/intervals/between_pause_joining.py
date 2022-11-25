@@ -27,6 +27,7 @@ def get_between_pause_joining_parser(parser: ArgumentParser):
   add_n_jobs_argument(parser)
   add_chunksize_argument(parser)
   add_maxtaskperchild_argument(parser)
+  add_dry_run_argument(parser)
   return app_join_intervals_between_pauses
 
 
@@ -39,4 +40,4 @@ def app_join_intervals_between_pauses(ns: Namespace) -> ExecutionResult:
     ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry_run)

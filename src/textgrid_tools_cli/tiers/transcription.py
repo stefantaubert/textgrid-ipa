@@ -7,11 +7,11 @@ from textgrid_tools import transcribe_text
 from textgrid_tools_cli.common import process_grids_mp
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_chunksize_argument, add_directory_argument,
-                                       add_encoding_argument, add_maxtaskperchild_argument,
-                                       add_n_jobs_argument, add_output_directory_argument,
-                                       add_overwrite_argument, add_tiers_argument, get_optional,
-                                       parse_existing_file, parse_non_negative_integer,
-                                       parse_positive_integer)
+                                       add_dry_run_argument, add_encoding_argument,
+                                       add_maxtaskperchild_argument, add_n_jobs_argument,
+                                       add_output_directory_argument, add_overwrite_argument,
+                                       add_tiers_argument, get_optional, parse_existing_file,
+                                       parse_non_negative_integer, parse_positive_integer)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
@@ -37,6 +37,7 @@ def get_transcription_parser(parser: ArgumentParser):
   mp_group.add_argument("-sd", "--chunksize-dictionary", type=parse_positive_integer, metavar="NUMBER",
                         help="amount of lines to chunk into one job", default=10000)
   add_maxtaskperchild_argument(mp_group)
+  add_dry_run_argument(parser)
   return app_transcribe_text_v2
 
 
@@ -75,4 +76,4 @@ def app_transcribe_text_v2(ns: Namespace) -> ExecutionResult:
     replace_missing=ns.assign_mark_to_missing,
   )
 
-  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry_run)

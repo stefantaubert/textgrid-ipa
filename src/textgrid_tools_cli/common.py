@@ -15,7 +15,7 @@ from textgrid_tools_cli.logging_configuration import (StoreRecordsHandler, get_f
                                                       init_and_get_console_logger)
 
 
-def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int]) -> ExecutionResult:
+def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[Path], overwrite: bool, method: Callable[[TextGrid], ExecutionResult], chunksize: int, n_jobs: int, maxtasksperchild: Optional[int], dry_run: bool) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
@@ -34,6 +34,7 @@ def process_grids_mp(directory: Path, encoding: str, output_directory: Optional[
     overwrite=overwrite,
     directory=directory,
     output_directory=output_directory,
+    dry_run=dry_run,
   )
 
   keys = grid_files.keys()
@@ -81,7 +82,7 @@ def __init_pool(grid_files: OrderedDict[str, Path]) -> None:
   process_grid_files = grid_files
 
 
-def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path) -> Tuple[str, Tuple[bool, bool, List[LogRecord]]]:
+def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callable[[TextGrid], ExecutionResult], directory: Path, output_directory: Path, dry_run: bool) -> Tuple[str, Tuple[bool, bool, List[LogRecord]]]:
   global process_grid_files
 
   start = perf_counter()
@@ -120,21 +121,24 @@ def process_grid(file_stem: str, encoding: str, overwrite: bool, method: Callabl
     assert not changed_anything
   else:
     logger.info("Applied operations successfully.")
-    if changed_anything:
-      error = try_save_grid(grid_file_out_abs, grid, encoding)
-      if error:
-        logger.debug(error.exception)
-        logger.error(error.default_message)
-        logger.debug(f"Duration (s): {perf_counter() - start}")
-        return file_stem, (False, False, handler.records)
-      logger.info(f"Saved the grid to: \"{grid_file_out_abs.absolute()}\"")
-    elif directory != output_directory:
-      logger.info("Didn't changed anything.")
-      error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
-      if error:
-        logger.error(error.default_message, exc_info=error.exception)
-      else:
-        logger.info(f"Copied the grid to: \"{grid_file_out_abs.absolute()}\"")
+    if dry_run:
+      logger.info(f"DRY RUN, therefore didn't saved grid to \"{grid_file_out_abs.absolute()}\".")
+    else:
+      if changed_anything:
+        error = try_save_grid(grid_file_out_abs, grid, encoding)
+        if error:
+          logger.debug(error.exception)
+          logger.error(error.default_message)
+          logger.debug(f"Duration (s): {perf_counter() - start}")
+          return file_stem, (False, False, handler.records)
+        logger.info(f"Saved the grid to: \"{grid_file_out_abs.absolute()}\"")
+      elif directory != output_directory:
+        logger.info("Didn't changed anything.")
+        error = try_copy_grid(grid_file_in_abs, grid_file_out_abs)
+        if error:
+          logger.error(error.default_message, exc_info=error.exception)
+        else:
+          logger.info(f"Copied the grid to: \"{grid_file_out_abs.absolute()}\"")
 
   del grid
   logger.debug(f"Duration (s): {perf_counter() - start}")
