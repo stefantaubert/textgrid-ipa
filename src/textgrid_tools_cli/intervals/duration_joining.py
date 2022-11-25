@@ -43,4 +43,4 @@ def app_join_intervals_on_durations(ns: Namespace) -> ExecutionResult:
     ignore_empty=not ns.join_empty,
   )
 
-  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry_run)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry)

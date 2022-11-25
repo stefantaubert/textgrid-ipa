@@ -52,4 +52,4 @@ def app_map_tier(ns: Namespace) -> ExecutionResult:
     filter_to_mode=ns.filter_to_mode,
   )
 
-  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry_run)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry)

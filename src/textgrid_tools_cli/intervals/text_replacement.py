@@ -37,4 +37,4 @@ def replace_text_ns(ns: Namespace) -> ExecutionResult:
     replace_with=ns.replace_with,
   )
 
-  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry_run)
+  return process_grids_mp(ns.directory, ns.encoding, ns.output_directory, ns.overwrite, method, ns.chunksize, ns.n_jobs, ns.maxtasksperchild, ns.dry)
