@@ -20,6 +20,7 @@ from textgrid_tools_cli.grids.grid_paths_importing import get_grid_paths_importi
 from textgrid_tools_cli.grids.pronunciations_exporting import get_pronunciations_exporting_parser
 from textgrid_tools_cli.grids.stats_generation import get_grids_plot_stats_parser
 from textgrid_tools_cli.helper import get_optional, parse_path
+from textgrid_tools_cli.intervals.text_replacement import get_text_replacement_parser
 from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                       try_init_file_logger)
 
@@ -91,6 +92,7 @@ def get_intervals_parsers() -> Parsers:
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
   yield "join-between-pauses", "join intervals between pauses (LEGACY, please use join-between-marks)", get_between_pause_joining_parser
+  yield "replace-text", "replace text using regex pattern", get_text_replacement_parser
 
 
 def get_parsers() -> Dict[str, Tuple[Parsers, str]]:

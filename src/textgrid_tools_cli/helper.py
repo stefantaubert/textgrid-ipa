@@ -1,6 +1,7 @@
 import argparse
 import codecs
 import os
+import re
 from argparse import ArgumentParser, ArgumentTypeError
 from collections import OrderedDict
 from functools import partial
@@ -196,6 +197,15 @@ def parse_non_empty(value: Optional[str]) -> str:
   if value == "":
     raise ArgumentTypeError("Value must not be empty!")
   return value
+
+
+def parse_pattern(value: Optional[str]) -> re.Pattern:
+  value = parse_required(value)
+  try:
+    result = re.compile(value)
+  except re.error as error:
+    raise ArgumentTypeError("Value needs to be a valid pattern!") from error
+  return result
 
 
 def parse_non_empty_or_whitespace(value: str) -> str:
