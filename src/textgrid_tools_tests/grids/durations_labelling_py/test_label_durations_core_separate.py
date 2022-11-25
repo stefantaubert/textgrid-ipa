@@ -34,14 +34,15 @@ def test_component():
     grid1,
   ]
 
-  grids_changed, total_intervals, considered_intervals, matching_intervals, changed_intervals = label_durations_core_separate(grids, "tier1", "tier2", "X", only_consider_marks={
+  grids_changed, total_intervals, considered_intervals, count_matching_intervals, duration_matching_intervals, changed_intervals = label_durations_core_separate(grids, "tier1", "tier2", "X", only_consider_marks={
       "a", "c"}, range_mode="percentile", range_min=40, range_max=inf, min_count=2)
 
   assert grids_changed == [True]
   assert total_intervals == 6
-  assert considered_intervals == 4 # 3x "a" + 1x "c"
-  assert matching_intervals == 2 # 2x "a" -> 1s & 2s
-  assert changed_intervals == 1 # 1x "a" @(3, 5)
+  assert considered_intervals == 4  # 3x "a" + 1x "c"
+  assert count_matching_intervals == 3  # 3x "a"; 1x "c" is ignored because min_count >= 2
+  assert duration_matching_intervals == 2  # 2x "a" -> 1s, 2s; 0.5s is ignored
+  assert changed_intervals == 1  # 1x "a" @(3, 5)
   # tier 1 has not changed
   assert grid1_tier1.intervals[0].mark == "a"
   assert grid1_tier1.intervals[1].mark == "b"
@@ -55,4 +56,4 @@ def test_component():
   assert grid1_tier2.intervals[2].mark == "-"
   assert grid1_tier2.intervals[3].mark == "X"
   assert grid1_tier2.intervals[4].mark == "X"
-  assert grid1_tier2.intervals[5].mark == "-" # unchanged because of min_count=2
+  assert grid1_tier2.intervals[5].mark == "-"  # unchanged because of min_count=2
