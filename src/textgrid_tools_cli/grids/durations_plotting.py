@@ -8,7 +8,7 @@ from tqdm import tqdm
 from textgrid_tools.grids.durations_plotting import plot_grids_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
-                                       add_encoding_argument, get_grid_files,
+                                       add_encoding_argument, add_tiers_argument, get_grid_files,
                                        parse_non_empty_or_whitespace, parse_path, try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
@@ -16,8 +16,7 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 def get_grids_plot_interval_durations_parser(parser: ArgumentParser):
   parser.description = "This command creates a violin plot of the interval durations of all grids."
   add_directory_argument(parser)
-  parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='+', metavar="TIER",
-                      help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
+  add_tiers_argument(parser, "tiers containing the intervals that should be plotted")
   parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="path to output the generated diagram (*.png or *.pdf)")
   add_encoding_argument(parser)

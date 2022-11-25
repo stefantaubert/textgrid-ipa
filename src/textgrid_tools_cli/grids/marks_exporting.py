@@ -19,7 +19,7 @@ def get_marks_exporting_parser(parser: ArgumentParser):
                       help="tier containing the intervals that should be exported")
   parser.add_argument("output", type=parse_txt_path, metavar="OUTPUT",
                       help="path to output the marks (*.txt)")
-  parser.add_argument("--sep", type=str,
+  parser.add_argument("--sep", type=str, metavar="SEP",
                       help="separator for intervals in output", default="|")
   add_encoding_argument(parser, "encoding of input grid files and OUTPUT text file")
   return export_marks_ns

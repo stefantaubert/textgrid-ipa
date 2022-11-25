@@ -21,9 +21,9 @@ def get_symbols_joining_parser(parser: ArgumentParser):
   parser.add_argument('--mode', type=str, choices=["right", "left", "together"],
                       help="mode to join: right -> join marks from right; left -> join marks from left; together -> join adjacent intervals containing these marks together", default="right")
   # could be positional but clashes with tiers
-  parser.add_argument('--join-symbols', type=str, nargs="+",
+  parser.add_argument('--join-symbols', type=str, nargs="+", metavar="JOIN-SYMBOL",
                       help="join these symbols", default=OrderedSet(DEFAULT_PUNCTUATION), action=ConvertToOrderedSetAction)
-  parser.add_argument('--ignore-join-symbols', type=str, nargs="*",
+  parser.add_argument('--ignore-join-symbols', type=str, nargs="*", metavar="IGNORE-SYMBOL",
                       help="don't join to these symbols; only relevant on modes 'right' and 'left'", default=OrderedSet(("", " ")), action=ConvertToOrderedSetAction)
   add_join_with_argument(parser)
   add_join_empty_argument(parser)

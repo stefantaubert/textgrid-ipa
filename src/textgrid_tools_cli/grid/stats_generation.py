@@ -12,7 +12,7 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 def get_stats_generation_parser(parser: ArgumentParser):
   parser.description = "This command generate statistics about the grid files."
   add_directory_argument(parser)
-  parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002,
+  parser.add_argument("--duration-threshold", type=parse_positive_float, default=0.002, metavar="THRESHOLD",
                       help="warn at intervals smaller than this duration (in seconds)")
   add_encoding_argument(parser)
   return app_print_stats

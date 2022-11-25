@@ -35,7 +35,7 @@ def get_mark_joining_parser(parser: ArgumentParser):
   parser.add_argument("--empty", action="store_true",
                       help="join empty marks")
   parser.add_argument('--marks', type=parse_non_empty, metavar="MARK", nargs="*",
-                      help="join adjacent intervals containing these marks", default=[], action=ConvertToOrderedSetAction)
+                      help="join adjacent intervals containing these marks", default=OrderedSet(), action=ConvertToOrderedSetAction)
   add_join_with_argument(parser)
   add_join_empty_argument(parser)
   add_output_directory_argument(parser)

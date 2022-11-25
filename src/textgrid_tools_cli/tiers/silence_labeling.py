@@ -36,12 +36,12 @@ def get_label_silence_parser(parser: ArgumentParser):
   parser.description = "This command labels silence intervals."
   add_directory_argument(parser)
   add_tiers_argument(parser, "tiers where to label silence")
-  parser.add_argument("--mark", type=parse_non_empty,
+  parser.add_argument("--mark", type=parse_non_empty, metavar="ASSIGN-MARK",
                       help="mark to assign to silence intervals", default="sil")
   parser.add_argument("--min-duration", type=parse_non_negative_float,
-                      help="inclusive minimum duration of silence in seconds", default=0)
+                      help="inclusive minimum duration of silence in seconds", default=0, metavar="MIN-DURATION")
   parser.add_argument("--max-duration", type=parse_non_negative_float,
-                      help="exclusive maximum duration of silence in seconds", default=inf)
+                      help="exclusive maximum duration of silence in seconds", default=inf, metavar="MAX-DURATION")
   add_encoding_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

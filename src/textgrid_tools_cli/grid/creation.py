@@ -19,11 +19,11 @@ META_FILE_TYPE = ".meta"
 def get_creation_parser(parser: ArgumentParser):
   parser.description = f"This command converts text files (.txt) into grid files. You can provide an audio directory to set the grid's endTime to the durations of the audio files. Furthermore you can provide meta files ({META_FILE_TYPE}) to define start and end of an audio file."
   add_directory_argument(parser, "directory containing text, audio and meta files")
-  parser.add_argument("--tier", type=parse_non_empty_or_whitespace, metavar='NAME',
+  parser.add_argument("--tier", type=parse_non_empty_or_whitespace, metavar='TIER',
                       help="the name of the tier containing the text content", default="transcript")
-  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
+  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='AUDIO-PATH',
                       help="directory containing audio files if not directory")
-  parser.add_argument("--meta-directory", type=get_optional(parse_existing_directory), metavar='PATH',
+  parser.add_argument("--meta-directory", type=get_optional(parse_existing_directory), metavar='META-PATH',
                       help="directory containing meta files; defaults to directory if not specified", default=None)
   parser.add_argument("--name", type=str, metavar='NAME',
                       help="name of the grid")

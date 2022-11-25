@@ -21,12 +21,12 @@ def get_marks_mapping_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   add_tiers_argument(parser, "tiers which should be transcribed")
   parser.add_argument("mapping", type=parse_existing_file,
-                      metavar="mapping", help="path to mapping json")
+                      metavar="MAP-PATH", help="path to mapping json")
   parser.add_argument("--replace-unmapped", action="store_true",
                       help="replace unmapped marks with a custom mark")
-  parser.add_argument("--mark", metavar="SYMBOL", type=get_optional(parse_non_empty),
+  parser.add_argument("--mark", metavar="UNMAPPED-MARK", type=get_optional(parse_non_empty),
                       help="custom mark to replace unmapped symbols", default=None)
-  parser.add_argument("--ignore", metavar="SYMBOL", type=str, nargs="*",
+  parser.add_argument("--ignore", metavar="IGNORE-MARK", type=str, nargs="*",
                       help="ignore mappings for these marks, i.e., keep them as they are", action=ConvertToOrderedSetAction, default=OrderedSet(("",)))
   add_encoding_argument(parser, "encoding of grids and mapping")
   add_output_directory_argument(parser)

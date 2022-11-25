@@ -16,11 +16,11 @@ def get_symbol_removing_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   add_tiers_argument(parser, "tiers")
   parser.add_argument("--text", type=parse_non_empty, nargs='*',
-                      help="remove this text from intervals", default=[], action=ConvertToOrderedSetAction)
+                      help="remove this text from intervals", default=[], action=ConvertToOrderedSetAction, metavar="TEXT")
   parser.add_argument("--marks", type=parse_non_empty, nargs='*', metavar="MARK",
                       help="replace these marks with nothing", default=[], action=ConvertToOrderedSetAction)
   parser.add_argument("--marks-text", type=parse_non_empty, nargs='*',
-                      help="remove mark from intervals if the mark consists only these texts", default=[], action=ConvertToOrderedSetAction)
+                      help="remove mark from intervals if the mark consists only these texts", default=[], action=ConvertToOrderedSetAction, metavar="MARKS-TEXT")
   add_encoding_argument(parser)
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)

@@ -15,7 +15,7 @@ def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits the content of a tier."
   add_directory_argument(parser, "directory containing the grid files which should be modified")
   add_tiers_argument(parser, "tiers which should be split")
-  parser.add_argument('--symbol', type=str, help="split on this symbol", default=" ")
+  parser.add_argument('symbol', type=str, help="split on this symbol", metavar="SPLIT-SYMBOL")
   parser.add_argument("--keep", action="store_true",
                       help="keep the split symbol in a separate interval")
   add_encoding_argument(parser)

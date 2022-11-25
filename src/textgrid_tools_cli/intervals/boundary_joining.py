@@ -15,7 +15,7 @@ from textgrid_tools_cli.intervals.common import add_join_empty_argument, add_joi
 def get_boundary_joining_parser(parser: ArgumentParser):
   parser.description = "This command joins adjacent intervals according to the interval boundaries of another tier."
   add_directory_argument(parser)
-  parser.add_argument("boundary_tier", metavar="boundary-tier", type=parse_non_empty_or_whitespace,
+  parser.add_argument("boundary_tier", metavar="BOUNDARY-TIER", type=parse_non_empty_or_whitespace,
                       help="tier from which the boundaries should be considered")
   add_tiers_argument(parser, "tiers on which the intervals should be joined")
   add_join_with_argument(parser)

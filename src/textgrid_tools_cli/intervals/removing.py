@@ -25,13 +25,13 @@ def get_removing_parser(parser: ArgumentParser):
                       help="remove intervals containing these marks", action=ConvertToOrderedSetAction)
   parser.add_argument("-m", "--mode", type=str, choices=["all", "start", "end", "both"], metavar="MODE",
                       help="mode to remove the intervals: all = on all locations; start = only from start; end = only from end; both = start + end", default="all")
-  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
+  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='AUDIO-DIRECTORY',
                       help="directory containing the audios if not directory")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="ignore audios")
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("-out", "--output-directory", metavar='OUTPUT-DIRECTORY', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
-  parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("--output-audio-directory", metavar='OUTPUT-AUDIO-DIRECTORY', type=get_optional(parse_path),
                       help="the directory where to output the modified audio files if not to directory.")
   add_encoding_argument(parser)
   add_overwrite_argument(parser)

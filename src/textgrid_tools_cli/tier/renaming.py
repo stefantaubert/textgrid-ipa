@@ -17,7 +17,7 @@ def get_renaming_parser(parser: ArgumentParser):
   parser.description = "This command renames a tier."
   add_directory_argument(parser)
   add_tier_argument(parser, "tier which should be renamed")
-  parser.add_argument("name", type=parse_non_empty_or_whitespace, metavar="tier",
+  parser.add_argument("name", type=parse_non_empty_or_whitespace, metavar="NEW-NAME",
                       help="new name of tier")
   add_encoding_argument(parser)
   add_output_directory_argument(parser)

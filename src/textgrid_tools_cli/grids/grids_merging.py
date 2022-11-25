@@ -15,12 +15,12 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 def get_grids_merging_parser(parser: ArgumentParser) -> Callable:
   parser.description = "This command merges grid files."
   add_directory_argument(parser)
-  parser.add_argument("output", type=parse_path, metavar="output",
-                      help="path to write the generated grid")
-  parser.add_argument("--insert-duration", type=get_optional(parse_positive_float),
+  parser.add_argument("output", type=parse_path, metavar="OUTPUT",
+                      help="file to write the generated grid (.TextGrid)")
+  parser.add_argument("--insert-duration", type=get_optional(parse_positive_float), metavar="DURATION",
                       help="insert an interval between subsequent grids having this duration and mark as content", default=None)
   parser.add_argument(
-    "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", default="")
+    "--insert-mark", type=str, help="set this mark in the inserted interval (only if insert-duration > 0)", metavar="MARK", default="")
   add_encoding_argument(parser)
   return merge_grids_app
 

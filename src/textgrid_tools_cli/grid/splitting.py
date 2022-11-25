@@ -18,15 +18,15 @@ def get_splitting_parser(parser: ArgumentParser):
   parser.description = "This command splits a grid into multiple grids by exporting each interval as separate grid."
   add_directory_argument(parser, "directory containing the grids and audios")
   add_tier_argument(parser, "tier on which intervals should be splitted")
-  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='PATH',
+  parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='AUDIO-PATH',
                       help="directory containing the audios if not directory")
   parser.add_argument("--include-empty", action="store_true",
                       help="export empty intervals, too")
   parser.add_argument("--ignore-audio", action="store_true",
                       help="don't export audios")
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("-out", "--output-directory", metavar='OUTPUT-PATH', type=get_optional(parse_path),
                       help="directory where to output the grids and audios if not to the same directory")
-  parser.add_argument("--output-audio-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("--output-audio-directory", metavar='OUTPUT-AUDIO-PATH', type=get_optional(parse_path),
                       help="directory where to output the modified audios if not to directory")
   add_encoding_argument(parser)
   add_overwrite_argument(parser)

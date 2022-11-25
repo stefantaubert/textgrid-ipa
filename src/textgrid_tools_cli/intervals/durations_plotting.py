@@ -7,17 +7,16 @@ from textgrid_tools import plot_interval_durations_diagram
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToOrderedSetAction, add_directory_argument,
                                        add_encoding_argument, add_overwrite_argument,
-                                       get_grid_files, get_optional, parse_non_empty_or_whitespace,
-                                       parse_path, try_load_grid)
+                                       add_tiers_argument, get_grid_files, get_optional,
+                                       parse_non_empty_or_whitespace, parse_path, try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
 def get_plot_interval_durations_parser(parser: ArgumentParser):
   parser.description = "This command creates a violin plot of the interval durations."
   add_directory_argument(parser)
-  parser.add_argument("tiers", type=parse_non_empty_or_whitespace, nargs='+',
-                      help="tiers containing the intervals that should be plotted", action=ConvertToOrderedSetAction)
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+  add_tiers_argument(parser, "tiers containing the intervals that should be plotted")
+  parser.add_argument("-out", "--output-directory", metavar='DIRECTORY', type=get_optional(parse_path),
                       help="directory where to output the plots if not to the same directory")
   add_encoding_argument(parser)
   add_overwrite_argument(parser)

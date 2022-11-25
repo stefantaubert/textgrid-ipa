@@ -16,7 +16,7 @@ def get_boundary_fixing_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   add_tier_argument(parser, "tier with contains the right boundaries", meta_var="REFERENCE-TIER")
   add_tiers_argument(parser, "tiers that should be fixed")
-  parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005,
+  parser.add_argument("--difference-threshold", type=parse_positive_float, default=0.005, metavar="THRESHOLD",
                       help="difference threshold to which boundaries should be fixed; needs to be greater than zero")
   add_output_directory_argument(parser)
   add_encoding_argument(parser)

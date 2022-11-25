@@ -16,7 +16,7 @@ def get_exporting_parser(parser: ArgumentParser):
   add_directory_argument(parser)
   add_tier_argument(parser, "tier from which the content should be written")
   add_encoding_argument(parser, "encoding of grid and text files")
-  parser.add_argument("-out", "--output-directory", metavar='PATH', type=get_optional(parse_path),
+  parser.add_argument("-out", "--output-directory", metavar='OUTPUT-DIRECTORY', type=get_optional(parse_path),
                       help="directory where to output the text files if not to the same directory", default=None)
   parser.add_argument('--sep', type=str, metavar="SYMBOL",
                       help="use this symbol to separate the marks of each interval", default="\n")
