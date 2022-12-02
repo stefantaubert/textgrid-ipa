@@ -44,7 +44,7 @@ dependencies = [
   "pandas>=1.4.0",
   "ordered_set>=4.1.0",
   "matplotlib>=3.5.0",
-  "pronunciation_dictionary>=0.0.4",
+  "pronunciation_dictionary>=0.0.5",
 ]
 
 [project.urls]
