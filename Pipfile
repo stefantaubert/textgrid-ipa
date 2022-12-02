@@ -13,6 +13,7 @@ rope = "*"
 pytest = "*"
 autoflake = "*"
 twine = "*"
+build = "*"
 
 [packages]
 scipy = ">=1.8.0"
