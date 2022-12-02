@@ -3,7 +3,7 @@ name = "textgrid-tools"
 version = "0.0.5"
 description = "Command-line interface (CLI) to modify TextGrids and their corresponding audio files."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.8, <4"
 license = {text = "MIT"}
 authors = [
   {name = "Stefan Taubert", email = "pypi@stefantaubert.com"}

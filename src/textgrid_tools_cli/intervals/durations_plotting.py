@@ -69,4 +69,4 @@ def app_plot_interval_durations(ns: Namespace) -> ExecutionResult:
     getLogger('matplotlib.backends.backend_pdf').disabled = False
     figure.savefig(png_out)
 
-  return total_success, False
+  return total_success, True
