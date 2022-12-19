@@ -29,7 +29,7 @@ class UnequalIntervalAmountError(ValidationError):
     msg = f"Amount of intervals is different: {len(self.tier_intervals)} vs. {len(self.target_tier_intervals)} (target)!\n\n"
     min_len = min(len(self.target_tier_intervals), len(self.tier_intervals))
     for i in range(min_len):
-      msg += f"===> \"{self.tier_intervals[i].mark}\" vs. \"{self.target_tier_intervals[i].mark}\"\n"
+      msg += f"===> \"{self.tier_intervals[i].mark}\" vs. \"{self.target_tier_intervals[i].mark}\" ({self.tier_intervals[i].minTime}; {self.target_tier_intervals[i].minTime})\n"
     msg += "..."
     return msg
 

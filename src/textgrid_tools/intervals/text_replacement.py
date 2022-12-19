@@ -29,8 +29,9 @@ def replace_text(grid: TextGrid, tier_names: Set[str], pattern: re.Pattern, repl
   for interval in intervals:
     updated_mark = re.sub(pattern, replace_with, interval.mark)
     if updated_mark != interval.mark:
+      old_mark = interval.mark
       interval.mark = updated_mark
-      logger.debug(f"Replaced \"{interval.mark}\" with \"{updated_mark}\".")
+      logger.debug(f"Replaced \"{old_mark}\" with \"{updated_mark}\".")
       count_changed += 1
     else:
       count_unchanged += 1
