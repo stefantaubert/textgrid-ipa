@@ -9,4 +9,5 @@ from textgrid_tools.intervals.mark_joining import join_marks
 from textgrid_tools.intervals.removing import remove_intervals
 from textgrid_tools.intervals.splitting import split_intervals
 from textgrid_tools.intervals.symbols_joining import join_interval_symbols
+from textgrid_tools.intervals.template_joining import join_by_template
 from textgrid_tools.intervals.text_replacement import replace_text
