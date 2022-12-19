@@ -20,6 +20,7 @@ from textgrid_tools_cli.grids.grid_paths_importing import get_grid_paths_importi
 from textgrid_tools_cli.grids.pronunciations_exporting import get_pronunciations_exporting_parser
 from textgrid_tools_cli.grids.stats_generation import get_grids_plot_stats_parser
 from textgrid_tools_cli.helper import get_optional, parse_path
+from textgrid_tools_cli.intervals.template_joining import get_template_joining_parser
 from textgrid_tools_cli.intervals.text_replacement import get_text_replacement_parser
 from textgrid_tools_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                       try_init_file_logger)
@@ -87,7 +88,7 @@ def get_intervals_parsers() -> Parsers:
   yield "join-by-duration", "join intervals by a duration", get_duration_joining_parser
   yield "join-marks", "join intervals containing specific marks", get_mark_joining_parser
   yield "join-symbols", "join intervals containing specific symbols", get_symbols_joining_parser
-  yield "join-template", "join intervals according to a template"
+  yield "join-template", "join intervals according to a template", get_template_joining_parser
   yield "split", "split intervals", get_splitting_parser
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
