@@ -1,4 +1,4 @@
-from logging import Logger
+from logging import Logger, getLogger
 from typing import Generator, List, Optional, Set, Tuple, cast
 
 from ordered_set import OrderedSet
@@ -25,7 +25,6 @@ class InvalidModeError(ValidationError):
   @property
   def default_message(self) -> str:
     return "Mode needs to be 'right', 'left' or 'together'!"
-from logging import getLogger
 
 
 def join_interval_symbols(grid: TextGrid, tier_names: Set[str], join_with: str, join_symbols: OrderedSet[str], ignore_join_symbols: OrderedSet[str], mode: str, ignore_empty: bool, logger: Optional[Logger]) -> ExecutionResult:
@@ -138,3 +137,20 @@ def get_next_merged_right_symbol_and_index(symbols: Tuple[str, ...], j: int, mer
       new_symbol.append(symbols[j])
       j += 1
   return tuple(new_symbol), j
+
+
+# def merge_right_core2(symbols: Tuple[str, ...], merge_symbols: Set[str], ignore_merge_symbols: Set[str]) -> Tuple[Tuple[str, ...]]:
+#   j = 0
+#   merged_symbols = []
+#   while j < len(symbols):
+#     new_symbol = [symbols[j]]
+#     j += 1
+#     if new_symbol[0] not in ignore_merge_symbols and new_symbol[0] not in merge_symbols:
+#       while j < len(symbols) and symbols[j] in merge_symbols:
+#         if len(new_symbol) >= 2 and symbols[j] in ignore_merge_symbols:
+#           break
+#         new_symbol.append(symbols[j])
+#         j += 1
+#     new_symbol = tuple(new_symbol)
+#     merged_symbols.append(new_symbol)
+#   return tuple(merged_symbols)
