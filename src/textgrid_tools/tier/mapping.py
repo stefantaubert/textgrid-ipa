@@ -9,6 +9,8 @@ from textgrid_tools.helper import get_all_tiers, get_single_tier
 from textgrid_tools.validation import (InvalidGridError, MultipleTiersWithThatNameError,
                                        NonDistinctTiersError, NotExistingTierError, ValidationError)
 
+# DISPLAY_FIRST_N_MAX = 5000
+
 
 class UnequalIntervalAmountError(ValidationError):
   def __init__(self, tier_intervals: List[Interval], target_tier_intervals: List[Interval]) -> None:
@@ -25,8 +27,7 @@ class UnequalIntervalAmountError(ValidationError):
   @property
   def default_message(self) -> str:
     msg = f"Amount of intervals is different: {len(self.tier_intervals)} vs. {len(self.target_tier_intervals)} (target)!\n\n"
-    display_first_n_max = 250
-    min_len = min(len(self.target_tier_intervals), len(self.tier_intervals), display_first_n_max)
+    min_len = min(len(self.target_tier_intervals), len(self.tier_intervals))
     for i in range(min_len):
       msg += f"===> \"{self.tier_intervals[i].mark}\" vs. \"{self.target_tier_intervals[i].mark}\"\n"
     msg += "..."
