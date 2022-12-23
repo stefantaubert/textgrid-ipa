@@ -1,16 +1,17 @@
 from logging import Logger, getLogger
 from typing import Generator, Iterable, List, Optional, Set, cast
 
+from ordered_set import OrderedSet
 from textgrid.textgrid import Interval, TextGrid
 
 from textgrid_tools.comparison import check_intervals_are_equal
 from textgrid_tools.globals import ExecutionResult
-from textgrid_tools.helper import get_all_tiers
+from textgrid_tools.helper import get_all_tiers, get_boundary_timepoints_from_tier, get_single_tier
 from textgrid_tools.intervals.common import merge_intervals, replace_intervals
-from textgrid_tools.validation import InvalidGridError, NotExistingTierError
+from textgrid_tools.validation import BoundaryError, InvalidGridError, NotExistingTierError
 
 
-def join_by_template(grid: TextGrid, tier_names: Set[str], join_with: str, ignore_empty: bool, template: List[str], logger: Optional[Logger]) -> ExecutionResult:
+def join_by_template(grid: TextGrid, tier_names: Set[str], boundary_tier_name: Optional[str], join_with: str, ignore_empty: bool, template: List[str], logger: Optional[Logger]) -> ExecutionResult:
   assert len(tier_names) > 0
 
   if logger is None:
@@ -23,7 +24,19 @@ def join_by_template(grid: TextGrid, tier_names: Set[str], join_with: str, ignor
     if error := NotExistingTierError.validate(grid, tier_name):
       return error, False
 
+    if boundary_tier_name is not None:
+      if error := NotExistingTierError.validate(grid, boundary_tier_name):
+        return error, False
+
   tiers = list(get_all_tiers(grid, tier_names))
+
+  boundary_tier_timepoints = OrderedSet()
+  if boundary_tier_name is not None:
+    boundary_tier = get_single_tier(grid, boundary_tier_name)
+    boundary_tier_timepoints = get_boundary_timepoints_from_tier(boundary_tier)
+
+    if error := BoundaryError.validate(boundary_tier_timepoints, tiers):
+      return error, False
 
   joined_count = 0
   joined_to_count = 0
@@ -32,7 +45,7 @@ def join_by_template(grid: TextGrid, tier_names: Set[str], join_with: str, ignor
   changed_anything = False
   for tier in tiers:
     intervals_copy = cast(Iterable[Interval], list(tier.intervals))
-    for chunk in chunk_intervals(intervals_copy, template):
+    for chunk in chunk_intervals_boundary(intervals_copy, template, boundary_tier_timepoints):
       merged_interval = merge_intervals(chunk, join_with, ignore_empty)
       replace_with = [merged_interval]
       if not check_intervals_are_equal(chunk, replace_with):
@@ -48,11 +61,19 @@ def join_by_template(grid: TextGrid, tier_names: Set[str], join_with: str, ignor
   return None, changed_anything
 
 
-def chunk_intervals(intervals: Iterable[Interval], template: List[str]) -> Generator[List[Interval], None, None]:
+def chunk_intervals_boundary(intervals: Iterable[Interval], template: List[str], boundaries: OrderedSet[float]) -> Generator[List[Interval], None, None]:
   chunk = []
   template_i = 0
   for interval in intervals:
-    if template[template_i] == interval.mark:
+    if interval.minTime in boundaries:
+      if len(chunk) > 0:
+        for c_interval in chunk:
+          yield [c_interval]
+        chunk = []
+        template_i = 0
+
+    current_template_char = template[template_i]
+    if current_template_char == interval.mark:
       chunk.append(interval)
       template_i += 1
     else:
@@ -62,7 +83,8 @@ def chunk_intervals(intervals: Iterable[Interval], template: List[str]) -> Gener
         chunk = []
         template_i = 0
 
-      if template[template_i] == interval.mark:
+      current_template_char = template[template_i]
+      if current_template_char == interval.mark:
         chunk.append(interval)
         template_i += 1
       else:
