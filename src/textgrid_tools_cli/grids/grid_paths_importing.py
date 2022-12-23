@@ -14,8 +14,8 @@ from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_g
 
 def get_grid_paths_importing_parser(parser: ArgumentParser):
   parser.description = "This command imports all files from one text file containing paths."
-  parser.add_argument("paths", type=parse_txt_path, metavar="PATHS",
-                      help="path to output the paths (*.txt)")
+  parser.add_argument("path", type=parse_txt_path, metavar="PATH",
+                      help="path to import the paths (*.txt)")
   parser.add_argument("output_directory", metavar='OUTPUT-PATH', type=parse_path,
                       help="directory where to copy the grid files")
   parser.add_argument("--relative-to", type=get_optional(parse_path), metavar="REL-PATH",

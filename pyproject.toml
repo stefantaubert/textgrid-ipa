@@ -1,6 +1,6 @@
 [project]
 name = "textgrid-tools"
-version = "0.0.5"
+version = "0.0.6"
 description = "Command-line interface (CLI) to modify TextGrids and their corresponding audio files."
 readme = "README.md"
 requires-python = ">=3.8, <4"
@@ -34,6 +34,7 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
@@ -107,7 +108,7 @@ known_third_party = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{38,39,310}
+envlist = py{38,39,310,311}
 isolated_build = True
 
 [testenv]
@@ -118,7 +119,6 @@ commands =
   textgrid-tools-cli
   textgrid-tools-cli -v
 """
-
 
 [build-system]
 requires = [

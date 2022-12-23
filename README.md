@@ -5,8 +5,8 @@
 [![MIT](https://img.shields.io/github/license/stefantaubert/textgrid-ipa.svg)](https://github.com/stefantaubert/textgrid-ipa/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/wheel/textgrid-tools.svg)](https://pypi.python.org/pypi/textgrid-tools/#files)
 ![PyPI](https://img.shields.io/pypi/implementation/textgrid-tools.svg)
-[![PyPI](https://img.shields.io/github/commits-since/stefantaubert/textgrid-ipa/latest/main.svg)](https://github.com/stefantaubert/textgrid-ipa/compare/v0.0.5...main)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7362371.svg)](https://doi.org/10.5281/zenodo.7362371)
+[![PyPI](https://img.shields.io/github/commits-since/stefantaubert/textgrid-ipa/latest/main.svg)](https://github.com/stefantaubert/textgrid-ipa/compare/v0.0.6...main)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7477341.svg)](https://doi.org/10.5281/zenodo.7477341)
 
 Command-line interface (CLI) to modify TextGrids and their corresponding audio files.
 
@@ -50,11 +50,12 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `join-by-duration`: join intervals by a duration
   - `join-marks`: join intervals containing specific marks
   - `join-symbols`: join intervals containing specific symbols
+  - `join-template`: join intervals according to a template
   - `split`: split intervals
   - `fix-boundaries`: align boundaries of tiers according to a reference tier
   - `remove`: remove intervals
   - `plot-durations`: plot durations
-  - `join-between-pauses`: join intervals between pauses (LEGACY, please use `join-between-marks`)
+  - `join-between-pauses`: join intervals between pauses (LEGACY, please use join-between-marks)
   - `replace-text`: replace text using regex pattern
 
 ## Roadmap
@@ -83,31 +84,64 @@ textgrid-tools-cli
 - `pandas>=1.4.0`
 - `ordered_set>=4.1.0`
 - `matplotlib>=3.5.0`
-- `pronunciation_dictionary>=0.0.4`
+- `pronunciation_dictionary>=0.0.5`
 
-## Troubleshooting
+## Contributing
 
-If recordings/audio files are not in `.wav` format they need to be converted:
+If you notice an error, please don't hesitate to open an issue.
+
+### Development setup
 
 ```sh
-sudo apt-get install ffmpeg -y
-# e.g., mp3 to wav conversion
-ffmpeg -i *.mp3 -acodec pcm_s16le -ar 22050 *.wav
+# update
+sudo apt update
+# install Python 3.8, 3.9, 3.10 & 3.11 for ensuring that tests can be run
+sudo apt install python3-pip \
+  python3.8 python3.8-dev python3.8-distutils python3.8-venv \
+  python3.9 python3.9-dev python3.9-distutils python3.9-venv \
+  python3.10 python3.10-dev python3.10-distutils python3.10-venv \
+  python3.11 python3.11-dev python3.11-distutils python3.11-venv
+# install pipenv for creation of virtual environments
+python3.8 -m pip install pipenv --user
+
+# check out repo
+git clone https://github.com/stefantaubert/textgrid-ipa.git
+cd textgrid-ipa
+# create virtual environment
+python3.8 -m pipenv install --dev
 ```
 
 ## Running the tests
 
 ```sh
-git clone https://github.com/stefantaubert/textgrid-ipa.git
+# first install the tool like in "Development setup"
+# then, navigate into the directory of the repo (if not already done)
 cd textgrid-ipa
-pip install .
-pip install tox
+# activate environment
+python3.8 -m pipenv shell
+# run tests
 tox
 ```
 
-## Contributing
+Final lines of test result output:
 
-If you notice an error, please don't hesitate to open an issue.
+```log
+  py38: commands succeeded
+  py39: commands succeeded
+  py310: commands succeeded
+  py311: commands succeeded
+  congratulations :)
+```
+
+## Troubleshooting
+
+If recordings/audio files are not in `.wav` format they need to be converted, e.g.:
+
+```sh
+sudo apt install ffmpeg -y
+# e.g., mp3 to wav conversion
+ffmpeg -i *.mp3 -acodec pcm_s16le -ar 22050 *.wav
+```
 
 ## License
 
