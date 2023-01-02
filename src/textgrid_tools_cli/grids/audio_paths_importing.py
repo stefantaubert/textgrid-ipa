@@ -31,9 +31,9 @@ def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
   flogger = get_file_logger()
 
   try:
-    text: str = ns.paths.read_text(ns.encoding)
+    text: str = ns.path.read_text(ns.encoding)
   except Exception as ex:
-    logger.error("PATHS couldn't be loaded.")
+    logger.error("PATH couldn't be loaded.")
     logger.exception(ex)
     return False, False
 
