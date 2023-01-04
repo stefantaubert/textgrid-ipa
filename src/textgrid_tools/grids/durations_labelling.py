@@ -117,9 +117,9 @@ def label_durations(grids: Dict[str, List[TextGrid]], tier_name: str, assign_tie
     f"{considered_intervals_sum} of {total_intervals_sum} intervals are considered (due to mark restrictions).")
   if range_mode != "absolute":
     logger.info(
-      f"{count_matching_intervals_sum} of {considered_intervals_sum} intervals are considered (due to count restriction)")
+      f"{count_matching_intervals_sum} of {considered_intervals_sum} intervals are considered (due to count restriction).")
   logger.info(
-    f"{duration_matching_intervals_sum} of {count_matching_intervals_sum} intervals are matching (due to duration restriction)")
+    f"{duration_matching_intervals_sum} of {count_matching_intervals_sum} intervals are matching (due to duration restriction).")
   if changed_intervals > 0:
     logger.info(f"Changed {changed_intervals_sum} interval marks.")
   else:
