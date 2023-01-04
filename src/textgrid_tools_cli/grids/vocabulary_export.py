@@ -11,9 +11,9 @@ from tqdm import tqdm
 from textgrid_tools.helper import get_all_intervals
 from textgrid_tools.validation import InvalidGridError, NotExistingTierError, ValidationError
 from textgrid_tools_cli.globals import ExecutionResult
-from textgrid_tools_cli.helper import (add_directory_argument, add_encoding_argument,
-                                       add_tiers_argument, get_grid_files, parse_path,
-                                       try_load_grid)
+from textgrid_tools_cli.helper import (ConvertToSetAction, add_directory_argument,
+                                       add_encoding_argument, add_tiers_argument, get_grid_files,
+                                       parse_path, try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
@@ -24,8 +24,8 @@ def get_vocabulary_export_parser(parser: ArgumentParser) -> Callable:
     parser, "tiers that contains the words as intervals; must not contain line breaks")
   parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="path to write the generated vocabulary")
-  parser.add_argument("--include-empty", action="store_true",
-                      help="include empty marker in vocabulary if any occurs")
+  parser.add_argument("--ignore", type=str, nargs="*",
+                      help="ignore these marks in vocabulary if they occur", action=ConvertToSetAction, default={"", " "})
   add_encoding_argument(parser, "OUTPUT encoding")
   return get_vocabulary_parsed
 
@@ -57,7 +57,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
     logger.error(error.default_message)
     return False, False
 
-  error, vocabulary = get_vocabulary(grids, ns.tiers, ns.include_empty, flogger)
+  error, vocabulary = get_vocabulary(grids, ns.tiers, ns.ignore, flogger)
 
   success = error is None
 
@@ -82,7 +82,7 @@ def get_vocabulary_parsed(ns: Namespace) -> ExecutionResult:
   return True, True
 
 
-def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], include_empty: bool, logger: Logger) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
+def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], ignore: Set[str], logger: Logger) -> Tuple[ValidationError, Optional[OrderedSet[str]]]:
   assert len(grids) > 0
   assert len(tier_names) > 0
 
@@ -110,8 +110,12 @@ def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], include_empty: b
     flogger.info(f"{mark}\t{count}x\t{count/total*100:.2f}%")
 
   all_marks = set(all_marks_counter.keys())
-  if not include_empty and "" in all_marks:
-    all_marks.remove("")
+  ignore_marks = all_marks.intersection(ignore)
+  if len(ignore_marks) > 0:
+    ignored_str = (f"\"{m}\"" for m in ignore_marks)
+    logger.info(f"Ignored these marks: {', '.join(ignored_str)}")
+    all_marks -= ignore_marks
+
   logger.debug(f"Retrieved {len(all_marks)} unique marks.")
   result = OrderedSet(sorted(all_marks))
   return None, result

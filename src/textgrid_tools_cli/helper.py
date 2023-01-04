@@ -79,6 +79,12 @@ class ConvertToOrderedSetAction(argparse._StoreAction):
     super().__call__(parser, namespace, values, option_string)
 
 
+class ConvertToSetAction(argparse._StoreAction):
+  def __call__(self, parser: argparse.ArgumentParser, namespace: argparse.Namespace, values: Optional[List], option_string: Optional[str] = None):
+    if values is not None:
+      values = set(values)
+    super().__call__(parser, namespace, values, option_string)
+
 def add_n_digits_argument(parser: ArgumentParser) -> None:
   parser.add_argument("--n-digits", type=int, default=16, metavar='COUNT',
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
