@@ -43,7 +43,7 @@ def get_grids_label_durations_parser(parser: ArgumentParser):
   parser.add_argument("--range-max", type=parse_non_negative_float, metavar="MAX-VALUE",
                       help="exclusive maximum; on percent/percentile in range (0, inf)", default=math.inf)
   parser.add_argument("--min-count", type=parse_positive_integer, metavar="MIN-COUNT",
-                      help="minimum count of a mark to occur (total occurrence, i.e., independent of range) before MARK will be assigned if RANGE-MODE is not absolute: on MARKS-MODE \"separate\" -> each mark is counted independently; on MARKS-MODE \"all\": all marks are counted together. This is useful if a mark only occurs once and MAX-VALUE is \"inf\" and in that case the mark should not be assigned then MIN-COUNT could be set to \"2\".", default=1)
+                      help="minimum count of a mark to occur (total occurrence in SCOPE, i.e., independent of range) before MARK will be assigned if RANGE-MODE is not absolute: on MARKS-MODE \"separate\" -> each mark is counted independently; on MARKS-MODE \"all\": all marks are counted together. This is useful if a mark only occurs once and MAX-VALUE is \"inf\" and in that case the mark should not be assigned then MIN-COUNT could be set to \"2\".", default=1)
   add_encoding_argument(parser)
   add_overwrite_argument(parser)
   # add_output_directory_argument(parser)
