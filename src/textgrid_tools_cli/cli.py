@@ -93,7 +93,7 @@ def get_intervals_parsers() -> Parsers:
   yield "fix-boundaries", "align boundaries of tiers according to a reference tier", get_boundary_fixing_parser
   yield "remove", "remove intervals", get_intervals_removing_parser
   yield "plot-durations", "plot durations", get_plot_interval_durations_parser
-  yield "join-between-pauses", "join intervals between pauses (LEGACY, please use join-between-marks)", get_between_pause_joining_parser
+  # yield "join-between-pauses", "join intervals between pauses (LEGACY, please use join-between-marks)", get_between_pause_joining_parser
   yield "replace-text", "replace text using regex pattern", get_text_replacement_parser
 
 

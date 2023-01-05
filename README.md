@@ -35,7 +35,6 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `transcribe`: transcribe words of tiers using a pronunciation dictionary
   - `remove`: remove tiers
   - `remove-symbols`: remove symbols from tiers
-  - `mark-silence`: mark silence intervals
 - tier
   - `rename`: rename tier
   - `clone`: clone tier
@@ -55,7 +54,6 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `fix-boundaries`: align boundaries of tiers according to a reference tier
   - `remove`: remove intervals
   - `plot-durations`: plot durations
-  - `join-between-pauses`: join intervals between pauses (LEGACY, please use join-between-marks)
   - `replace-text`: replace text using regex pattern
 
 ## Roadmap
