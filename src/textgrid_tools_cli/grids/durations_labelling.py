@@ -4,6 +4,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List
 from typing import OrderedDict as OrderedDictType
+from typing import cast
 
 from ordered_set import OrderedSet
 from textgrid import TextGrid
@@ -42,7 +43,7 @@ def get_grids_label_durations_parser(parser: ArgumentParser):
   parser.add_argument("--range-max", type=parse_non_negative_float, metavar="MAX-VALUE",
                       help="exclusive maximum; on percent/percentile in range (0, inf)", default=math.inf)
   parser.add_argument("--min-count", type=parse_positive_integer, metavar="MIN-COUNT",
-                      help="minimum count of a mark to occur before MARK will be assigned if RANGE-MODE is not absolute: on MARKS-MODE \"separate\" -> each mark is counted independently; on MARKS-MODE \"all\": all marks are counted together. This is useful if a mark only occurs once and MAX-VALUE is \"inf\" and in that case the mark should not be assigned then MIN-COUNT could be set to \"2\".", default=1)
+                      help="minimum count of a mark to occur (total occurrence, i.e., independent of range) before MARK will be assigned if RANGE-MODE is not absolute: on MARKS-MODE \"separate\" -> each mark is counted independently; on MARKS-MODE \"all\": all marks are counted together. This is useful if a mark only occurs once and MAX-VALUE is \"inf\" and in that case the mark should not be assigned then MIN-COUNT could be set to \"2\".", default=1)
   add_encoding_argument(parser)
   add_overwrite_argument(parser)
   # add_output_directory_argument(parser)
@@ -73,11 +74,11 @@ def app_label_durations(ns: Namespace) -> ExecutionResult:
   logger.info("Reading files...")
   for group_name, grids in tqdm(grids_to_groups.items()):
     for file_nr, (file_stem, rel_path) in enumerate(grids.items(), start=1):
-      flogger.info(f"Processing {file_stem}")
       if group_name is None:
         grid_file_in_abs = ns.directory / rel_path
       else:
         grid_file_in_abs = ns.directory / group_name / rel_path
+      flogger.info(f"Processing \"{cast(Path, grid_file_in_abs).relative_to(ns.directory)}\"")
       error, grid = try_load_grid(grid_file_in_abs, ns.encoding)
 
       if error:
