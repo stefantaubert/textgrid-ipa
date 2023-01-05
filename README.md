@@ -34,7 +34,6 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `apply-mapping`: apply mapping table to marks
   - `transcribe`: transcribe words of tiers using a pronunciation dictionary
   - `remove`: remove tiers
-  - `remove-symbols`: remove symbols from tiers
 - tier
   - `rename`: rename tier
   - `clone`: clone tier

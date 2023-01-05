@@ -68,7 +68,7 @@ def get_tiers_parsers() -> Parsers:
   yield "apply-mapping", "apply mapping table to marks", get_marks_mapping_parser
   yield "transcribe", "transcribe words of tiers using a pronunciation dictionary", get_transcription_parser
   yield "remove", "remove tiers", get_tiers_removing_parser
-  yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
+  # yield "remove-symbols", "remove symbols from tiers", get_symbol_removing_parser
   # yield "mark-silence", "mark silence intervals", get_label_silence_parser
 
 
