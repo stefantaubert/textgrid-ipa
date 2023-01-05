@@ -19,6 +19,8 @@ def get_text_replacement_parser(parser: ArgumentParser):
                       metavar="PATTERN", help="regex pattern")
   parser.add_argument("replace_with", type=str, metavar="REPLACE-WITH",
                       help="replace pattern with this text")
+  parser.add_argument("-m", "--mode", type=str, choices=["all", "begin", "end", "both"], metavar="MODE",
+                      help="mode to replace the intervals: all = matches on all locations; begin = only consecutive matches at begin; end = only consecutive matches at end; both = begin + end", default="all")
   add_encoding_argument(parser, "encoding of grids")
   add_output_directory_argument(parser)
   add_overwrite_argument(parser)
@@ -34,6 +36,7 @@ def replace_text_ns(ns: Namespace) -> ExecutionResult:
     replace_text,
     tier_names=ns.tiers,
     pattern=ns.pattern,
+    mode=ns.mode,
     replace_with=ns.replace_with,
   )
 

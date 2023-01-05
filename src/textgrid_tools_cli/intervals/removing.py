@@ -23,6 +23,7 @@ def get_removing_parser(parser: ArgumentParser):
   add_tier_argument(parser, "tier on which intervals should be removed")
   parser.add_argument("marks", type=str, nargs='+', metavar="MARK",
                       help="remove intervals containing these marks", action=ConvertToOrderedSetAction)
+  # TODO maybe remove because is redundant with `replace-text`
   parser.add_argument("-m", "--mode", type=str, choices=["all", "start", "end", "both"], metavar="MODE",
                       help="mode to remove the intervals: all = on all locations; start = only from start; end = only from end; both = start + end", default="all")
   parser.add_argument("--audio-directory", type=get_optional(parse_existing_directory), metavar='AUDIO-DIRECTORY',
