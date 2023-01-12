@@ -12,8 +12,8 @@ authors:
     affiliation: Chemnitz University of Technology
     orcid: 'https://orcid.org/0000-0002-4932-2874'
     website: 'https://stefantaubert.com/'
-version: 0.0.6
-date-released: 2022-12-23
+version: 0.0.7
+date-released: 2023-01-12
 license: MIT
 url: https://github.com/stefantaubert/textgrid-ipa
-doi: 10.5281/zenodo.7477341
+doi: 10.5281/zenodo.7528782
