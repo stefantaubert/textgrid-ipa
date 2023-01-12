@@ -152,7 +152,7 @@ def app_remove_intervals(ns: Namespace) -> ExecutionResult:
           continue
       elif ns.directory != output_directory:
         try:
-          copy_audio(audio_file_out_abs, audio_file_in_abs)
+          copy_audio(audio_file_in_abs, audio_file_out_abs)
         except Exception as ex:
           flogger.debug(ex)
           flogger.error("Audio couldn't be saved!")
