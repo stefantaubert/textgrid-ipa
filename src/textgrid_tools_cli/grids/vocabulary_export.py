@@ -113,9 +113,9 @@ def get_vocabulary(grids: List[TextGrid], tier_names: Set[str], ignore: Set[str]
   ignore_marks = all_marks.intersection(ignore)
   if len(ignore_marks) > 0:
     ignored_str = (f"\"{m}\"" for m in ignore_marks)
-    logger.info(f"Ignored these marks: {', '.join(ignored_str)}")
+    logger.info(f"Ignored these mark(s): {', '.join(ignored_str)}")
     all_marks -= ignore_marks
 
-  logger.debug(f"Retrieved {len(all_marks)} unique marks.")
+  logger.debug(f"Retrieved {len(all_marks)} unique mark(s).")
   result = OrderedSet(sorted(all_marks))
   return None, result
