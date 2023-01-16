@@ -1,11 +1,10 @@
-from tqdm import tqdm
-import os
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from shutil import copy
 from typing import cast
 
 from ordered_set import OrderedSet
+from tqdm import tqdm
 
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (add_encoding_argument, get_optional, parse_path,
