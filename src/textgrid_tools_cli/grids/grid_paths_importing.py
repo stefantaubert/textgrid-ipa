@@ -69,7 +69,7 @@ def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
       if ns.symlink:
         flogger.info(
           f"Creating symbolic link of \"{path.absolute()}\" at \"{target_path.absolute()}\"")
-        os.link(path, target_path, follow_symlinks=False)
+        os.symlink(path, target_path, target_is_directory=False)
       else:
         flogger.info(f"Copying \"{path.absolute()}\" to \"{target_path.absolute()}\"")
         copy(path, target_path)
