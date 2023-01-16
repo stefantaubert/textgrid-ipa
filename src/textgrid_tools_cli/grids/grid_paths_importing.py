@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import os
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -23,10 +24,10 @@ def get_grid_paths_importing_parser(parser: ArgumentParser):
   parser.add_argument("-s", "--symlink", action="store_true",
                       help="create symbolic links instead of copying")
   add_encoding_argument(parser, "PATHS encoding")
-  return export_grid_paths_ns
+  return import_grid_paths_ns
 
 
-def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
+def import_grid_paths_ns(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
   flogger = get_file_logger()
 
@@ -47,7 +48,7 @@ def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
   logger.info(f"Parsed {len(paths)} unique paths.")
 
   path: Path
-  for path in paths:
+  for path in tqdm(paths, desc="Importing", unit=" grid(s)"):
     target_dir = cast(Path, ns.output_directory)
     if not path.is_file():
       logger.error(f"Path \"{path}\" is no file.")
@@ -66,17 +67,29 @@ def export_grid_paths_ns(ns: Namespace) -> ExecutionResult:
 
     try:
       target_path.parent.mkdir(parents=True, exist_ok=True)
-      if ns.symlink:
+    except Exception as ex:
+      logger.error(f"Target directory \"{target_path.parent.absolute()}\" couldn't be created!")
+      logger.exception(ex)
+      return False, False
+
+    if ns.symlink:
+      try:
         flogger.info(
           f"Creating symbolic link of \"{path.absolute()}\" at \"{target_path.absolute()}\"")
         target_path.symlink_to(path, target_is_directory=False)
-      else:
+      except Exception as ex:
+        logger.error(
+          f"Couldn't create symbolic link from \"{path.absolute()}\" to \"{target_path.absolute()}\"!")
+        logger.exception(ex)
+        return False, False
+    else:
+      try:
         flogger.info(f"Copying \"{path.absolute()}\" to \"{target_path.absolute()}\"")
         copy(path, target_path)
-    except Exception as ex:
-      logger.error(f"Couldn't copy \"{path.absolute()}\" to \"{target_path.absolute()}\"!")
-      logger.exception(ex)
-      return False, False
+      except Exception as ex:
+        logger.error(f"Couldn't copy \"{path.absolute()}\" to \"{target_path.absolute()}\"!")
+        logger.exception(ex)
+        return False, False
 
   logger.info(f"Imported {len(paths)} path(s) to: \"{ns.output_directory.absolute()}\".")
 
