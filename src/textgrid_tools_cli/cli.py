@@ -211,7 +211,7 @@ def parse_args(args: List[str]) -> None:
     flogger.debug(f"Total duration (s): {duration}")
 
     if log_to_file:
-      logger.info(f"Written log to: {ns.log.absolute()}")
+      logger.info(f"Written log to: \"{ns.log.absolute()}\".")
 
     if not success:
       sys.exit(1)
