@@ -1,6 +1,6 @@
 import io
 import logging
-from collections import Counter
+from collections import Counter, OrderedDict
 from logging import Logger, getLogger
 from typing import Dict, List, Optional, Tuple, cast
 
@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import FixedLocator
+from scipy.stats import kurtosis
 from textgrid import TextGrid
 from textgrid.textgrid import TextGrid
 from tqdm import tqdm
@@ -54,14 +55,46 @@ def print_stats(grids: List[TextGrid], logger: Optional[Logger]) -> Tuple[Execut
       vocabulary = [interval.mark for interval in tier.intervals]
       intervals_vocabulary[tier.name].extend(vocabulary)
 
-  total_duration = sum(durations)
-  logger.info(
-    f"Total duration: {total_duration:.2f}s / {total_duration/60:.2f}min / {total_duration/60/60:.2f}h")
+  durations_df = get_durations_df(np.array(durations))
+  with pd.option_context(
+    'display.max_rows', None,
+    'display.max_columns', None,
+    "display.width", None,
+    "display.precision", 4):
+    logger.info(f"Grid duration statistics:\n{durations_df.to_string(index=False)}")
 
   mark_log = print_mark_stats(intervals_vocabulary)
   fig = get_durations_fig(intervals_durations, durations)
 
   return (None, False), fig, mark_log
+
+
+def get_durations_df(durations: np.ndarray) -> pd.DataFrame:
+  col_count = "#Grids"
+  col_min = "Min (s)"
+  col_median = "Median (s)"
+  col_max = "Max (s)"
+  col_mean = "Mean (s)"
+  col_sd = "SD (s)"
+  col_kurt = "Kurt (s)"
+  col_sum_s = "Sum (s)"
+  col_sum_min = "Sum (min)"
+  col_sum_h = "Sum (h)"
+
+  data = OrderedDict((
+    (col_count, len(durations)),
+    (col_min, np.min(durations)),
+    (col_median, np.median(durations)),
+    (col_max, np.max(durations)),
+    (col_mean, np.mean(durations)),
+    (col_sd, np.std(durations)),
+    (col_kurt, kurtosis(durations)),
+    (col_sum_s, np.sum(durations)),
+    (col_sum_min, np.sum(durations) / 60),
+    (col_sum_h, np.sum(durations) / 3600),
+  ))
+  result = pd.DataFrame.from_records([data])
+  return result
 
 
 def print_mark_stats(vocabulary: Dict[str, List[str]]) -> str:
