@@ -22,10 +22,10 @@ def get_audio_paths_exporting_parser(parser: ArgumentParser):
 def export_audio_paths_ns(ns: Namespace) -> ExecutionResult:
   logger = init_and_get_console_logger(__name__)
 
-  grid_files = get_audio_files(ns.directory)
+  audio_files = get_audio_files(ns.directory)
 
   paths: List[str] = []
-  for file_nr, (file_stem, rel_path) in enumerate(tqdm(grid_files.items()), start=1):
+  for file_nr, (file_stem, rel_path) in enumerate(tqdm(audio_files.items()), start=1):
     audio_file_in_abs: Path = ns.directory / rel_path
     paths.append(str(audio_file_in_abs.absolute()))
 

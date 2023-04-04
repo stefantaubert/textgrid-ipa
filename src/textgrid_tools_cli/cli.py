@@ -14,7 +14,7 @@ from textgrid_tools_cli import *
 from textgrid_tools_cli.grids.audio_paths_exporting import get_audio_paths_exporting_parser
 from textgrid_tools_cli.grids.audio_paths_importing import get_audio_paths_importing_parser
 from textgrid_tools_cli.grids.durations_labelling import get_grids_label_durations_parser
-from textgrid_tools_cli.grids.grid_durations_exporting import get_grid_durations_exporting_parser
+from textgrid_tools_cli.grids.grid_durations_exporting import get_durations_exporting_parser
 from textgrid_tools_cli.grids.grid_paths_exporting import get_grid_paths_exporting_parser
 from textgrid_tools_cli.grids.grid_paths_importing import get_grid_paths_importing_parser
 from textgrid_tools_cli.grids.pronunciations_exporting import get_pronunciations_exporting_parser
@@ -50,7 +50,7 @@ def get_grids_parsers() -> Parsers:
   yield "plot-stats", "plot statistics", get_grids_plot_stats_parser
   yield "export-vocabulary", "export vocabulary out of multiple grid files", get_vocabulary_export_parser
   yield "export-marks", "exports marks of a tier to a file", get_marks_exporting_parser
-  yield "export-durations", "exports durations of grids to a file", get_grid_durations_exporting_parser
+  yield "export-durations", "exports durations of grids to a file", get_durations_exporting_parser
   yield "export-paths", "exports grid paths to a file", get_grid_paths_exporting_parser
   yield "export-audio-paths", "exports audio paths to a file", get_audio_paths_exporting_parser
   yield "import-paths", "import grids from paths written in a file", get_grid_paths_importing_parser
