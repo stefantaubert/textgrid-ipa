@@ -51,7 +51,6 @@ def import_grid_paths_ns(ns: Namespace) -> ExecutionResult:
     target_dir = cast(Path, ns.output_directory)
     if not path.is_file():
       logger.error(f"Path \"{path}\" is no file.")
-      logger.exception(ex)
       return False, False
 
     if ns.relative_to is None:
