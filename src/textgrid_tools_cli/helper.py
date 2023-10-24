@@ -85,6 +85,7 @@ class ConvertToSetAction(argparse._StoreAction):
       values = set(values)
     super().__call__(parser, namespace, values, option_string)
 
+
 def add_n_digits_argument(parser: ArgumentParser) -> None:
   parser.add_argument("--n-digits", type=int, default=16, metavar='COUNT',
                       choices=range(17), help="precision of the grids (max count of digits after the comma)")
@@ -306,7 +307,7 @@ def try_load_grid(path: Path, encoding: str = "UTF-8") -> Tuple[Optional[GridCou
   try:
     grid_in = read_file_faster(path, encoding)
   except Exception as ex:
-    #logger = getLogger(__name__)
+    # logger = getLogger(__name__)
     # logger.debug(ex)
     return GridCouldNotBeLoadedError(path, ex), None
   return None, grid_in
@@ -335,14 +336,14 @@ def save_grid(path: Path, grid: TextGrid, encoding: str = "UTF-8") -> None:
 
 
 def copy_grid(grid_in: Path, grid_out: Path) -> None:
-  #logger = getLogger(__name__)
-  #logger.debug("Copying grid...")
+  # logger = getLogger(__name__)
+  # logger.debug("Copying grid...")
   copy_file(grid_in, grid_out)
 
 
 def copy_audio(audio_in: Path, audio_out: Path) -> None:
-  #logger = getLogger(__name__)
-  #logger.debug("Copying audio...")
+  # logger = getLogger(__name__)
+  # logger.debug("Copying audio...")
   copy_file(audio_in, audio_out)
 
 
@@ -352,8 +353,8 @@ def copy_file(file_in: Path, file_out: Path) -> None:
 
 
 def save_text(path: Path, text: str, encoding: str) -> None:
-  #logger = getLogger(__name__)
-  #logger.debug("Saving text...")
+  # logger = getLogger(__name__)
+  # logger.debug("Saving text...")
   path.parent.mkdir(parents=True, exist_ok=True)
   path.write_text(text, encoding=encoding)
 
