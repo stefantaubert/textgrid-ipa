@@ -13,6 +13,7 @@ from typing import Callable, Dict, Generator, List, Tuple
 from textgrid_tools_cli import *
 from textgrid_tools_cli.grids.audio_paths_exporting import get_audio_paths_exporting_parser
 from textgrid_tools_cli.grids.audio_paths_importing import get_audio_paths_importing_parser
+from textgrid_tools_cli.grids.boundary_comparison import get_boundary_comparison_parser
 from textgrid_tools_cli.grids.durations_labelling import get_grids_label_durations_parser
 from textgrid_tools_cli.grids.grid_durations_exporting import get_durations_exporting_parser
 from textgrid_tools_cli.grids.grid_paths_exporting import get_grid_paths_exporting_parser
@@ -55,6 +56,7 @@ def get_grids_parsers() -> Parsers:
   yield "export-audio-paths", "exports audio paths to a file", get_audio_paths_exporting_parser
   yield "import-paths", "import grids from paths written in a file", get_grid_paths_importing_parser
   yield "import-audio-paths", "import audio files from paths written in a file", get_audio_paths_importing_parser
+  yield "compare-interval-boundaries", "compare interval boundaries", get_boundary_comparison_parser
 
 
 def get_grid_parsers() -> Parsers:
