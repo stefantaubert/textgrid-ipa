@@ -65,8 +65,9 @@ def main(ns: Namespace) -> ExecutionResult:
   if not success:
     logger.error(error.default_message)
     return False, False
-
-  res_df = compare_multiple_grids(grids, ns.tier, ns.ignore, ns.limits)
+  
+  print(f"Found {len(grids)} grid pairs.")
+  res_df, ref_fig = compare_multiple_grids(grids, ns.tier, ns.ignore, ns.limits)
 
   success = error is None
 
@@ -81,7 +82,15 @@ def main(ns: Namespace) -> ExecutionResult:
     logger.error("Saving of output was not successful!")
     logger.debug(ex)
     return False, True
+  try:
+    ref_fig.savefig(str(ns.output) + ".png")
+    ref_fig.savefig(str(ns.output) + ".pdf")
+  except Exception as ex:
+    logger.error("Saving of output image was not successful!")
+    logger.debug(ex)
+    return False, True
 
   logger.info(f"Exported statistics to: \"{ns.output.absolute()}\".")
+  logger.info(f"Exported statistics to: \"{ns.output.absolute()}.png\".")
 
   return True, True
