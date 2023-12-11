@@ -1,5 +1,6 @@
 import argparse
 import codecs
+import json
 import os
 import re
 from argparse import ArgumentParser, ArgumentTypeError
@@ -8,7 +9,7 @@ from functools import partial
 from os import cpu_count
 from pathlib import Path
 from shutil import copy
-from typing import Callable, Generator, List, Optional
+from typing import Callable, Dict, Generator, List, Optional
 from typing import OrderedDict as OrderedDictType
 from typing import Set, Tuple, TypeVar
 
@@ -152,6 +153,16 @@ def parse_codec(value: str) -> str:
   except LookupError as error:
     raise ArgumentTypeError("Codec was not found!") from error
   return value
+
+
+def parse_json(value: str) -> Dict:
+  path = parse_path(value)
+  try:
+    with open(path, mode="r", encoding="utf-8") as file:
+      result = json.load(file)
+  except Exception as ex:
+    raise ArgumentTypeError("JSON couldn't be parsed!") from ex
+  return result
 
 
 def parse_path(value: str) -> Path:

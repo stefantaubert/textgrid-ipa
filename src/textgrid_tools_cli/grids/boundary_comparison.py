@@ -9,8 +9,8 @@ from textgrid_tools.grids.boundary_comparison import compare_multiple_grids
 from textgrid_tools_cli.globals import ExecutionResult
 from textgrid_tools_cli.helper import (ConvertToSetAction, add_directory_argument,
                                        add_encoding_argument, add_tier_argument, get_grid_files,
-                                       get_optional, parse_existing_directory, parse_path,
-                                       parse_positive_float, try_load_grid, try_save_grid)
+                                       get_optional, parse_existing_directory, parse_json,
+                                       parse_path, parse_positive_float, try_load_grid)
 from textgrid_tools_cli.logging_configuration import get_file_logger, init_and_get_console_logger
 
 
@@ -24,7 +24,8 @@ def get_boundary_comparison_parser(parser: ArgumentParser) -> Callable:
                       help="file to write the generated statistics (.csv)")
   parser.add_argument("--limits", type=get_optional(parse_positive_float), metavar="DURATION", nargs="*",                      help="limits that should be calculated (ms)", default={10, 20, 30}, action=ConvertToSetAction)
   parser.add_argument(
-    "--ignore", type=str, help="ignore these marks", metavar="MARK", default={""}, action=ConvertToSetAction)
+    "--ignore", type=str, help="ignore these marks", metavar="MARK", default={""}, nargs="*", action=ConvertToSetAction)
+  parser.add_argument("--extra-groups", type=get_optional(parse_json), metavar="EXTRA-GROUP-JSON", help="add evaluation of these groups (keys=group name, values=list of marks)")
   add_encoding_argument(parser)
   return main
 
@@ -67,7 +68,8 @@ def main(ns: Namespace) -> ExecutionResult:
     return False, False
   
   print(f"Found {len(grids)} grid pairs.")
-  res_df, ref_fig = compare_multiple_grids(grids, ns.tier, ns.ignore, ns.limits)
+  extra_groups = ns.extra_groups if ns.extra_groups else {}
+  res_df, ref_fig = compare_multiple_grids(grids, ns.tier, ns.ignore, ns.limits, extra_groups)
 
   success = error is None
 
