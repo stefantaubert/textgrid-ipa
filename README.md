@@ -25,6 +25,7 @@ Command-line interface (CLI) to modify TextGrids and their corresponding audio f
   - `export-audio-paths`: exports audio paths to a file
   - `import-paths`: import grids from paths written in a file
   - `import-audio-paths`: import audio files from paths written in a file
+  - `compare-interval-boundaries`: compare interval boundaries
 - grid
   - `create`: convert text files to grid files
   - `sync`: synchronize grid minTime and maxTime according to the corresponding audio file
@@ -106,12 +107,13 @@ If you notice an error, please don't hesitate to open an issue.
 ```sh
 # update
 sudo apt update
-# install Python 3.8, 3.9, 3.10 & 3.11 for ensuring that tests can be run
+# install Python 3.8-3.12 for ensuring that tests can be run
 sudo apt install python3-pip \
   python3.8 python3.8-dev python3.8-distutils python3.8-venv \
   python3.9 python3.9-dev python3.9-distutils python3.9-venv \
   python3.10 python3.10-dev python3.10-distutils python3.10-venv \
-  python3.11 python3.11-dev python3.11-distutils python3.11-venv
+  python3.11 python3.11-dev python3.11-distutils python3.11-venv \
+  python3.12 python3.12-dev python3.12-distutils python3.12-venv
 # install pipenv for creation of virtual environments
 python3.8 -m pip install pipenv --user
 
@@ -137,11 +139,12 @@ tox
 Final lines of test result output:
 
 ```log
-  py38: commands succeeded
-  py39: commands succeeded
-  py310: commands succeeded
-  py311: commands succeeded
-  congratulations :)
+py38: commands succeeded
+py39: commands succeeded
+py310: commands succeeded
+py311: commands succeeded
+py312: commands succeeded
+congratulations :)
 ```
 
 ## Troubleshooting
