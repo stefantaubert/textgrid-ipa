@@ -139,8 +139,8 @@ def get_df_from_diffs(diffs: Dict[str, List[float]], limits_ms_excl: Set[float],
     row["Occurrences"] = np.sum([r["Occurrences"] for r in rs])
     row["MeanDurA"] = np.mean([duration for m in unique_marks for duration in durations1[m]])
     row["MeanDurB"] = np.mean([duration for m in unique_marks for duration in durations2[m]])
-    row["MinDiff"] = np.min([r["MinDiff"] for r in rs])
-    row["MaxDiff"] = np.max([r["MaxDiff"] for r in rs])
+    row["MinDiff"] = np.min([r["MinDiff"] for r in rs]) if len(rs) > 0 else np.nan
+    row["MaxDiff"] = np.max([r["MaxDiff"] for r in rs]) if len(rs) > 0 else np.nan
     row["MedianDiff"] = np.median([diff for m in unique_marks for diff in diffs[m]])
     row["MeanDiff"] = np.mean([diff for m in unique_marks for diff in diffs[m]])
     row["MeanDiffStd"] = np.std([diff for m in unique_marks for diff in diffs[m]])
