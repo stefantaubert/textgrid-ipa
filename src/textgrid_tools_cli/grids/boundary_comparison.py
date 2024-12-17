@@ -19,14 +19,21 @@ def get_boundary_comparison_parser(parser: ArgumentParser) -> Callable:
   add_directory_argument(parser)
   parser.add_argument("comparison_directory", type=parse_existing_directory, metavar="COMPARISON-DIRECTORY",
                       help="directory with the grid files that should be compared")
-  add_tier_argument(parser, help_str="name of the tier, that contain the intervals that should be compared")
+  add_tier_argument(
+    parser, help_str="name of the tier, that contain the intervals that should be compared")
   parser.add_argument("output", type=parse_path, metavar="OUTPUT",
                       help="file to write the generated statistics (.csv)")
-  parser.add_argument("--limits", type=get_optional(parse_positive_float), metavar="DURATION", nargs="*",                      help="limits that should be calculated (ms)", default={10, 20, 30}, action=ConvertToSetAction)
+  parser.add_argument("--limits", type=get_optional(parse_positive_float), metavar="DURATION", nargs="*",
+                      help="limits that should be calculated (ms)", default={10, 20, 30}, action=ConvertToSetAction)
   parser.add_argument(
     "--ignore", type=str, help="ignore these marks", metavar="MARK", default={""}, nargs="*", action=ConvertToSetAction)
-  parser.add_argument("--extra-groups", type=get_optional(parse_json), metavar="EXTRA-GROUP-JSON", help="add evaluation of these groups (keys=group name, values=list of marks)")
+  parser.add_argument("--extra-groups", type=get_optional(parse_json), metavar="EXTRA-GROUP-JSON",
+                      help="add evaluation of these groups (keys=group name, values=list of marks)")
+  parser.add_argument("--ignore-zero-differences", action="store_true",
+                      help="ignore zero differences in the statistics")
+
   add_encoding_argument(parser)
+
   return main
 
 
@@ -47,10 +54,10 @@ def main(ns: Namespace) -> ExecutionResult:
       flogger.error(error.default_message)
       flogger.info("Skipped.")
       continue
-    
+
     grid_file2_in_abs = ns.comparison_directory / rel_path
     error, grid2 = try_load_grid(grid_file2_in_abs, ns.encoding)
-    
+
     if error:
       flogger.debug(error.exception)
       flogger.error(error.default_message)
@@ -66,10 +73,11 @@ def main(ns: Namespace) -> ExecutionResult:
   if not success:
     logger.error(error.default_message)
     return False, False
-  
+
   print(f"Found {len(grids)} grid pairs.")
   extra_groups = ns.extra_groups if ns.extra_groups else {}
-  res_df, ref_fig = compare_multiple_grids(grids, ns.tier, ns.ignore, ns.limits, extra_groups)
+  res_df, ref_fig = compare_multiple_grids(
+    grids, ns.tier, ns.ignore, ns.limits, extra_groups, not ns.ignore_zero_differences)
 
   success = error is None
 
